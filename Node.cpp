@@ -4,40 +4,37 @@
 
 Node::Node(Node *parent, int id, bool isLeaf)
 {
-	left = right = NULL;
-	this->parent = parent;
 	if (parent)
 	{
-		if (!parent->left)
-			parent->left = this;
-		else if (!parent->right)
-			parent->right = this;
-		else
+		if (parent->neighbours.size() >= 3)
 		{
-			if (!parent->parent) // this is the "root" in an unrooted tree
-			{
-				parent->parent = this;
-			} else
-			{
-				cerr << "Error: parent node #" << parent->id << " already has two childs: #" << parent->left->id << "," << parent->right->id << endl;
-			}
+			cerr << "Error: parent of node #" << id << " (node #" << parent->id << ") already has " << parent->neighbours.size() << " neighbours." << endl;
 		}
+		parent->neighbours.push_back(this);
+		neighbours.push_back(parent);
 	}
 
 	this->id = id;
 	this->isLeaf = isLeaf;
 }
 
-string Node::toString()
+string Node::toString(Node *parent)
 {
 	if (isLeaf)
 		return label;
 
-	string result = "(";
+	vector <Node*> list;
+	for (unsigned int i=0; i<neighbours.size(); i++)
+		if (neighbours[i] != parent)
+			list.push_back(neighbours[i]);
 
-	result+= left->toString();
-	result+= ",";
-	result+= right->toString();
+	string result = "(";
+	for (unsigned int i=0; i<list.size()-1; i++)
+	{
+		result+= list[i]->toString(this);
+		result+= ",";
+	}
+	result+= list[list.size()-1]->toString(this);
 	result+= ")";
 	result+= label;
 

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cctype>
 #include <vector>
+#include <sstream>
 
 Tree::Tree()
 {
@@ -59,73 +60,67 @@ void Tree::readNewick(string fileName)
 
 	unsigned int i = 0;
 	unsigned int nodeCount = 0;
-	Node *lastInternalNode, *currentNode;
-	lastInternalNode = currentNode = NULL;
-	string name;
+	Node *prevInternalNode, *currentNode;
+	prevInternalNode = currentNode = NULL;
+	string label;
+	double distance = -1.0;
+	bool nextCouldBeLeaf = false;
 	while (i < treeStr.length() && treeStr[i] != ';')
 	{
 		if (treeStr[i] == '(') // internal node starts
 		{
 			cout << "Internal Node #" << nodeCount << " starts" << endl;
 			currentNode = new Node(currentNode, nodeCount, false);
-			lastInternalNode = currentNode;
-			nodeCount++;
-			i++;
-		} else
-		if (treeStr[i] == ')') // internal node ends
-		{
-			if (!currentNode->right) // the right child must have been a leaf
-			{
-				cout << "  Leaf #" << nodeCount << " (" << name << ")" << endl;
-				Node *leaf = new Node(currentNode,  nodeCount, true);
-				nodeCount++;
-				leaf->setLabel(name);
-				leaves.push_back(leaf);
-			} else // that label belongs to the previous internal node
-			{
-				lastInternalNode->setLabel(name);
-				name = "";
-			}
-
-			cout << "Internal Node #" << currentNode->id << " ends" << endl;
-
-			if (!currentNode->left)
-				cerr << "Error: Internal node has no left child !" << endl;
 			internalNodes.push_back(currentNode);
-			lastInternalNode = currentNode;
-			currentNode = currentNode->parent;
+			nodeCount++;
+			nextCouldBeLeaf = true;
 			i++;
-		} else
-		if (treeStr[i] == ',') // the 2nd or 3rd child starts here
+		} else if (treeStr[i] == ')' || treeStr[i] == ',') // node ends, could be internal or leaf
 		{
-			if (!currentNode->left) // the 1st child must have been a leaf
+			if (nextCouldBeLeaf)
 			{
-				cout << "  Leaf #" << nodeCount << " (" << name << ")" << endl;
+				cout << "  Leaf #" << nodeCount << " (" << label << ") " << distance << endl;
 				Node *leaf = new Node(currentNode,  nodeCount, true);
-				nodeCount++;
-				leaf->setLabel(name);
+				leaf->setLabel(label);
+				label = "";
 				leaves.push_back(leaf);
-			} else if (!currentNode->right) // the 2nd child must have been a leaf and this is the root
+				nodeCount++;
+			} else
 			{
-					cout << "  Leaf #" << nodeCount << " (" << name << ")" << endl;
-					Node *leaf = new Node(currentNode,  nodeCount, true);
-					nodeCount++;
-					leaf->setLabel(name);
-					leaves.push_back(leaf);
+				prevInternalNode->setLabel(label);
+				cout << label << " " << distance << endl;
+				label = "";
+			}
+
+			if  (treeStr[i] == ')') // internal node
+			{
+				cout << "Internal Node #" << currentNode->id << " ends " << endl;
+				prevInternalNode = currentNode;
+				currentNode = currentNode->neighbours[0];
+				nextCouldBeLeaf=false;
+			} else // node will follow, could be a leaf
+			{
+				nextCouldBeLeaf=true;
 			}
 			i++;
+		} else if (treeStr[i] == ':') // distance for last node
+		{
+			int j=treeStr.find_first_of(",():;", i+1);
+			stringstream ss(treeStr.substr(i+1, j-i-1));
+			ss >> distance;
+			i = j;
 		}
 
 		if (isalpha(treeStr[i])) // this is a label
 		{
 			int j=treeStr.find_first_of(",():;", i+1);
-			name = treeStr.substr(i, j-i);
+			label = treeStr.substr(i, j-i);
 			i = j;
 		}
 	}
 
-	lastInternalNode->setLabel(name);
-	root = lastInternalNode;
+	root = prevInternalNode;
+	root->setLabel(label);
 
 	cout << "The tree has " << internalNodes.size() << " internal nodes and " << leaves.size() << " leaves." << endl;
 }
@@ -135,9 +130,12 @@ void Tree::print()
 	for (unsigned int i=0; i<internalNodes.size(); i++)
 	{
 		Node *root = internalNodes[i];
+		cout << root->toString(NULL) << ";" << endl;
+/*
 		string children = root->toString();
 		string parent = root->parent->toString();
-
 		cout << children.substr(0, children.find_last_of(')')) << "," << parent << ")" << root->getLabel() << ";" << endl;
+*/
+
 	}
 }

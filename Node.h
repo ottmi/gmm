@@ -2,6 +2,7 @@
 #define NODE_H_
 
 #include <string>
+#include <vector>
 using namespace std;
 
 class Node
@@ -13,11 +14,9 @@ public:
 
 	void setLabel(string label) { this->label = label; };
 	string& getLabel() { return label; };
-	string toString();
+	string toString(Node *parent);
 
-	Node *left;
-	Node *right;
-	Node *parent;
+	vector <Node*> neighbours;
 	bool isLeaf;
 	int id;
 

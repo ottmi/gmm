@@ -1,141 +1,145 @@
 #include "Tree.h"
-#include "Node.h"
+#include "Branch.h"
+#include "helper.h"
+#include "globals.h"
 #include <iostream>
 #include <fstream>
 #include <cctype>
 #include <vector>
 #include <sstream>
 
+
+
 Tree::Tree()
 {
-	// TODO Auto-generated constructor stub
-
+	_nodeCount = 0;
 }
+
+
 
 Tree::~Tree()
 {
 	// TODO Auto-generated destructor stub
 }
 
-istream& safeGetline(istream& is, string& t)
+
+
+void Tree::readNewick(string &treeString, Alignment &alignment)
 {
-	/* Courtesy of http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf */
-    t.clear();
-    istream::sentry se(is);
-    streambuf* sb = is.rdbuf();
-
-    for(;;) {
-        int c = sb->sbumpc();
-        switch (c) {
-        case '\r':
-            c = sb->sgetc();
-            if(c == '\n')
-                sb->sbumpc();
-            return is;
-        case '\n':
-        case EOF:
-            return is;
-        default:
-            t += (char)c;
-        }
-    }
-}
-
-void Tree::readNewick(string fileName)
-{
-/*
-	cout << "readNewick(" << fileName << ")" << endl;
-
-	ifstream _fileReader;
-	_fileReader.open(fileName.c_str());
-	if (! _fileReader.is_open())
-		throw("\n\nError, cannot open file " + fileName );
-
-	string str;
-	safeGetline(_fileReader, str);
-	_fileReader.close();
-*/
-	string treeStr = fileName;
-	cout << "Tree: " << treeStr << endl;
+	cout << "Tree: " << treeString << endl;
 
 	unsigned int i = 0;
-	unsigned int nodeCount = 0;
 	Node *prevInternalNode, *currentNode;
 	prevInternalNode = currentNode = NULL;
 	string label;
 	double distance = -1.0;
 	bool nextCouldBeLeaf = false;
-	while (i < treeStr.length() && treeStr[i] != ';')
+
+	while (i < treeString.length() && treeString[i] != ';')
 	{
-		if (treeStr[i] == '(') // internal node starts
+		if (treeString[i] == '(') // internal node starts
 		{
-			cout << "Internal Node #" << nodeCount << " starts" << endl;
-			currentNode = new Node(currentNode, nodeCount, false);
-			internalNodes.push_back(currentNode);
-			nodeCount++;
+			//cout << "Internal Node #" << _internalNodes.size() << " starts" << endl;
+			currentNode = new Node(currentNode, _nodeCount++, -1);
+			_internalNodes.push_back(currentNode);
+			Branch *branch = currentNode->getBranch(0);
+			if (branch)
+				_branches.push_back(branch);
 			nextCouldBeLeaf = true;
 			i++;
-		} else if (treeStr[i] == ')' || treeStr[i] == ',') // node ends, could be internal or leaf
+		} else if (treeString[i] == ')' || treeString[i] == ',') // node ends, could be internal or leaf
 		{
 			if (nextCouldBeLeaf)
 			{
-				cout << "  Leaf #" << nodeCount << " (" << label << ") " << distance << endl;
-				Node *leaf = new Node(currentNode,  nodeCount, true);
+//				cout << "  Leaf #" << _leaves.size() << " (" << label << ") " << distance << endl;
+				int alignmentId = alignment.find(label);
+				if (alignmentId < 0)
+					throw("The alignment contains no sequence \"" + label + "\"");
+
+				Node *leaf = new Node(currentNode, _nodeCount++, alignmentId);
 				leaf->setLabel(label);
-				label = "";
-				leaves.push_back(leaf);
-				nodeCount++;
+				Branch *branch = leaf->getBranch(0);
+				branch->setDistance(distance);
+				_branches.push_back(branch);
+				_leaves.push_back(leaf);
 			} else
 			{
 				prevInternalNode->setLabel(label);
-				cout << label << " " << distance << endl;
-				label = "";
+				Branch *branch = prevInternalNode->getBranch(0);
+				branch->setDistance(distance);
 			}
 
-			if  (treeStr[i] == ')') // internal node
+			if  (treeString[i] == ')') // internal node
 			{
-				cout << "Internal Node #" << currentNode->id << " ends " << endl;
+//				cout << "Internal Node #" << currentNode->getId() << " ends " << endl;
 				prevInternalNode = currentNode;
-				currentNode = currentNode->neighbours[0];
+				currentNode = currentNode->getParent();
 				nextCouldBeLeaf=false;
 			} else // node will follow, could be a leaf
 			{
 				nextCouldBeLeaf=true;
 			}
 			i++;
-		} else if (treeStr[i] == ':') // distance for last node
+		} else if (treeString[i] == ':') // distance for last node
 		{
-			int j=treeStr.find_first_of(",():;", i+1);
-			stringstream ss(treeStr.substr(i+1, j-i-1));
+			int j=treeString.find_first_of(",():;", i+1);
+			stringstream ss(treeString.substr(i+1, j-i-1));
 			ss >> distance;
 			i = j;
 		}
 
-		if (isalpha(treeStr[i])) // this is a label
+		if (isalpha(treeString[i])) // this is a label
 		{
-			int j=treeStr.find_first_of(",():;", i+1);
-			label = treeStr.substr(i, j-i);
+			int j=treeString.find_first_of(",():;", i+1);
+			label = treeString.substr(i, j-i);
 			i = j;
 		}
 	}
 
-	root = prevInternalNode;
-	root->setLabel(label);
+	_root = prevInternalNode;
+	_root->setLabel(label);
 
-	cout << "The tree has " << internalNodes.size() << " internal nodes and " << leaves.size() << " leaves." << endl;
+	cout << "The tree has " << _internalNodes.size() << " internal nodes, " << _leaves.size() << " leaves and " << _branches.size() << " branches." << endl;
+	if (alignment.getRows() != (int) _leaves.size())
+	{
+		stringstream ss;
+		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << alignment.getRows() << ") do not match";
+		throw(ss.str());
+	}
 }
+
+
+
+void Tree::readNewickFromFile(string &fileName, Alignment &alignment)
+{
+	cout << "readNewick(" << fileName << ")" << endl;
+
+	ifstream fileReader;
+	fileReader.open(fileName.c_str());
+	if (! fileReader.is_open())
+		throw("Cannot open file " + fileName );
+
+	string str;
+	safeGetline(fileReader, str);
+	fileReader.close();
+	readNewick(str, alignment);
+}
+
+
+
+void Tree::computeLH()
+{
+	vector<Node*> traversal = _leaves[0]->getTraversal();
+	for (unsigned int i=0; i<traversal.size(); i++)
+		cout << traversal[i]->getIdent() << endl;
+}
+
+
 
 void Tree::print()
 {
-	for (unsigned int i=0; i<internalNodes.size(); i++)
+	for (unsigned int i=0; i<_internalNodes.size(); i++)
 	{
-		Node *root = internalNodes[i];
-		cout << root->toString(NULL) << ";" << endl;
-/*
-		string children = root->toString();
-		string parent = root->parent->toString();
-		cout << children.substr(0, children.find_last_of(')')) << "," << parent << ")" << root->getLabel() << ";" << endl;
-*/
-
+		cout << _internalNodes[i]->toString() << ";" << endl;
 	}
 }

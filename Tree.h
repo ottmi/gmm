@@ -1,15 +1,9 @@
-/*
- * Tree.h
- *
- *  Created on: 15/07/2011
- *      Author: ott029
- */
-
 #ifndef TREE_H_
 #define TREE_H_
 #include <string>
 #include <vector>
 #include "Node.h"
+#include "Alignment.h"
 
 using namespace std;
 
@@ -20,12 +14,16 @@ public:
 	virtual
 	~Tree();
 
-	void readNewick(string fileName);
+	void readNewick(string &treeString, Alignment &alignment);
+	void readNewickFromFile(string &fileName, Alignment &alignment);
+	void computeLH();
 	void print();
 private:
-	Node *root;
-	vector<Node*> leaves;
-	vector<Node*> internalNodes;
+	Node *_root;
+	vector<Node*> _leaves;
+	vector<Node*> _internalNodes;
+	vector<Branch*> _branches;
+	unsigned int _nodeCount;
 
 };
 

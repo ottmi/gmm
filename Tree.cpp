@@ -139,7 +139,20 @@ void Tree::computeLH()
 	for (unsigned int i=0; i<traversal.size(); i++)
 		cout << traversal[i]->getIdent() << endl;
 */
-	_internalNodes[1]->computeValuesIntToInt(_numOfSites);
+//	_internalNodes[1]->computeValuesIntToInt(_numOfSites);
+
+	cout << endl << "Root" << endl;
+	_root->computeValuesRootToInt(_numOfSites);
+
+	cout << endl << "Internal Nodes" << endl;
+	for (unsigned int i = 0; i < _internalNodes.size(); i++)
+		if (_internalNodes[i] != _root)
+			_internalNodes[i]->computeValuesIntToInt(_numOfSites);
+
+	cout << endl << "Leaves" << endl;
+	for (unsigned int i = 0; i < _leaves.size(); i++)
+		if (_leaves[i]->getParent() != _root)
+			_leaves[i]->computeValuesIntToLeaf(_numOfSites);
 }
 
 void Tree::printBranches()

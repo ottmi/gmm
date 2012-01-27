@@ -149,7 +149,9 @@ string Node::getIdent()
 		ss << "[I]";
 
 	if (_label.length())
-		ss << "(" << _label << ")";
+		ss << "(" << _label << ") ";
+
+	ss << _branches.size();
 
 	return ss.str();
 }
@@ -271,6 +273,8 @@ double Node::computeValuesIntToInt(unsigned int numOfSites)
 {
 	cout << getIdent() << endl;
 	double logLikelihood = 0;
+	Branch *parentBranch = _branches[0];
+
 	/* Compute log likelihood for variable sites
 	 * i represents the no of sites
 	 * k represents {A,C,G,T} for parent
@@ -287,7 +291,7 @@ double Node::computeValuesIntToInt(unsigned int numOfSites)
 				//direction of traversal is from parent -> internal node
 				//(site, parent node, child node)
 				double val = pG1jG2j(k, j, i);
-				siteProb+= _branches[0]->getProb(j, k) * val;
+				siteProb+= parentBranch->getProb(j, k) * val;
 			} //end of FOR loop for parent node
 		} //end of FOR loop for internal node
 
@@ -300,3 +304,62 @@ double Node::computeValuesIntToInt(unsigned int numOfSites)
 }
 
 
+double Node::computeValuesIntToLeaf(unsigned int numOfSites)
+{
+	cout << getIdent() << endl;
+	double logLikelihood = 0;
+	Node *parent = getParent();
+	Branch *parentBranch = _branches[0];
+
+	for(unsigned int i = 0; i < numOfSites; i++)
+	{
+		double siteProb = 0.0;
+		unsigned int base = getBase(i);
+
+		/* For each site, consider all 4 values i.e. {A,C,G,T}
+		 * Q(Xki,Xji)P(G1j|Xji) sum over all Xji
+		 * G1j represents all end nodes connected to node j excluding
+		 * the current leaf node
+		 */
+
+		//[0][base] is used as the direction of traversal is child -> parent
+		for (unsigned int j = 0; j < 4; j++)
+		{
+			double prob = parent->pSiX2(this, j, i);
+			double marginalProb = parentBranch->getMarginalProbCol(j);
+			siteProb+= parentBranch->getProb(j, base) * prob / marginalProb;
+		}
+
+		logLikelihood+= log((1-_beta) * siteProb);
+	}
+
+	cout << "logLH=" << logLikelihood << endl;
+
+	return logLikelihood;
+}
+
+
+double Node::computeValuesRootToInt(unsigned int numOfSites)
+{
+	cout << getIdent() << endl;
+	double logLikelihood = 0;
+	Node *root = getParent();
+	Branch *rootBranch = _branches[0];
+
+	for(unsigned int i = 0; i < numOfSites; i++)
+	{
+		double siteProb = 0.0;
+		unsigned int base = root->getBase(i);
+
+		for (unsigned int j = 0; j < 4; j++)
+		{
+			double prob = pRiX1(j, i);
+			siteProb+= rootBranch->getProb(base, j) * prob;
+		}
+
+		logLikelihood+= log((1-_beta) * siteProb);
+	}
+	cout << "logLH=" << logLikelihood << endl;
+
+	return logLikelihood;
+}

@@ -10,9 +10,11 @@
 
 
 
-Tree::Tree()
+Tree::Tree(Alignment &alignment)
 {
 	_nodeCount = 0;
+	_alignment = alignment;
+	_numOfSites = _alignment.getCols();
 }
 
 
@@ -24,7 +26,7 @@ Tree::~Tree()
 
 
 
-void Tree::readNewick(string &treeString, Alignment &alignment)
+void Tree::readNewick(string &treeString)
 {
 	cout << "Tree: " << treeString << endl;
 
@@ -39,8 +41,9 @@ void Tree::readNewick(string &treeString, Alignment &alignment)
 	{
 		if (treeString[i] == '(') // internal node starts
 		{
-			//cout << "Internal Node #" << _internalNodes.size() << " starts" << endl;
-			currentNode = new Node(currentNode, _nodeCount++, -1);
+			if (verbose >= 5)
+				cout << "Internal Node #" << _internalNodes.size() << " starts" << endl;
+			currentNode = new Node(currentNode, _nodeCount++);
 			_internalNodes.push_back(currentNode);
 			Branch *branch = currentNode->getBranch(0);
 			if (branch)
@@ -51,12 +54,13 @@ void Tree::readNewick(string &treeString, Alignment &alignment)
 		{
 			if (nextCouldBeLeaf)
 			{
-//				cout << "  Leaf #" << _leaves.size() << " (" << label << ") " << distance << endl;
-				int alignmentId = alignment.find(label);
+				if (verbose >= 5)
+					cout << "  Leaf #" << _leaves.size() << " (" << label << ") " << distance << endl;
+				int alignmentId = _alignment.find(label);
 				if (alignmentId < 0)
 					throw("The alignment contains no sequence \"" + label + "\"");
 
-				Node *leaf = new Node(currentNode, _nodeCount++, alignmentId);
+				Node *leaf = new Node(currentNode, _nodeCount++, _alignment.getNumericalSeq(alignmentId));
 				leaf->setLabel(label);
 				Branch *branch = leaf->getBranch(0);
 				branch->setDistance(distance);
@@ -71,7 +75,8 @@ void Tree::readNewick(string &treeString, Alignment &alignment)
 
 			if  (treeString[i] == ')') // internal node
 			{
-//				cout << "Internal Node #" << currentNode->getId() << " ends " << endl;
+				if (verbose >= 5)
+					cout << "Internal Node #" << currentNode->getId() << " ends " << endl;
 				prevInternalNode = currentNode;
 				currentNode = currentNode->getParent();
 				nextCouldBeLeaf=false;
@@ -100,17 +105,17 @@ void Tree::readNewick(string &treeString, Alignment &alignment)
 	_root->setLabel(label);
 
 	cout << "The tree has " << _internalNodes.size() << " internal nodes, " << _leaves.size() << " leaves and " << _branches.size() << " branches." << endl;
-	if (alignment.getRows() != (int) _leaves.size())
+	if (_alignment.getRows() != (int) _leaves.size())
 	{
 		stringstream ss;
-		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << alignment.getRows() << ") do not match";
+		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << _alignment.getRows() << ") do not match";
 		throw(ss.str());
 	}
 }
 
 
 
-void Tree::readNewickFromFile(string &fileName, Alignment &alignment)
+void Tree::readNewickFromFile(string &fileName)
 {
 	cout << "readNewick(" << fileName << ")" << endl;
 
@@ -122,19 +127,28 @@ void Tree::readNewickFromFile(string &fileName, Alignment &alignment)
 	string str;
 	safeGetline(fileReader, str);
 	fileReader.close();
-	readNewick(str, alignment);
+	readNewick(str);
 }
 
 
 
 void Tree::computeLH()
 {
+/*
 	vector<Node*> traversal = _leaves[0]->getTraversal();
 	for (unsigned int i=0; i<traversal.size(); i++)
 		cout << traversal[i]->getIdent() << endl;
+*/
+	_internalNodes[1]->computeValuesIntToInt(_numOfSites);
 }
 
-
+void Tree::printBranches()
+{
+	for (unsigned int i = 0; i < _branches.size(); i++)
+	{
+		_branches[i]->print();
+	}
+}
 
 void Tree::print()
 {

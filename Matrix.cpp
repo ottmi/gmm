@@ -70,6 +70,30 @@ void Matrix::setCol(unsigned int col, vector<double> x)
 }
 
 
+double  Matrix::getEntry(unsigned int row, unsigned int col)
+{
+	return _m[row][col];
+}
+
+
+double Matrix::getRowSum(unsigned int row)
+{
+	double sum = .0;
+	for (unsigned int i=0; i<_dim; i++)
+		sum+= _m[row][i];
+	return sum;
+}
+
+
+double Matrix::getColSum(unsigned int col)
+{
+	double sum = .0;
+	for (unsigned int i=0; i<_dim; i++)
+		sum+= _m[i][col];
+	return sum;
+}
+
+
 void Matrix::print()
 {
 	cout.precision(8);

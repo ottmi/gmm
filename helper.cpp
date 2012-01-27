@@ -48,3 +48,30 @@ istream& safeGetline(istream& is, string& t)
     }
 }
 
+unsigned int mapDNAToNum(char c)
+{
+	unsigned int d = 0;
+	switch (c)
+	{
+		case 'A':
+		case 'a':
+			d = 0x00;
+			break;
+
+		case 'C':
+		case 'c':
+			d = 0x01;
+			break;
+
+		case 'G':
+		case 'g':
+			d = 0x02;
+			break;
+
+		case 'T':
+		case 't':
+			d = 0x03;
+			break;
+	}
+	return d;
+}

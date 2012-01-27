@@ -22,6 +22,8 @@ public:
 	int getRows() { return _rows; };
 	int getDataType() { return _dataType; };
 
+	vector<unsigned int> getNumericalSeq(unsigned int row);
+
 
 private:
 	int _cols;

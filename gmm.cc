@@ -6,8 +6,8 @@
 #include <iostream>
 using namespace std;
 
-int Verbose = 0;
-int CharStates = 4;
+int verbose = 0;
+int charStates = 4;
 
 
 void printSyntax()
@@ -44,9 +44,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				break;
 			case 'v':
 				if (optarg)
-					Verbose = atoi(optarg);
+					verbose = atoi(optarg);
 				else
-					Verbose = 1;
+					verbose = 1;
 				break;
 			case 'h':
 				options->help = true;
@@ -91,20 +91,17 @@ int main(int argc, char **argv)
 	Alignment alignment;
 	try {
 		alignment.read(options.alignment);
+
+		Tree tree(alignment);
+		tree.readNewickFromFile(options.inputTree);
+
+		tree.computeLH();
 	}
-	catch (string s) {
-	  cout << "Error while reading the alignment: " << s << endl;
-	  return 255;
+	catch (string& s)
+	{
+		cerr << s << endl;
+		return(255);
 	}
 
-	Tree tree;
-	try {
-		tree.readNewickFromFile(options.inputTree, alignment);
-	}
-	catch (string s) {
-	  cout << "Error while reading the input tree: " << s << endl;
-	  return 254;
-	}
-
-	tree.computeLH();
+	return 0;
 }

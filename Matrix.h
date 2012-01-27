@@ -16,6 +16,11 @@ public:
 	void setOffDiag(double x);
 	void setRow(unsigned int row, vector<double> m);
 	void setCol(unsigned int col, vector<double> m);
+
+	double getEntry(unsigned int row, unsigned int col);
+	double getRowSum(unsigned int row);
+	double getColSum(unsigned int col);
+
 	void print();
 
 

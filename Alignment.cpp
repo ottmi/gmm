@@ -51,18 +51,18 @@ void Alignment::read(string fileName) {
 			counts[i] += baseOccurences[map[j]];
 	}
 
-	if (Verbose)
+	if (verbose)
 		cout << counts[0] << " DNA characters and " << counts[1]
 				<< " AA characters." << endl;
 	if (counts[0] >= counts[1])
 	{
 		_dataType = _DNA_DATA;
-		CharStates = 4;
+		charStates = 4;
 	}
 	else
 	{
 		_dataType = _AA_DATA;
-		CharStates = 20;
+		charStates = 20;
 	}
 
 	cout << "The data appears to be " << dataTypeDesc[_dataType] << "." << endl;
@@ -157,4 +157,16 @@ int Alignment::find(string name) {
 	}
 
 	return -1;
+}
+
+
+vector<unsigned int> Alignment::getNumericalSeq(unsigned int row)
+{
+	vector<unsigned int> seq;
+	string &s = _sequences[row];
+
+	for (unsigned int i = 0; i < s.size(); i++)
+		seq.push_back(mapDNAToNum(s[i]));
+
+	return seq;
 }

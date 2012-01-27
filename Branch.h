@@ -16,6 +16,13 @@ public:
 	void setDistance(double &distance);
 	double getDistance() { return _distance; };
 
+	double pX1X2(unsigned int parent, unsigned int child);
+	double getProb(unsigned int from, unsigned int to);
+	double getMarginalProbRow(unsigned int row);
+	double getMarginalProbCol(unsigned int col);
+
+	void print();
+
 	void initializeQ();
 
 private:

@@ -14,8 +14,7 @@ public:
 	virtual
 	~Tree();
 
-	void readNewick(string &treeString);
-	void readNewickFromFile(string &fileName);
+	void readNewick(string &tree);
 	void computeLH();
 	void printBranches();
 	void print();

@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 		alignment.read(options.alignment);
 
 		Tree tree(alignment);
-		tree.readNewickFromFile(options.inputTree);
+		tree.readNewick(options.inputTree);
 
 		tree.printBranches();
 		tree.computeLH();

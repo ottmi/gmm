@@ -59,10 +59,8 @@ void Tree::readNewick(string &tree)
 			if (nextCouldBeLeaf)
 			{
 				if (verbose >= 5) cout << "  Leaf #" << _leaves.size() << " (" << label << ") " << distance << endl;
-				int alignmentId = _alignment.find(label);
-				if (alignmentId < 0) throw("The alignment contains no sequence \"" + label + "\"");
 
-				Node *leaf = new Node(currentNode, _nodeCount++, _alignment.getNumericalSeq(alignmentId));
+				Node *leaf = new Node(currentNode, _nodeCount++);
 				leaf->setLabel(label);
 				Branch *branch = leaf->getBranch(0);
 				branch->setDistance(distance);
@@ -104,6 +102,25 @@ void Tree::readNewick(string &tree)
 
 	_root = prevInternalNode;
 	_root->setLabel(label);
+	if (_root->getBranches().size() == 1)
+	{
+		cout << "The root at " << _root->getLabel() << " is a leaf" << endl;
+		_leaves.push_back(_root);
+		if (_internalNodes.front() == _root) _internalNodes.erase(_internalNodes.begin());
+	}
+
+	for (unsigned int i = 0; i < _leaves.size(); i++)
+	{
+		label = _leaves[i]->getLabel();
+		int a = _alignment.find(label);
+		if (a < 0)
+			throw("The alignment contains no sequence \"" + label + "\"");
+		else
+		{
+			vector<unsigned int> seq = _alignment.getNumericalSeq(a);
+			_leaves[i]->setSequence(seq);
+		}
+	}
 
 	cout << "The tree has " << _internalNodes.size() << " internal nodes, " << _leaves.size() << " leaves and " << _branches.size() << " branches." << endl;
 	if (_alignment.getRows() != (int) _leaves.size())

@@ -6,31 +6,11 @@
 #include <sstream>
 
 
-Node::Node(Node *parent, int id) // internal node
+Node::Node(Node *parent, int id)
 {
 	_id = id;
-	_isLeaf = false;
-	initialize(parent);
-}
+	_isLeaf = false; // this will be set to true in setSequence()
 
-
-Node::Node(Node *parent, int id, const vector<unsigned int> &seq) // leaf node
-{
-	_id = id;
-	_isLeaf = true;
-	_seq = seq;
-	initialize(parent);
-}
-
-
-
-Node::~Node()
-{
-}
-
-
-void Node::initialize(Node *parent)
-{
 	if (parent)
 	{
 		if (parent->_branches.size() >= 3)
@@ -45,6 +25,19 @@ void Node::initialize(Node *parent)
 	_beta = 0.8;
 	for (int i = 0; i < charStates; i++)
 		probs.push_back(1.0 / charStates);
+}
+
+
+
+Node::~Node()
+{
+}
+
+
+void Node::setSequence(vector<unsigned int> &seq)
+{
+	_seq = seq;
+	_isLeaf = true;
 }
 
 

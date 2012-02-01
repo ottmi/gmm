@@ -11,16 +11,16 @@ class Node
 {
 public:
 	Node(Node *parent, int id);
-	Node(Node *parent, int id, const vector<unsigned int> &seq);
 	virtual
 	~Node();
 
-	void initialize(Node *parent);
+	void setSequence(vector<unsigned int> &seq);
 	void setLabel(string &label) { this->_label = label; label.clear(); };
 	string& getLabel() { return _label; };
 	int getId() { return _id; };
 	string getIdent();
 	Branch* getBranch(int id);
+	vector<Branch*>& getBranches() { return _branches; };
 	string toString(Node *parent = NULL);
 	Node* getParent();
 	Node *getChild(int num);

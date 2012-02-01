@@ -30,7 +30,6 @@ public:
 
 	double pRiX1(int base, int position);
 	double pSiX2(Node *blockedNode, unsigned int base, unsigned int position);
-	double pG1jG2j(unsigned int nodeBase, int parentNodeBase, int position);
 
 	double computeValuesIntToInt(unsigned int numOfSites);
 	double computeValuesIntToLeaf(unsigned int numOfSites);

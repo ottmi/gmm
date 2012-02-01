@@ -248,47 +248,27 @@ double Node::pSiX2(Node *blockedNode, unsigned int base, unsigned int position)
 }
 
 
-double Node::pG1jG2j(unsigned int nodeBase, int parentNodeBase, int position)
-{
-
-	double pG2j = pRiX1(nodeBase, position);
-	Node *parent = getParent();
-	double pG1j = parent->pSiX2(this, parentNodeBase, position);
-	double sum = _branches[0]->getMarginalProbCol(parentNodeBase);
-	pG1j = pG1j / sum;
-
-	//cout << "pG1jG2j(" << nodeBase << "," << parentNodeBase << "," << position << ") pG1j=" << pG1j << " pG2j=" << pG2j << " pG1jG2j=" << pG1j * pG2j << endl;
-	return pG1j * pG2j;
-}
-
-
 double Node::computeValuesIntToInt(unsigned int numOfSites)
 {
 	cout << getIdent() << endl;
 	double logLikelihood = 0;
+	Node *parent = getParent();
 	Branch *parentBranch = _branches[0];
 
-	/* Compute log likelihood for variable sites
-	 * i represents the no of sites
-	 * k represents {A,C,G,T} for parent
-	 * j represents {A,C,G,T} for internal node
-	 */
-	for (unsigned int i = 0; i < numOfSites; i++)
+	for (unsigned int position = 0; position < numOfSites; position++)
 	{
 		double siteProb = 0.0;
 
-		for (unsigned int j = 0; j < 4; j++) // base at parent node
+		for (unsigned int parentNodeBase = 0; parentNodeBase < 4; parentNodeBase++) // base at parent node
 		{
-			for (unsigned int k=0; k<4; k++) // base at child node
+			for (unsigned int nodeBase=0; nodeBase<4; nodeBase++) // base at child node
 			{
-				//direction of traversal is from parent -> internal node
-				//(site, parent node, child node)
-				double val = pG1jG2j(k, j, i);
-				siteProb+= parentBranch->getProb(j, k) * val;
-			} //end of FOR loop for parent node
-		} //end of FOR loop for internal node
+				double pG1j = parent->pSiX2(this, parentNodeBase, position) / parentBranch->getMarginalProbCol(parentNodeBase);
+				double pG2j = pRiX1(nodeBase, position);
+				siteProb+= parentBranch->getProb(nodeBase, parentNodeBase) * pG1j * pG2j;
+			}
+		}
 
-//		probList.add(new Double(siteProb));
 		logLikelihood += log((1-_beta) * siteProb);
 	}
 	cout << "logLH=" << logLikelihood << endl;

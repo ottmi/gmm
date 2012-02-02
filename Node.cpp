@@ -150,6 +150,20 @@ unsigned int Node::getBase(unsigned int site)
 	}
 }
 
+vector<unsigned int>& Node::getSequence()
+{
+	if (_isLeaf)
+		return _seq;
+	else
+	{
+		stringstream ss;
+		ss << "Node(" << getIdent() << ")::getSequence(): is not a leaf";
+		throw(ss.str());
+	}
+
+
+}
+
 double Node::pRiX1(int base, int site)
 {
 	Node *child1 = _branches[1]->getNeighbour(this);
@@ -197,11 +211,19 @@ vector<double> Node::pRiX1(unsigned int numOfSites)
 	double prob2;
 	vector<double> result(4 * numOfSites);
 
+	vector<unsigned int> childSeq1;
 	vector<double> childProb1;
-	if (!child1->isLeaf()) childProb1 = child1->pRiX1(numOfSites);
+	if (child1->isLeaf())
+		childSeq1 = child1->getSequence();
+	else
+		childProb1 = child1->pRiX1(numOfSites);
 
+	vector<unsigned int> childSeq2;
 	vector<double> childProb2;
-	if (!child2->isLeaf()) childProb2 = child2->pRiX1(numOfSites);
+	if (child2->isLeaf())
+		childSeq2 = child2->getSequence();
+	else
+		childProb2 = child2->pRiX1(numOfSites);
 
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
@@ -209,7 +231,7 @@ vector<double> Node::pRiX1(unsigned int numOfSites)
 		for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
 		{
 			if (child1->isLeaf())
-				prob1 = _branches[1]->pX1X2(nodeBase, child1->getBase(site));
+				prob1 = _branches[1]->pX1X2(nodeBase, childSeq1[site]);
 			else
 			{
 				prob1 = 0;
@@ -218,7 +240,7 @@ vector<double> Node::pRiX1(unsigned int numOfSites)
 			}
 
 			if (child2->isLeaf())
-				prob2 = _branches[2]->pX1X2(nodeBase, child2->getBase(site));
+				prob2 = _branches[2]->pX1X2(nodeBase, childSeq2[site]);
 			else
 			{
 				prob2 = 0;
@@ -292,11 +314,19 @@ vector<double> Node::pSiX2(Node *blockedNode, unsigned int numOfSites)
 		childBranch = _branches[2];
 	}
 
+	vector<unsigned int> childSeq;
 	vector<double> childProbRiX1;
-	if (!child->isLeaf()) childProbRiX1 = child->pRiX1(numOfSites);
+	if (child->isLeaf())
+		childSeq = child->getSequence();
+	else
+		childProbRiX1 = child->pRiX1(numOfSites);
 
+	vector<unsigned int> parentSeq;
 	vector<double> parentProbSiX2;
-	if (!parent->isLeaf()) parentProbSiX2 = parent->pSiX2(this, numOfSites);
+	if (parent->isLeaf())
+		parentSeq = parent->getSequence();
+	else
+		parentProbSiX2 = parent->pSiX2(this, numOfSites);
 
 	double childProb;
 	double parentProb;
@@ -307,7 +337,7 @@ vector<double> Node::pSiX2(Node *blockedNode, unsigned int numOfSites)
 		{
 			if (child->isLeaf())
 			{
-				childProb = childBranch->pX1X2(nodeBase, child->getBase(site));
+				childProb = childBranch->pX1X2(nodeBase, childSeq[site]);
 			} else
 			{
 				childProb = 0;
@@ -319,7 +349,7 @@ vector<double> Node::pSiX2(Node *blockedNode, unsigned int numOfSites)
 
 			if (parent->isLeaf())
 			{
-				parentProb = _branches[0]->getProb(parent->getBase(site), nodeBase);
+				parentProb = _branches[0]->getProb(parentSeq[site], nodeBase);
 			} else
 			{
 				parentProb = 0;
@@ -375,12 +405,11 @@ double Node::computeValuesIntToLeaf(unsigned int numOfSites)
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		double siteProb = 0.0;
-		unsigned int base = getBase(site);
 
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
 			double marginalProb = parentBranch->getMarginalProbCol(parentBase);
-			siteProb += parentBranch->getProb(parentBase, base) * prob[site * 4 + parentBase] / marginalProb;
+			siteProb += parentBranch->getProb(parentBase, _seq[site]) * prob[site * 4 + parentBase] / marginalProb;
 		}
 
 		logLikelihood += log((1 - _beta) * siteProb);
@@ -399,14 +428,14 @@ double Node::computeValuesRootToInt(unsigned int numOfSites)
 	Branch *rootBranch = _branches[0];
 
 	vector<double> prob = pRiX1(numOfSites);
+	vector<unsigned int> rootSeq = root->getSequence();
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		double siteProb = 0.0;
-		unsigned int base = root->getBase(site);
 
 		for (unsigned int j = 0; j < 4; j++)
 		{
-			siteProb += rootBranch->getProb(base, j) * prob[site * 4 + j];
+			siteProb += rootBranch->getProb(rootSeq[site], j) * prob[site * 4 + j];
 		}
 
 		logLikelihood += log((1 - _beta) * siteProb);

@@ -39,6 +39,7 @@ public:
 	double computeValuesRootToInt(unsigned int numOfSites);
 
 	unsigned int getBase(unsigned int position);
+	vector<unsigned int>& getSequence();
 
 private:
 	string _label;

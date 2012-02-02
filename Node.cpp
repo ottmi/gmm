@@ -234,13 +234,10 @@ vector<double> Node::pRiX1(unsigned int numOfSites)
 	vector<double> result(4 * numOfSites);
 
 	vector<double> childProb1;
-	if (!child1->isLeaf())
-		childProb1 = child1->pRiX1(numOfSites);
+	if (!child1->isLeaf()) childProb1 = child1->pRiX1(numOfSites);
 
 	vector<double> childProb2;
-	if (!child2->isLeaf())
-		childProb2 = child2->pRiX1(numOfSites);
-
+	if (!child2->isLeaf()) childProb2 = child2->pRiX1(numOfSites);
 
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
@@ -253,7 +250,7 @@ vector<double> Node::pRiX1(unsigned int numOfSites)
 			{
 				prob1 = 0;
 				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob1 += _branches[1]->pX1X2(nodeBase, childBase) * childProb1[site*4 + childBase];
+					prob1 += _branches[1]->pX1X2(nodeBase, childBase) * childProb1[site * 4 + childBase];
 			}
 
 			if (child2->isLeaf())
@@ -262,10 +259,10 @@ vector<double> Node::pRiX1(unsigned int numOfSites)
 			{
 				prob2 = 0;
 				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob2 += _branches[2]->pX1X2(nodeBase, childBase) * childProb2[site*4 + childBase];
+					prob2 += _branches[2]->pX1X2(nodeBase, childBase) * childProb2[site * 4 + childBase];
 			}
 
-			result[site*4 + nodeBase] = prob1 * prob2;
+			result[site * 4 + nodeBase] = prob1 * prob2;
 		}
 	}
 
@@ -318,7 +315,7 @@ double Node::pSiX2(Node *blockedNode, unsigned int base, unsigned int site)
 	return childProb * parentProb;
 }
 
-vector<double> Node::pSiX2(Node *blockedNode, unsigned int site)
+vector<double> Node::pSiX2(Node *blockedNode, unsigned int numOfSites)
 {
 	Node *parent = getParent();
 	Branch *childBranch;
@@ -331,39 +328,45 @@ vector<double> Node::pSiX2(Node *blockedNode, unsigned int site)
 		childBranch = _branches[2];
 	}
 
+	vector<double> childProbRiX1;
+	if (!child->isLeaf()) childProbRiX1 = child->pRiX1(numOfSites);
+
+	vector<double> parentProbSiX2;
+	if (!parent->isLeaf()) parentProbSiX2 = parent->pSiX2(this, numOfSites);
+
 	double childProb;
 	double parentProb;
-	vector<double> result(4);
-	for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
-	{
-		if (child->isLeaf())
-		{
-			childProb = childBranch->pX1X2(nodeBase, child->getBase(site));
-		} else
-		{
-			childProb = 0;
-			vector<double> pRiX1 = child->pRiX1((int) site);
-			for (unsigned int childBase = 0; childBase < 4; childBase++)
-			{
-				childProb += childBranch->pX1X2(nodeBase, childBase) * pRiX1[childBase];
-			}
-		}
+	vector<double> result(4 * numOfSites);
+	for (unsigned int site = 0; site < numOfSites; site++)
 
-		if (parent->isLeaf())
+		for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
 		{
-			parentProb = _branches[0]->getProb(parent->getBase(site), nodeBase);
-		} else
-		{
-			parentProb = 0;
-			vector<double> prob = parent->pSiX2(this, site);
-			for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+			if (child->isLeaf())
 			{
-				parentProb += _branches[0]->pX1X2(parentBase, nodeBase) * prob[parentBase];
+				childProb = childBranch->pX1X2(nodeBase, child->getBase(site));
+			} else
+			{
+				childProb = 0;
+				for (unsigned int childBase = 0; childBase < 4; childBase++)
+				{
+					childProb += childBranch->pX1X2(nodeBase, childBase) * childProbRiX1[site * 4 + childBase];
+				}
 			}
-		}
 
-		result[nodeBase] = childProb * parentProb;
-	}
+			if (parent->isLeaf())
+			{
+				parentProb = _branches[0]->getProb(parent->getBase(site), nodeBase);
+			} else
+			{
+				parentProb = 0;
+				for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+				{
+					parentProb += _branches[0]->pX1X2(parentBase, nodeBase) * parentProbSiX2[site * 4 + parentBase];
+				}
+			}
+
+			result[site * 4 + nodeBase] = childProb * parentProb;
+		}
 
 	return result;
 }
@@ -375,18 +378,18 @@ double Node::computeValuesIntToInt(unsigned int numOfSites)
 	Node *parent = getParent();
 	Branch *parentBranch = _branches[0];
 
+	vector<double> pG1j = parent->pSiX2(this, numOfSites);
 	vector<double> pG2j = pRiX1(numOfSites);
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		double siteProb = 0.0;
 
-		vector<double> pG1j = parent->pSiX2(this, site);
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
-			pG1j[parentBase] /= parentBranch->getMarginalProbCol(parentBase);
+			pG1j[site * 4 + parentBase] /= parentBranch->getMarginalProbCol(parentBase);
 			for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
 			{
-				siteProb += parentBranch->getProb(nodeBase, parentBase) * pG1j[parentBase] * pG2j[site*4 + nodeBase];
+				siteProb += parentBranch->getProb(nodeBase, parentBase) * pG1j[site * 4 + parentBase] * pG2j[site * 4 + nodeBase];
 			}
 		}
 
@@ -404,23 +407,16 @@ double Node::computeValuesIntToLeaf(unsigned int numOfSites)
 	Node *parent = getParent();
 	Branch *parentBranch = _branches[0];
 
+	vector<double> prob = parent->pSiX2(this, numOfSites);
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		double siteProb = 0.0;
 		unsigned int base = getBase(site);
 
-		/* For each site, consider all 4 values i.e. {A,C,G,T}
-		 * Q(Xki,Xji)P(G1j|Xji) sum over all Xji
-		 * G1j represents all end nodes connected to node j excluding
-		 * the current leaf node
-		 */
-
-		//[0][base] is used as the direction of traversal is child -> parent
-		vector<double> prob = parent->pSiX2(this, site);
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
 			double marginalProb = parentBranch->getMarginalProbCol(parentBase);
-			siteProb += parentBranch->getProb(parentBase, base) * prob[parentBase] / marginalProb;
+			siteProb += parentBranch->getProb(parentBase, base) * prob[site * 4 + parentBase] / marginalProb;
 		}
 
 		logLikelihood += log((1 - _beta) * siteProb);
@@ -446,7 +442,7 @@ double Node::computeValuesRootToInt(unsigned int numOfSites)
 
 		for (unsigned int j = 0; j < 4; j++)
 		{
-			siteProb += rootBranch->getProb(base, j) * prob[site*4 + j];
+			siteProb += rootBranch->getProb(base, j) * prob[site * 4 + j];
 		}
 
 		logLikelihood += log((1 - _beta) * siteProb);

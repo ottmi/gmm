@@ -135,16 +135,20 @@ string Node::getIdent()
 {
 	stringstream ss;
 
-	ss << _id;
 	if (_isLeaf)
-		ss << "[L]";
+		ss << "{";
 	else
-		ss << "[I]";
+		ss << "[";
+
+	ss << _id;
 
 	if (_label.length())
-		ss << "(" << _label << ") ";
+		ss << "|" << _label;
 
-	ss << _branches.size();
+	if (_isLeaf)
+		ss << "}";
+	else
+		ss << "]";
 
 	return ss.str();
 }
@@ -250,7 +254,7 @@ double Node::pSiX2(Node *blockedNode, unsigned int base, unsigned int position)
 
 double Node::computeValuesIntToInt(unsigned int numOfSites)
 {
-	cout << getIdent() << endl;
+	cout << "computeValuesIntToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
 	Node *parent = getParent();
 	Branch *parentBranch = _branches[0];
@@ -279,7 +283,7 @@ double Node::computeValuesIntToInt(unsigned int numOfSites)
 
 double Node::computeValuesIntToLeaf(unsigned int numOfSites)
 {
-	cout << getIdent() << endl;
+	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 	double logLikelihood = 0;
 	Node *parent = getParent();
 	Branch *parentBranch = _branches[0];
@@ -314,7 +318,7 @@ double Node::computeValuesIntToLeaf(unsigned int numOfSites)
 
 double Node::computeValuesRootToInt(unsigned int numOfSites)
 {
-	cout << getIdent() << endl;
+	cout << "computeValuesRootToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
 	Node *root = getParent();
 	Branch *rootBranch = _branches[0];

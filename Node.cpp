@@ -201,21 +201,21 @@ vector<double> Node::pRiX1(int site)
 			prob1[nodeBase] = _branches[1]->pX1X2(nodeBase, child1->getBase(site));
 		else
 		{
-				vector<double> childProb = child1->pRiX1(site);
-				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob1[nodeBase]+= _branches[1]->pX1X2(nodeBase, childBase) * childProb[childBase];
+			vector<double> childProb = child1->pRiX1(site);
+			for (unsigned int childBase = 0; childBase < 4; childBase++)
+				prob1[nodeBase] += _branches[1]->pX1X2(nodeBase, childBase) * childProb[childBase];
 		}
 
 		if (child2->isLeaf())
 			prob2[nodeBase] = _branches[2]->pX1X2(nodeBase, child2->getBase(site));
 		else
 		{
-				vector<double> childProb = child2->pRiX1(site);
-				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob2[nodeBase]+= _branches[2]->pX1X2(nodeBase, childBase) * childProb[childBase];
+			vector<double> childProb = child2->pRiX1(site);
+			for (unsigned int childBase = 0; childBase < 4; childBase++)
+				prob2[nodeBase] += _branches[2]->pX1X2(nodeBase, childBase) * childProb[childBase];
 		}
 
-		prob1[nodeBase]*= prob2[nodeBase];
+		prob1[nodeBase] *= prob2[nodeBase];
 	}
 
 	return prob1;
@@ -267,6 +267,56 @@ double Node::pSiX2(Node *blockedNode, unsigned int base, unsigned int site)
 	return childProb * parentProb;
 }
 
+vector<double> Node::pSiX2(Node *blockedNode, unsigned int site)
+{
+	Node *parent = getParent();
+	Branch *childBranch;
+	Node *child = getChild(1);
+	if (child != blockedNode)
+		childBranch = _branches[1];
+	else
+	{
+		child = getChild(2);
+		childBranch = _branches[2];
+	}
+
+	double childProb;
+	double parentProb;
+	vector<double> result(4);
+	for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
+	{
+		if (child->isLeaf())
+		{
+			childProb = childBranch->pX1X2(nodeBase, child->getBase(site));
+		} else
+		{
+			childProb = 0;
+			vector<double> pRiX1 = child->pRiX1(site);
+			for (unsigned int childBase = 0; childBase < 4; childBase++)
+			{
+				childProb += childBranch->pX1X2(nodeBase, childBase) * pRiX1[childBase];
+			}
+		}
+
+		if (parent->isLeaf())
+		{
+			parentProb = _branches[0]->getProb(parent->getBase(site), nodeBase);
+		} else
+		{
+			parentProb = 0;
+			vector <double> prob = parent->pSiX2(this, site);
+			for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+			{
+				parentProb += _branches[0]->pX1X2(parentBase, nodeBase) * prob[parentBase];
+			}
+		}
+
+		result[nodeBase] = childProb * parentProb;
+	}
+
+	return result;
+}
+
 double Node::computeValuesIntToInt(unsigned int numOfSites)
 {
 	cout << "computeValuesIntToInt() " << getIdent() << endl;
@@ -278,13 +328,14 @@ double Node::computeValuesIntToInt(unsigned int numOfSites)
 	{
 		double siteProb = 0.0;
 
-		for (unsigned int parentNodeBase = 0; parentNodeBase < 4; parentNodeBase++)
+		vector<double> pG1j = parent->pSiX2(this, site);
+		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
-			double pG1j = parent->pSiX2(this, parentNodeBase, site) / parentBranch->getMarginalProbCol(parentNodeBase);
+			pG1j[parentBase] /= parentBranch->getMarginalProbCol(parentBase);
 			vector<double> pG2j = pRiX1(site);
 			for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
 			{
-				siteProb += parentBranch->getProb(nodeBase, parentNodeBase) * pG1j * pG2j[nodeBase];
+				siteProb += parentBranch->getProb(nodeBase, parentBase) * pG1j[parentBase] * pG2j[nodeBase];
 			}
 		}
 
@@ -314,11 +365,11 @@ double Node::computeValuesIntToLeaf(unsigned int numOfSites)
 		 */
 
 		//[0][base] is used as the direction of traversal is child -> parent
+		vector<double> prob = parent->pSiX2(this, site);
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
-			double prob = parent->pSiX2(this, parentBase, site);
 			double marginalProb = parentBranch->getMarginalProbCol(parentBase);
-			siteProb += parentBranch->getProb(parentBase, base) * prob / marginalProb;
+			siteProb += parentBranch->getProb(parentBase, base) * prob[parentBase] / marginalProb;
 		}
 
 		logLikelihood += log((1 - _beta) * siteProb);

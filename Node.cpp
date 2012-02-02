@@ -164,48 +164,12 @@ vector<unsigned int>& Node::getSequence()
 
 }
 
-double Node::pRiX1(int base, int site)
-{
-	Node *child1 = _branches[1]->getNeighbour(this);
-	Node *child2 = _branches[2]->getNeighbour(this);
-
-	double prob1;
-	if (child1->isLeaf())
-	{
-		unsigned int base1 = child1->getBase(site);
-		prob1 = _branches[1]->pX1X2(base, base1);
-	} else
-	{
-		prob1 = 0;
-		for (unsigned int base1 = 0; base1 < 4; base1++)
-		{
-			double pRiX1 = child1->pRiX1(base1, site); // TODO: maybe we want to store this
-			prob1 += _branches[1]->pX1X2(base, base1) * pRiX1;
-		}
-	}
-
-	double prob2;
-	if (child2->isLeaf())
-	{
-		unsigned int base2 = child2->getBase(site);
-		prob2 = _branches[2]->pX1X2(base, base2);
-	} else
-	{
-		prob2 = 0;
-		for (unsigned int base2 = 0; base2 < 4; base2++)
-		{
-			double pRiX1 = child2->pRiX1(base2, site); // TODO: maybe we want to store this
-			prob2 += _branches[2]->pX1X2(base, base2) * pRiX1;
-		}
-	}
-
-	return prob1 * prob2;
-}
-
 vector<double> Node::pRiX1(unsigned int numOfSites)
 {
 	Node *child1 = _branches[1]->getNeighbour(this);
 	Node *child2 = _branches[2]->getNeighbour(this);
+
+	cout << "pRiX1 node=" << getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << endl;
 
 	double prob1;
 	double prob2;
@@ -255,52 +219,6 @@ vector<double> Node::pRiX1(unsigned int numOfSites)
 	return result;
 }
 
-double Node::pSiX2(Node *blockedNode, unsigned int base, unsigned int site)
-{
-	Node *parent = getParent();
-	Branch *childBranch;
-	Node *child = getChild(1);
-	if (child != blockedNode)
-		childBranch = _branches[1];
-	else
-	{
-		child = getChild(2);
-		childBranch = _branches[2];
-	}
-
-	double childProb;
-	if (child->isLeaf())
-	{
-		unsigned int base1 = child->getBase(site);
-		childProb = childBranch->pX1X2(base, base1);
-	} else
-	{
-		childProb = 0;
-		vector<double> pRiX1 = child->pRiX1((int) site);
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
-		{
-			childProb += childBranch->pX1X2(base, childBase) * pRiX1[childBase];
-		}
-	}
-
-	double parentProb;
-	if (parent->isLeaf())
-	{
-		unsigned int parentBase = parent->getBase(site);
-		parentProb = _branches[0]->getProb(parentBase, base);
-	} else
-	{
-		parentProb = 0;
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
-		{
-			double pSiX2 = parent->pSiX2(this, parentBase, site); // TODO: maybe we want to store this
-			parentProb += _branches[0]->pX1X2(parentBase, base) * pSiX2;
-		}
-	}
-
-	return childProb * parentProb;
-}
-
 vector<double> Node::pSiX2(Node *blockedNode, unsigned int numOfSites)
 {
 	Node *parent = getParent();
@@ -313,6 +231,8 @@ vector<double> Node::pSiX2(Node *blockedNode, unsigned int numOfSites)
 		child = getChild(2);
 		childBranch = _branches[2];
 	}
+
+	cout << "pSiX2 node=" << getIdent() << " parent=" << parent->getIdent() << " child=" << child->getIdent() << endl;
 
 	vector<unsigned int> childSeq;
 	vector<double> childProbRiX1;

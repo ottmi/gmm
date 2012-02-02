@@ -193,32 +193,35 @@ vector<double> Node::pRiX1(int site)
 	Node *child1 = _branches[1]->getNeighbour(this);
 	Node *child2 = _branches[2]->getNeighbour(this);
 
-	vector<double> prob1(4, 0.0);
-	vector<double> prob2(4, 0.0);
+	double prob1;
+	double prob2;
+	vector<double> result(4);
 	for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
 	{
 		if (child1->isLeaf())
-			prob1[nodeBase] = _branches[1]->pX1X2(nodeBase, child1->getBase(site));
+			prob1 = _branches[1]->pX1X2(nodeBase, child1->getBase(site));
 		else
 		{
+			prob1 = 0;
 			vector<double> childProb = child1->pRiX1(site);
 			for (unsigned int childBase = 0; childBase < 4; childBase++)
-				prob1[nodeBase] += _branches[1]->pX1X2(nodeBase, childBase) * childProb[childBase];
+				prob1 += _branches[1]->pX1X2(nodeBase, childBase) * childProb[childBase];
 		}
 
 		if (child2->isLeaf())
-			prob2[nodeBase] = _branches[2]->pX1X2(nodeBase, child2->getBase(site));
+			prob2 = _branches[2]->pX1X2(nodeBase, child2->getBase(site));
 		else
 		{
+			prob2 = 0;
 			vector<double> childProb = child2->pRiX1(site);
 			for (unsigned int childBase = 0; childBase < 4; childBase++)
-				prob2[nodeBase] += _branches[2]->pX1X2(nodeBase, childBase) * childProb[childBase];
+				prob2 += _branches[2]->pX1X2(nodeBase, childBase) * childProb[childBase];
 		}
 
-		prob1[nodeBase] *= prob2[nodeBase];
+		result[nodeBase] = prob1 * prob2;
 	}
 
-	return prob1;
+	return result;
 }
 
 double Node::pSiX2(Node *blockedNode, unsigned int base, unsigned int site)

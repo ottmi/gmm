@@ -17,6 +17,9 @@ public:
 	double getDistance() { return _distance; };
 
 	double pX1X2(unsigned int parent, unsigned int child);
+	vector<double> pRiX1(unsigned int numOfSites);
+	vector<double> pSiX2(unsigned int numOfSites);
+
 	double getProb(unsigned int from, unsigned int to);
 	double getMarginalProbRow(unsigned int row);
 	double getMarginalProbCol(unsigned int col);

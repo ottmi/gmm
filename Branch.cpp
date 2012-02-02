@@ -57,6 +57,133 @@ double Branch::pX1X2(unsigned int parent, unsigned int child)
 	return condProb;
 }
 
+// probability away from root
+vector<double> Branch::pRiX1(unsigned int numOfSites)
+{
+	Node *node = _nodes[1];	// this should be the node away from root
+	Branch *childBranch1 = node->getBranch(1);
+	Branch *childBranch2 = node->getBranch(2);
+	Node *child1 = childBranch1->getNeighbour(node);
+	Node *child2 = childBranch2->getNeighbour(node);
+
+	cout << "Branch::pRiX1 node=" << node->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << endl;
+
+	double prob1;
+	double prob2;
+	vector<double> result(4 * numOfSites);
+
+	vector<unsigned int> childSeq1;
+	vector<double> childProb1;
+	if (child1->isLeaf())
+		childSeq1 = child1->getSequence();
+	else
+		childProb1 = childBranch1->pRiX1(numOfSites);
+
+	vector<unsigned int> childSeq2;
+	vector<double> childProb2;
+	if (child2->isLeaf())
+		childSeq2 = child2->getSequence();
+	else
+		childProb2 = childBranch2->pRiX1(numOfSites);
+
+	for (unsigned int site = 0; site < numOfSites; site++)
+	{
+
+		for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
+		{
+			if (child1->isLeaf())
+				prob1 = childBranch1->pX1X2(nodeBase, childSeq1[site]);
+			else
+			{
+				prob1 = 0;
+				for (unsigned int childBase = 0; childBase < 4; childBase++)
+					prob1 += childBranch1->pX1X2(nodeBase, childBase) * childProb1[site * 4 + childBase];
+			}
+
+			if (child2->isLeaf())
+				prob2 = childBranch2->pX1X2(nodeBase, childSeq2[site]);
+			else
+			{
+				prob2 = 0;
+				for (unsigned int childBase = 0; childBase < 4; childBase++)
+					prob2 += childBranch2->pX1X2(nodeBase, childBase) * childProb2[site * 4 + childBase];
+			}
+
+			result[site * 4 + nodeBase] = prob1 * prob2;
+		}
+	}
+
+	return result;
+}
+
+// probability towards root
+vector<double> Branch::pSiX2(unsigned int numOfSites)
+{
+	Node *parent = _nodes[0]; // this should be the node towards the root
+	Node *grandParent = parent->getParent();
+	Branch *grandParentBranch = parent->getBranch(0);
+	Branch *siblingBranch;
+	Node *sibling = parent->getChild(1);
+	if (sibling != _nodes[1])
+		siblingBranch = parent->getBranch(1);
+	else
+	{
+		sibling = parent->getChild(2);
+		siblingBranch = parent->getBranch(2);
+	}
+
+	cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << endl;
+
+	vector<unsigned int> siblingSeq;
+	vector<double> siblingProbRiX1;
+	if (sibling->isLeaf())
+		siblingSeq = sibling->getSequence();
+	else
+		siblingProbRiX1 = siblingBranch->pRiX1(numOfSites);
+
+	vector<unsigned int> grandParentSeq;
+	vector<double> grandParentProbSiX2;
+	if (grandParent->isLeaf())
+		grandParentSeq = grandParent->getSequence();
+	else
+		grandParentProbSiX2 = grandParentBranch->pSiX2(numOfSites);
+
+	double siblingProb;
+	double grandParentProb;
+	vector<double> result(4 * numOfSites);
+	for (unsigned int site = 0; site < numOfSites; site++)
+
+		for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
+		{
+			if (sibling->isLeaf())
+			{
+				siblingProb = siblingBranch->pX1X2(nodeBase, siblingSeq[site]);
+			} else
+			{
+				siblingProb = 0;
+				for (unsigned int childBase = 0; childBase < 4; childBase++)
+				{
+					siblingProb += siblingBranch->pX1X2(nodeBase, childBase) * siblingProbRiX1[site * 4 + childBase];
+				}
+			}
+
+			if (grandParent->isLeaf())
+			{
+				grandParentProb = getProb(grandParentSeq[site], nodeBase);
+			} else
+			{
+				grandParentProb = 0;
+				for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+				{
+					grandParentProb += grandParentBranch->pX1X2(parentBase, nodeBase) * grandParentProbSiX2[site * 4 + parentBase];
+				}
+			}
+
+			result[site * 4 + nodeBase] = siblingProb * grandParentProb;
+		}
+
+	return result;
+}
 
 double Branch::getProb(unsigned int from, unsigned int to)
 {

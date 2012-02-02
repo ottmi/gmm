@@ -30,6 +30,8 @@ public:
 
 	double pRiX1(int base, int site);
 	vector<double> pRiX1(int site);
+	vector<double> pRiX1(unsigned int numOfSites);
+
 	double pSiX2(Node *blockedNode, unsigned int base, unsigned int site);
 	vector<double> pSiX2(Node *blockedNode, unsigned int site);
 

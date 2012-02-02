@@ -2,6 +2,7 @@
 #include "globals.h"
 #include <sstream>
 #include <iostream>
+#include <cmath>
 
 
 Branch::Branch(int id, Node *n1, Node *n2)
@@ -11,6 +12,7 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_nodes.push_back(n2);
 	_distance = -1.0;
 
+	_beta = 0.8;
 	_q = new Matrix(charStates);
 	_q->setDiag(1.0/8.0);
 	_q->setOffDiag(1.0/24.0);
@@ -54,6 +56,92 @@ string Branch::getIdent()
 	ss << _nodes[0]->getIdent() << "<---(" << _distance << ")--->" << _nodes[1]->getIdent();
 	return ss.str();
 }
+
+double Branch::computeLH(unsigned int numOfSites)
+{
+	if (_nodes[0]->isLeaf())
+		return computeValuesRootToInt(numOfSites);
+	else if (_nodes[1]->isLeaf())
+		return computeValuesIntToLeaf(numOfSites);
+	else
+		return computeValuesIntToInt(numOfSites);
+}
+
+double Branch::computeValuesIntToInt(unsigned int numOfSites)
+{
+	cout << "computeValuesIntToInt() " << getIdent() << endl;
+	double logLikelihood = 0;
+
+	vector<double> pG1 = pSiX2(numOfSites);
+	vector<double> pG2 = pRiX1(numOfSites);
+	for (unsigned int site = 0; site < numOfSites; site++)
+	{
+		double siteProb = 0.0;
+
+		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		{
+			pG1[site * 4 + parentBase] /= getMarginalProbCol(parentBase);
+			for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
+			{
+				siteProb += getProb(nodeBase, parentBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + nodeBase];
+			}
+		}
+
+		logLikelihood += log((1 - _beta) * siteProb);
+	}
+	cout << "logLH=" << logLikelihood << endl;
+
+	return logLikelihood;
+}
+
+double Branch::computeValuesIntToLeaf(unsigned int numOfSites)
+{
+	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
+	double logLikelihood = 0;
+
+	vector<double> pG1 = pSiX2(numOfSites);
+	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
+	for (unsigned int site = 0; site < numOfSites; site++)
+	{
+		double siteProb = 0.0;
+
+		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		{
+			double marginalProb = getMarginalProbCol(parentBase);
+			siteProb += getProb(parentBase, leafSeq[site]) * pG1[site * 4 + parentBase] / marginalProb;
+		}
+
+		logLikelihood += log((1 - _beta) * siteProb);
+	}
+
+	cout << "logLH=" << logLikelihood << endl;
+
+	return logLikelihood;
+}
+
+double Branch::computeValuesRootToInt(unsigned int numOfSites)
+{
+	cout << "computeValuesRootToInt() " << getIdent() << endl;
+	double logLikelihood = 0;
+
+	vector<double> pG2 = pRiX1(numOfSites);
+	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
+	for (unsigned int site = 0; site < numOfSites; site++)
+	{
+		double siteProb = 0.0;
+
+		for (unsigned int j = 0; j < 4; j++)
+		{
+			siteProb += getProb(rootSeq[site], j) * pG2[site * 4 + j];
+		}
+
+		logLikelihood += log((1 - _beta) * siteProb);
+	}
+	cout << "logLH=" << logLikelihood << endl;
+
+	return logLikelihood;
+}
+
 
 /* This method computes the conditional probability P(x2|x1) */
 double Branch::pX1X2(unsigned int parent, unsigned int child)

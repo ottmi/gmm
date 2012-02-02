@@ -147,14 +147,10 @@ void Tree::readNewick(string &tree)
 
 void Tree::computeLH()
 {
-	cout << endl << "Internal Nodes" << endl;
-	for (unsigned int i = 0; i < _internalNodes.size(); i++)
-		if (_internalNodes[i]->getParent() != _root) _internalNodes[i]->computeValuesIntToInt(_numOfSites);
-		else _internalNodes[i]->computeValuesRootToInt(_numOfSites);
-
-	cout << endl << "Leaves" << endl;
-	for (unsigned int i = 0; i < _leaves.size(); i++)
-		if (_leaves[i] != _root) _leaves[i]->computeValuesIntToLeaf(_numOfSites);
+	for (unsigned int i = 0; i < _branches.size(); i++)
+	{
+		_branches[i]->computeLH(_numOfSites);
+	}
 }
 
 void Tree::printBranches()

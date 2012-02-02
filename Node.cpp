@@ -21,7 +21,6 @@ Node::Node(Node *parent, int id)
 		_branches.push_back(branch);
 	}
 
-	_beta = 0.8;
 	for (int i = 0; i < charStates; i++)
 		probs.push_back(1.0 / charStates);
 }
@@ -173,82 +172,4 @@ vector<unsigned int>& Node::getSequence()
 		throw(ss.str());
 	}
 
-}
-
-double Node::computeValuesIntToInt(unsigned int numOfSites)
-{
-	cout << "computeValuesIntToInt() " << getIdent() << endl;
-	double logLikelihood = 0;
-	Branch *parentBranch = _branches[0];
-
-	vector<double> pG1 = parentBranch->pSiX2(numOfSites);
-	vector<double> pG2 = parentBranch->pRiX1(numOfSites);
-	for (unsigned int site = 0; site < numOfSites; site++)
-	{
-		double siteProb = 0.0;
-
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
-		{
-			pG1[site * 4 + parentBase] /= parentBranch->getMarginalProbCol(parentBase);
-			for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
-			{
-				siteProb += parentBranch->getProb(nodeBase, parentBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + nodeBase];
-			}
-		}
-
-		logLikelihood += log((1 - _beta) * siteProb);
-	}
-	cout << "logLH=" << logLikelihood << endl;
-
-	return logLikelihood;
-}
-
-double Node::computeValuesIntToLeaf(unsigned int numOfSites)
-{
-	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
-	double logLikelihood = 0;
-	Branch *parentBranch = _branches[0];
-
-	vector<double> pG1 = parentBranch->pSiX2(numOfSites);
-	for (unsigned int site = 0; site < numOfSites; site++)
-	{
-		double siteProb = 0.0;
-
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
-		{
-			double marginalProb = parentBranch->getMarginalProbCol(parentBase);
-			siteProb += parentBranch->getProb(parentBase, _seq[site]) * pG1[site * 4 + parentBase] / marginalProb;
-		}
-
-		logLikelihood += log((1 - _beta) * siteProb);
-	}
-
-	cout << "logLH=" << logLikelihood << endl;
-
-	return logLikelihood;
-}
-
-double Node::computeValuesRootToInt(unsigned int numOfSites)
-{
-	cout << "computeValuesRootToInt() " << getIdent() << endl;
-	double logLikelihood = 0;
-	Node *root = getParent();
-	Branch *rootBranch = _branches[0];
-
-	vector<double> pG2 = rootBranch->pRiX1(numOfSites);
-	vector<unsigned int> rootSeq = root->getSequence();
-	for (unsigned int site = 0; site < numOfSites; site++)
-	{
-		double siteProb = 0.0;
-
-		for (unsigned int j = 0; j < 4; j++)
-		{
-			siteProb += rootBranch->getProb(rootSeq[site], j) * pG2[site * 4 + j];
-		}
-
-		logLikelihood += log((1 - _beta) * siteProb);
-	}
-	cout << "logLH=" << logLikelihood << endl;
-
-	return logLikelihood;
 }

@@ -28,10 +28,6 @@ public:
 
 	bool isLeaf() { return _isLeaf; };
 
-	double computeValuesIntToInt(unsigned int numOfSites);
-	double computeValuesIntToLeaf(unsigned int numOfSites);
-	double computeValuesRootToInt(unsigned int numOfSites);
-
 	unsigned int getBase(unsigned int position);
 	vector<unsigned int>& getSequence();
 
@@ -39,7 +35,6 @@ private:
 	string _label;
 	vector <Branch*> _branches;
 	vector <double> probs;
-	double _beta;
 	bool _isLeaf;
 	int _id;
 	vector<unsigned int> _seq;

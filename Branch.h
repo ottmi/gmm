@@ -17,8 +17,8 @@ public:
 	double getDistance() { return _distance; };
 
 	double pX1X2(unsigned int parent, unsigned int child);
-	vector<double> pRiX1(unsigned int numOfSites);
-	vector<double> pSiX2(unsigned int numOfSites);
+	vector<double>& pRiX1(unsigned int numOfSites);
+	vector<double>& pSiX2(unsigned int numOfSites);
 
 	double getProb(unsigned int from, unsigned int to);
 	double getMarginalProbRow(unsigned int row);
@@ -32,6 +32,8 @@ private:
 	vector <Node*> _nodes;
 	double _distance;
 	Matrix *_q;
+	vector<double> _pRiX1;
+	vector<double> _pSiX2;
 	int _id;
 };
 

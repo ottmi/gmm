@@ -58,7 +58,7 @@ double Branch::pX1X2(unsigned int parent, unsigned int child)
 }
 
 // probability away from root
-vector<double> Branch::pRiX1(unsigned int numOfSites)
+vector<double>& Branch::pRiX1(unsigned int numOfSites)
 {
 	Node *node = _nodes[1];	// this should be the node away from root
 	Branch *childBranch1 = node->getBranch(1);
@@ -68,9 +68,10 @@ vector<double> Branch::pRiX1(unsigned int numOfSites)
 
 	cout << "Branch::pRiX1 node=" << node->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << endl;
 
-	double prob1;
-	double prob2;
-	vector<double> result(4 * numOfSites);
+	if (!_pRiX1.empty())
+		return _pRiX1;
+	else
+		_pRiX1 = vector<double>(4 * numOfSites);
 
 	vector<unsigned int> childSeq1;
 	vector<double> childProb1;
@@ -86,6 +87,8 @@ vector<double> Branch::pRiX1(unsigned int numOfSites)
 	else
 		childProb2 = childBranch2->pRiX1(numOfSites);
 
+	double prob1;
+	double prob2;
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 
@@ -109,15 +112,15 @@ vector<double> Branch::pRiX1(unsigned int numOfSites)
 					prob2 += childBranch2->pX1X2(nodeBase, childBase) * childProb2[site * 4 + childBase];
 			}
 
-			result[site * 4 + nodeBase] = prob1 * prob2;
+			_pRiX1[site * 4 + nodeBase] = prob1 * prob2;
 		}
 	}
 
-	return result;
+	return _pRiX1;
 }
 
 // probability towards root
-vector<double> Branch::pSiX2(unsigned int numOfSites)
+vector<double>& Branch::pSiX2(unsigned int numOfSites)
 {
 	Node *parent = _nodes[0]; // this should be the node towards the root
 	Node *grandParent = parent->getParent();
@@ -133,6 +136,11 @@ vector<double> Branch::pSiX2(unsigned int numOfSites)
 	}
 
 	cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << endl;
+
+	if (!_pSiX2.empty())
+		return _pSiX2;
+	else
+		_pSiX2 = vector<double>(4 * numOfSites);
 
 	vector<unsigned int> siblingSeq;
 	vector<double> siblingProbRiX1;
@@ -150,7 +158,6 @@ vector<double> Branch::pSiX2(unsigned int numOfSites)
 
 	double siblingProb;
 	double grandParentProb;
-	vector<double> result(4 * numOfSites);
 	for (unsigned int site = 0; site < numOfSites; site++)
 
 		for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
@@ -179,10 +186,10 @@ vector<double> Branch::pSiX2(unsigned int numOfSites)
 				}
 			}
 
-			result[site * 4 + nodeBase] = siblingProb * grandParentProb;
+			_pSiX2[site * 4 + nodeBase] = siblingProb * grandParentProb;
 		}
 
-	return result;
+	return _pSiX2;
 }
 
 double Branch::getProb(unsigned int from, unsigned int to)

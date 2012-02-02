@@ -95,26 +95,38 @@ string Node::toString(Node *parent)
 
 Branch* Node::getBranch(int id)
 {
-	if ((int) _branches.size() < id + 1)
-		return NULL;
-	else
+	if ((int) _branches.size() > id)
 		return _branches[id];
+	else
+	{
+		stringstream ss;
+		ss << "Node(" << getIdent() << ")::getBranch(" << id << "): there are only " << _branches.size() << " branches";
+		throw(ss.str());
+	}
 }
 
 Node* Node::getParent()
 {
-	if (_branches.empty())
-		return NULL;
-	else
+	if (!_branches.empty())
 		return _branches[0]->getNeighbour(this);
+	else
+	{
+		stringstream ss;
+		ss << "Node(" << getIdent() << ")::getParent(): there are neighbours";
+		throw(ss.str());
+	}
 }
 
 Node* Node::getChild(int num)
 {
-	if (_branches.empty())
-		return NULL;
-	else
+	if ((int) _branches.size() > num)
 		return _branches[num]->getNeighbour(this);
+	else
+	{
+		stringstream ss;
+		ss << "Node(" << getIdent() << ")::getChild(" << num << "): there are only " << _branches.size() << " branches";
+		throw(ss.str());
+	}
 }
 
 string Node::getIdent()
@@ -160,7 +172,6 @@ vector<unsigned int>& Node::getSequence()
 		ss << "Node(" << getIdent() << ")::getSequence(): is not a leaf";
 		throw(ss.str());
 	}
-
 
 }
 

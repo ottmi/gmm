@@ -25,6 +25,7 @@ public:
 	double getMarginalProbCol(unsigned int col);
 
 	void print();
+	string getIdent();
 
 	void initializeQ();
 

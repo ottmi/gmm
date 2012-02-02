@@ -1,5 +1,6 @@
 #include "Branch.h"
 #include "globals.h"
+#include <sstream>
 #include <iostream>
 
 
@@ -43,10 +44,16 @@ void Branch::setDistance(double &distance)
 
 void Branch::print()
 {
-	cout << "{" << _nodes[0]->getIdent() << "}<---(" << _distance << ")--->{" << _nodes[1]->getIdent() << "}" << endl;
+	cout << getIdent() << endl;
 	_q->print();
 }
 
+string Branch::getIdent()
+{
+	stringstream ss;
+	ss << _nodes[0]->getIdent() << "<---(" << _distance << ")--->" << _nodes[1]->getIdent();
+	return ss.str();
+}
 
 /* This method computes the conditional probability P(x2|x1) */
 double Branch::pX1X2(unsigned int parent, unsigned int child)

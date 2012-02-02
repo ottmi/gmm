@@ -28,9 +28,9 @@ public:
 
 	bool isLeaf() { return _isLeaf; };
 
-	double pRiX1(int base, int position);
-	vector<double> pRiX1(int position);
-	double pSiX2(Node *blockedNode, unsigned int base, unsigned int position);
+	double pRiX1(int base, int site);
+	vector<double> pRiX1(int site);
+	double pSiX2(Node *blockedNode, unsigned int base, unsigned int site);
 
 	double computeValuesIntToInt(unsigned int numOfSites);
 	double computeValuesIntToLeaf(unsigned int numOfSites);

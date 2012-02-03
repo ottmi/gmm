@@ -17,6 +17,7 @@ public:
 	void readNewick(string &tree);
 	void computeLH();
 	void printBranches();
+	void printNodes();
 	void print();
 private:
 	Node *_root;

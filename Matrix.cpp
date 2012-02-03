@@ -69,8 +69,24 @@ void Matrix::setCol(unsigned int col, vector<double> x)
 		_m[i][col] = x[i];
 }
 
+void Matrix::setEntry(unsigned int row, unsigned int col, double x)
+{
+	_m[row][col] = x;
+}
 
-double  Matrix::getEntry(unsigned int row, unsigned int col)
+void Matrix::update(Matrix& x)
+{
+	double sum = 0;
+	for (unsigned int i=0; i<_dim; i++)
+		for (unsigned int j=0; j<_dim; j++)
+			sum+= x.getEntry(i, j);
+
+	for (unsigned int i=0; i<_dim; i++)
+		for (unsigned int j=0; j<_dim; j++)
+			_m[i][j] = x.getEntry(i, j) / sum;
+}
+
+double Matrix::getEntry(unsigned int row, unsigned int col)
 {
 	return _m[row][col];
 }

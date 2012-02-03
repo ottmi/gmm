@@ -26,15 +26,19 @@ public:
 private:
 	vector <Node*> _nodes;
 	double _distance;
-	Matrix *_q;
+	Matrix* _q;
 	double _beta;
 	vector<double> _pRiX1;
 	vector<double> _pSiX2;
+	vector<double> _siteProb;
 	int _id;
 
 	double computeValuesIntToInt(unsigned int numOfSites);
 	double computeValuesIntToLeaf(unsigned int numOfSites);
 	double computeValuesRootToInt(unsigned int numOfSites);
+	void updateQIntToInt(unsigned int numOfSites);
+	void updateQIntToLeaf(unsigned int numOfSites);
+	void updateQRootToInt(unsigned int numOfSites);
 
 	double pX1X2(unsigned int parent, unsigned int child);
 	vector<double>& pRiX1(unsigned int numOfSites);

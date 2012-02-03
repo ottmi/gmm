@@ -153,6 +153,23 @@ void Tree::computeLH()
 	}
 }
 
+void Tree::printNodes()
+{
+	cout << "Internal Nodes: " << endl;
+	for (unsigned int i = 0; i < _internalNodes.size(); i++)
+	{
+		cout << _internalNodes[i]->getIdent()
+				 << " parent=" <<  _internalNodes[i]->getParent()->getIdent()
+				 << " child1=" <<  _internalNodes[i]->getChild(1)->getIdent()
+				 << " child2=" <<  _internalNodes[i]->getChild(2)->getIdent() << endl;
+	}
+
+	for (unsigned int i = 0; i < _leaves.size(); i++)
+	{
+		cout << _leaves[i]->getIdent() << " parent=" <<  _leaves[i]->getParent()->getIdent() << endl;
+	}
+}
+
 void Tree::printBranches()
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)

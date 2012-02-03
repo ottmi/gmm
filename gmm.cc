@@ -94,8 +94,8 @@ int main(int argc, char **argv)
 
 		Tree tree(alignment);
 		tree.readNewick(options.inputTree);
+		tree.printNodes();
 
-		tree.printBranches();
 		tree.computeLH();
 	}
 	catch (string& s)

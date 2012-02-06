@@ -112,10 +112,11 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites)
 
 void Branch::updateQIntToInt(unsigned int numOfSites)
 {
+	vector<double> &pG1 = _pSiX2;
+	vector<double> &pG2 = _pRiX1;
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	_updatedQ = new Matrix(4);
-
 	vector<vector<double> > sum(4, vector<double>(4, 0.0));
+
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
@@ -123,13 +124,14 @@ void Branch::updateQIntToInt(unsigned int numOfSites)
 			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
 			for (unsigned int childBase = 0; childBase < 4; childBase++)
 			{
-				double siteProb = getProb(parentBase, childBase) * _pSiX2[site * 4 + parentBase] * _pRiX1[site * 4 + childBase] / marginalProb;
+				double siteProb = getProb(parentBase, childBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + childBase] / marginalProb;
 				double denominator = _siteProb[site];
 				sum[parentBase][childBase] += siteProb / denominator;
 			}
 		}
 	}
 
+	_updatedQ = new Matrix(4);
 	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		for (unsigned int childBase = 0; childBase < 4; childBase++)
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
@@ -165,23 +167,24 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites)
 
 void Branch::updateQIntToLeaf(unsigned int numOfSites)
 {
+	vector<double> &pG1 = _pSiX2;
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	_updatedQ = new Matrix(4);
-
 	vector<vector<double> > sum(4, vector<double>(4, 0));
+
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
 			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
 			unsigned int childBase = leafSeq[site];
-			double siteProb = getProb(parentBase, childBase) * _pSiX2[site * 4 + parentBase] / marginalProb;
+			double siteProb = getProb(parentBase, childBase) * pG1[site * 4 + parentBase] / marginalProb;
 			double denominator = _siteProb[site];
 			sum[parentBase][childBase] += siteProb / denominator;
 		}
 	}
 
+	_updatedQ = new Matrix(4);
 	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		for (unsigned int childBase = 0; childBase < 4; childBase++)
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
@@ -216,20 +219,21 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites)
 void Branch::updateQRootToInt(unsigned int numOfSites)
 {
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
-	_updatedQ = new Matrix(4);
-
+	vector<double> &pG2 = _pRiX1;
 	vector<vector<double> > sum(4, vector<double>(4, 0));
+
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		unsigned int rootBase = rootSeq[site];
 		for (unsigned int childBase = 0; childBase < 4; childBase++)
 		{
-			double siteProb = getProb(rootBase, childBase) * _pRiX1[site * 4 + childBase];
+			double siteProb = getProb(rootBase, childBase) * pG2[site * 4 + childBase];
 			double denominator = _siteProb[site];
 			sum[rootBase][childBase] += siteProb / denominator;
 		}
 	}
 
+	_updatedQ = new Matrix(4);
 	for (unsigned int rootBase = 0; rootBase < 4; rootBase++)
 		for (unsigned int childBase = 0; childBase < 4; childBase++)
 			_updatedQ->setEntry(rootBase, childBase, sum[rootBase][childBase] / numOfSites);

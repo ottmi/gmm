@@ -32,7 +32,7 @@ void Alignment::read(string fileName)
 	cout << "The alignment contains " << _rows << " sequences with " << _cols << " sites each." << endl;
 
 	identifyDataTpe();
-	identifyInvarSites();
+	compress();
 }
 
 int Alignment::find(string name)
@@ -48,7 +48,7 @@ int Alignment::find(string name)
 vector<unsigned int> Alignment::getNumericalSeq(unsigned int row)
 {
 	vector<unsigned int> seq;
-	string &s = _sequences[row];
+	string &s = _compressedSequences[row];
 
 	for (unsigned int i = 0; i < s.size(); i++)
 		seq.push_back(mapDNAToNum(s[i]));
@@ -167,19 +167,65 @@ void Alignment::identifyDataTpe()
 	cout << "The data appears to be " << dataTypeDesc[_dataType] << "." << endl;
 }
 
-void Alignment::identifyInvarSites()
+void Alignment::compress()
 {
-	_invarSites = vector<unsigned int>(_cols, 0);
+	map<string, unsigned int> patterns;
 	for (int col = 0; col < _cols; col++)
 	{
+		string site;
+		for (int row = 0; row < _rows; row++)
+			site.push_back(_sequences[row][col]);
+		patterns[site]++;
+	}
+
+	_compressedSequences = vector<string>(_rows);
+	vector<string> invar(_rows);
+	vector<unsigned int> invarCount;
+	for (map<string, unsigned int>::iterator it = patterns.begin(); it != patterns.end(); it++)
+	{
 		int row = 1;
-		while (row < _rows && _sequences[0][col] == _sequences[row][col])
+		while (row < _rows && it->first[0] == it->first[row])
 			row++;
-		if (row == _rows)
+
+		if (row == _rows)	// this site contains only identical characters
 		{
-			if (verbose >= 5) cout << "Column " << col << " is invariable" << endl;
-			_invarSites[col] = mapDNAToNum(_sequences[0][col]) + 1;
+			for (int i = 0; i < _rows; i++)
+				invar[i].push_back(it->first[i]);
+			invarCount.push_back(it->second);
+		} else
+		{
+			for (int i = 0; i < _rows; i++)
+				_compressedSequences[i].push_back(it->first[i]);
+			_patternCount.push_back(it->second);
 		}
 	}
-	if (verbose >= 3) cout << _invarSites.size() << " sites are invariable." << endl;
+
+	_invarStart = _patternCount.size();
+	for (unsigned col = 0; col < invarCount.size(); col++) // append the invariable sites to the variable sites
+	{
+		for (int row = 0; row < _rows; row++)
+			_compressedSequences[row].push_back(invar[row][col]);
+		_patternCount.push_back(invarCount[col]);
+		_invarSites.push_back(mapDNAToNum(invar[col][0]));
+	}
+	_cols = (int) _patternCount.size();
+
+	if (verbose >= 10)
+	{
+		cout << "\t";
+		for (int col = 0; col < _cols; col++)
+			cout << col / 10;
+		cout << endl << "\t";
+		for (int col = 0; col < _cols; col++)
+			cout << col % 10;
+		cout << endl;
+
+		for (int row = 0; row < _rows; row++)
+			cout << _names[row] << "\t" << _compressedSequences[row] << endl;
+
+		cout << "\t";
+		for (int col = 0; col < _cols; col++)
+			cout << _patternCount[col];
+		cout << endl;
+	}
 }

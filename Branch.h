@@ -16,7 +16,7 @@ public:
 	void setDistance(double &distance);
 	double getDistance() { return _distance; };
 
-	double computeLH(unsigned int numOfSites, vector<unsigned int> &invarSites);
+	double computeLH(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
 	void updateQ();
 
 	void print();
@@ -39,12 +39,12 @@ private:
 	vector<double> _siteProb;
 	int _id;
 
-	double computeValuesIntToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
-	double computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned int> &invarSites);
-	double computeValuesRootToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
-	void updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
-	void updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &invarSites);
-	void updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
+	double computeValuesIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
+	double computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
+	double computeValuesRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
+	void updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
+	void updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
+	void updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
 
 	double pX1X2(unsigned int parent, unsigned int child);
 	vector<double>& pRiX1(unsigned int numOfSites);

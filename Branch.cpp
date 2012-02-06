@@ -60,16 +60,16 @@ string Branch::getIdent()
 	return ss.str();
 }
 
-double Branch::computeLH(unsigned int numOfSites, vector<unsigned int> &invarSites)
+double Branch::computeLH(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	double lh;
 
 	if (_nodes[0]->isLeaf())
-		lh = computeValuesRootToInt(numOfSites, invarSites);
+		lh = computeValuesRootToInt(numOfSites, patternCount, invarSites, invarStart);
 	else if (_nodes[1]->isLeaf())
-		lh = computeValuesIntToLeaf(numOfSites, invarSites);
+		lh = computeValuesIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
 	else
-		lh = computeValuesIntToInt(numOfSites, invarSites);
+		lh = computeValuesIntToInt(numOfSites, patternCount, invarSites, invarStart);
 
 	cout << "logLH=" << fixed << setprecision(10) << lh << endl << endl;
 	return lh;
@@ -82,7 +82,7 @@ void Branch::updateQ()
 	free(_updatedQ);
 }
 
-double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned int> &invarSites)
+double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	cout << "computeValuesIntToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
@@ -108,19 +108,20 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned in
 		}
 		_siteProb[site] = siteProb;
 
-		if (invarSites[site])
+		if (site < invarStart)
+			logLikelihood += patternCount[site] * log((1 - _beta) * siteProb);
+		else
 		{
-			unsigned int invarChar = invarSites[site] - 1;
-			logLikelihood += log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
-		} else
-			logLikelihood += log((1 - _beta) * siteProb);
+			unsigned int invarChar = invarSites[site - invarStart];
+			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
+		}
 	}
-	updateQIntToInt(numOfSites, invarSites);
+	updateQIntToInt(numOfSites, patternCount, invarSites, invarStart);
 
 	return logLikelihood;
 }
 
-void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &invarSites)
+void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	vector<double> &pG1 = _pSiX2;
 	vector<double> &pG2 = _pRiX1;
@@ -137,12 +138,13 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &inva
 				double siteProb = getProb(parentBase, childBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + childBase] / marginalProb;
 				double denominator = _siteProb[site];
 
-				if (invarSites[site])
+				if (site < invarStart)
+					sum[parentBase][childBase] += patternCount[site] * siteProb / denominator;
+				else
 				{
-					unsigned int invarChar = invarSites[site] - 1;
-					sum[parentBase][childBase] += (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
-				} else
-					sum[parentBase][childBase] += siteProb / denominator;
+					unsigned int invarChar = invarSites[site - invarStart];
+					sum[parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
+				}
 			}
 		}
 	}
@@ -153,8 +155,7 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &inva
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
-
-double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned int> &invarSites)
+double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 	double logLikelihood = 0;
@@ -177,19 +178,20 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned i
 		}
 		_siteProb[site] = siteProb;
 
-		if (invarSites[site])
+		if (site < invarStart)
+			logLikelihood += patternCount[site] * log((1 - _beta) * siteProb);
+		else
 		{
-			unsigned int invarChar = invarSites[site] - 1;
-			logLikelihood += log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
-		} else
-			logLikelihood += log((1 - _beta) * siteProb);
+			unsigned int invarChar = invarSites[site - invarStart];
+			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
+		}
 	}
-	updateQIntToLeaf(numOfSites, invarSites);
+	updateQIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
 
 	return logLikelihood;
 }
 
-void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &invarSites)
+void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	vector<double> &pG1 = _pSiX2;
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
@@ -205,12 +207,13 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &inv
 			double siteProb = getProb(parentBase, childBase) * pG1[site * 4 + parentBase] / marginalProb;
 			double denominator = _siteProb[site];
 
-			if (invarSites[site])
+			if (site < invarStart)
+				sum[parentBase][childBase] += patternCount[site] * siteProb / denominator;
+			else
 			{
-				unsigned int invarChar = invarSites[site] - 1;
-				sum[parentBase][childBase] += (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
-			} else
-				sum[parentBase][childBase] += siteProb / denominator;
+				unsigned int invarChar = invarSites[site - invarStart];
+				sum[parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
+			}
 		}
 	}
 
@@ -220,7 +223,7 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &inv
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
-double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned int> &invarSites)
+double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	cout << "computeValuesRootToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
@@ -240,19 +243,21 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned i
 			siteProb += getProb(rootSeq[site], j) * pG2[site * 4 + j];
 		}
 		_siteProb[site] = siteProb;
-		if (invarSites[site])
+
+		if (site < invarStart)
+			logLikelihood += patternCount[site] * log((1 - _beta) * siteProb);
+		else
 		{
-			unsigned int invarChar = invarSites[site] - 1;
-			logLikelihood += log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
-		} else
-			logLikelihood += log((1 - _beta) * siteProb);
+			unsigned int invarChar = invarSites[site - invarStart];
+			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
+		}
 	}
 
-	updateQRootToInt(numOfSites, invarSites);
+	updateQRootToInt(numOfSites, patternCount, invarSites, invarStart);
 	return logLikelihood;
 }
 
-void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &invarSites)
+void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	vector<double> &pG2 = _pRiX1;
@@ -266,12 +271,13 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &inv
 			double siteProb = getProb(rootBase, childBase) * pG2[site * 4 + childBase];
 			double denominator = _siteProb[site];
 
-			if (invarSites[site])
+			if (site < invarStart)
+				sum[rootBase][childBase] += patternCount[site] * siteProb / denominator;
+			else
 			{
-				unsigned int invarChar = invarSites[site] - 1;
-				sum[rootBase][childBase] += (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
-			} else
-				sum[rootBase][childBase] += siteProb / denominator;
+				unsigned int invarChar = invarSites[site - invarStart];
+				sum[rootBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
+			}
 		}
 	}
 

@@ -149,7 +149,7 @@ void Tree::computeLH()
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
-		_branches[i]->computeLH(_numOfSites, _alignment.getInvarSites());
+		_branches[i]->computeLH(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
 	}
 }
 

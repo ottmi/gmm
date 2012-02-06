@@ -97,9 +97,9 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites)
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
 			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
-			for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
+			for (unsigned int childBase = 0; childBase < 4; childBase++)
 			{
-				siteProb += getProb(parentBase, nodeBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + nodeBase] / marginalProb;
+				siteProb += getProb(parentBase, childBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + childBase] / marginalProb;
 			}
 		}
 		_siteProb[site] = siteProb;
@@ -214,9 +214,9 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites)
 	{
 		double siteProb = 0.0;
 
-		for (unsigned int j = 0; j < 4; j++)
+		for (unsigned int childBase = 0; childBase < 4; childBase++)
 		{
-			siteProb += getProb(rootSeq[site], j) * pG2[site * 4 + j];
+			siteProb += getProb(rootSeq[site], childBase) * pG2[site * 4 + childBase];
 		}
 		_siteProb[site] = siteProb;
 //		cout << "i=" << site << " siteProb=" << siteProb << endl;
@@ -268,13 +268,13 @@ double Branch::pX1X2(unsigned int parent, unsigned int child)
 // probability away from root
 vector<double>& Branch::pRiX1(unsigned int numOfSites)
 {
-	Node *node = _nodes[1]; // this should be the node away from root
-	Branch *childBranch1 = node->getBranch(1);
-	Branch *childBranch2 = node->getBranch(2);
-	Node *child1 = childBranch1->getNeighbour(node);
-	Node *child2 = childBranch2->getNeighbour(node);
+	Node *parent = _nodes[1]; // this should be the node away from root
+	Branch *childBranch1 = parent->getBranch(1);
+	Branch *childBranch2 = parent->getBranch(2);
+	Node *child1 = childBranch1->getNeighbour(parent);
+	Node *child2 = childBranch2->getNeighbour(parent);
 
-	cout << "Branch::pRiX1 node=" << node->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion << " ownVer=" << _pRiX1Version << endl;
+	cout << "Branch::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion << " ownVer=" << _pRiX1Version << endl;
 
 	if (_pRiX1.empty())
 		_pRiX1 = vector<double>(4 * numOfSites);
@@ -300,27 +300,27 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 
-		for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
+		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
 			if (child1->isLeaf())
-				prob1 = childBranch1->pX1X2(nodeBase, childSeq1[site]);
+				prob1 = childBranch1->pX1X2(parentBase, childSeq1[site]);
 			else
 			{
 				prob1 = 0;
 				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob1 += childBranch1->pX1X2(nodeBase, childBase) * childProb1[site * 4 + childBase];
+					prob1 += childBranch1->pX1X2(parentBase, childBase) * childProb1[site * 4 + childBase];
 			}
 
 			if (child2->isLeaf())
-				prob2 = childBranch2->pX1X2(nodeBase, childSeq2[site]);
+				prob2 = childBranch2->pX1X2(parentBase, childSeq2[site]);
 			else
 			{
 				prob2 = 0;
 				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob2 += childBranch2->pX1X2(nodeBase, childBase) * childProb2[site * 4 + childBase];
+					prob2 += childBranch2->pX1X2(parentBase, childBase) * childProb2[site * 4 + childBase];
 			}
 
-			_pRiX1[site * 4 + nodeBase] = prob1 * prob2;
+			_pRiX1[site * 4 + parentBase] = prob1 * prob2;
 		}
 	}
 
@@ -370,33 +370,33 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 	double grandParentProb;
 	for (unsigned int site = 0; site < numOfSites; site++)
 
-		for (unsigned int nodeBase = 0; nodeBase < 4; nodeBase++)
+		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
 			if (sibling->isLeaf())
 			{
-				siblingProb = siblingBranch->pX1X2(nodeBase, siblingSeq[site]);
+				siblingProb = siblingBranch->pX1X2(parentBase, siblingSeq[site]);
 			} else
 			{
 				siblingProb = 0;
-				for (unsigned int childBase = 0; childBase < 4; childBase++)
+				for (unsigned int siblingBase = 0; siblingBase < 4; siblingBase++)
 				{
-					siblingProb += siblingBranch->pX1X2(nodeBase, childBase) * siblingProbRiX1[site * 4 + childBase];
+					siblingProb += siblingBranch->pX1X2(parentBase, siblingBase) * siblingProbRiX1[site * 4 + siblingBase];
 				}
 			}
 
 			if (grandParent->isLeaf())
 			{
-				grandParentProb = grandParentBranch->getProb(grandParentSeq[site], nodeBase);
+				grandParentProb = grandParentBranch->getProb(grandParentSeq[site], parentBase);
 			} else
 			{
 				grandParentProb = 0;
-				for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+				for (unsigned int grandParentBase = 0; grandParentBase < 4; grandParentBase++)
 				{
-					grandParentProb += grandParentBranch->pX1X2(parentBase, nodeBase) * grandParentProbSiX2[site * 4 + parentBase];
+					grandParentProb += grandParentBranch->pX1X2(grandParentBase, parentBase) * grandParentProbSiX2[site * 4 + grandParentBase];
 				}
 			}
 
-			_pSiX2[site * 4 + nodeBase] = siblingProb * grandParentProb;
+			_pSiX2[site * 4 + parentBase] = siblingProb * grandParentProb;
 		}
 
 	_pSiX2Version++;

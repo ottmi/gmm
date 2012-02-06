@@ -16,7 +16,7 @@ public:
 	void setDistance(double &distance);
 	double getDistance() { return _distance; };
 
-	double computeLH(unsigned int numOfSites);
+	double computeLH(unsigned int numOfSites, vector<unsigned int> &invarSites);
 	void updateQ();
 
 	void print();
@@ -31,6 +31,7 @@ private:
 	Matrix* _updatedQ;
 	unsigned int _qVersion;
 	double _beta;
+	vector<double> _invar;
 	vector<double> _pRiX1;
 	unsigned int _pRiX1Version;
 	vector<double> _pSiX2;
@@ -38,12 +39,12 @@ private:
 	vector<double> _siteProb;
 	int _id;
 
-	double computeValuesIntToInt(unsigned int numOfSites);
-	double computeValuesIntToLeaf(unsigned int numOfSites);
-	double computeValuesRootToInt(unsigned int numOfSites);
-	void updateQIntToInt(unsigned int numOfSites);
-	void updateQIntToLeaf(unsigned int numOfSites);
-	void updateQRootToInt(unsigned int numOfSites);
+	double computeValuesIntToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
+	double computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned int> &invarSites);
+	double computeValuesRootToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
+	void updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
+	void updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &invarSites);
+	void updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &invarSites);
 
 	double pX1X2(unsigned int parent, unsigned int child);
 	vector<double>& pRiX1(unsigned int numOfSites);

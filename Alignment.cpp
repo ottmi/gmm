@@ -66,6 +66,22 @@ void Alignment::read(string fileName) {
 	}
 
 	cout << "The data appears to be " << dataTypeDesc[_dataType] << "." << endl;
+
+	_invarSites = vector<unsigned int>(_cols, 0);
+	for (int col=0; col < _cols; col++)
+	{
+		int row=1;
+		while (row < _rows && _sequences[0][col] == _sequences[row][col])
+			row++;
+		if (row == _rows)
+		{
+			if (verbose >= 5)
+				cout << "Column " << col << " is invariable" << endl;
+			_invarSites[col] = mapDNAToNum(_sequences[0][col]) + 1;
+		}
+	}
+	if (verbose >= 3)
+		cout << _invarSites.size() << " sites are invariable." << endl;
 }
 
 

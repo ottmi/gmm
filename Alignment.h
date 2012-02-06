@@ -23,7 +23,7 @@ public:
 	int getDataType() { return _dataType; };
 
 	vector<unsigned int> getNumericalSeq(unsigned int row);
-
+	vector<unsigned int>& getInvarSites() {return _invarSites; };
 
 private:
 	int _cols;
@@ -31,6 +31,7 @@ private:
 	int _dataType;
 	vector <string> _sequences;
 	vector <string> _names;
+	vector<unsigned int> _invarSites;
 };
 
 #endif /* ALIGNMENT_H_ */

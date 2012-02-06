@@ -153,6 +153,14 @@ void Tree::computeLH()
 	}
 }
 
+void Tree::updateQ()
+{
+	for (unsigned int i = 0; i < _branches.size(); i++)
+	{
+		_branches[i]->updateQ();
+	}
+}
+
 void Tree::printNodes()
 {
 	cout << "Internal Nodes: " << endl;

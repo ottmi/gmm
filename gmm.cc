@@ -97,6 +97,10 @@ int main(int argc, char **argv)
 		tree.printNodes();
 
 		tree.computeLH();
+		tree.updateQ();
+		tree.computeLH();
+		tree.updateQ();
+		tree.computeLH();
 	}
 	catch (string& s)
 	{

@@ -17,6 +17,7 @@ public:
 	double getDistance() { return _distance; };
 
 	double computeLH(unsigned int numOfSites);
+	void updateQ();
 
 	void print();
 	string getIdent();
@@ -27,9 +28,13 @@ private:
 	vector <Node*> _nodes;
 	double _distance;
 	Matrix* _q;
+	Matrix* _updatedQ;
+	unsigned int _qVersion;
 	double _beta;
 	vector<double> _pRiX1;
+	unsigned int _pRiX1Version;
 	vector<double> _pSiX2;
+	unsigned int _pSiX2Version;
 	vector<double> _siteProb;
 	int _id;
 

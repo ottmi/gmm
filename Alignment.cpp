@@ -5,92 +5,62 @@
 #include <iostream>
 #include <map>
 
-
-
-Alignment::Alignment() {
+Alignment::Alignment()
+{
 	_cols = _rows = 0;
 }
 
-
-
-Alignment::~Alignment() {
+Alignment::~Alignment()
+{
 	// TODO Auto-generated destructor stub
 }
 
-
-
-void Alignment::read(string fileName) {
+void Alignment::read(string fileName)
+{
 	string ext = fileName.substr(fileName.find_last_of('.') + 1);
 
 	if (!ext.compare("phy") || !ext.compare("phylip"))
 		readPhylip(fileName);
 	else if (!ext.compare("fsa") || !ext.compare("fasta"))
 		readFasta(fileName);
-	else {
+	else
+	{
 		cerr << "Unknown input alignment format" << endl;
 		exit(255);
 	}
 
-	cout << "The alignment contains " << _rows << " sequences with " << _cols
-			<< " sites each." << endl;
+	cout << "The alignment contains " << _rows << " sequences with " << _cols << " sites each." << endl;
 
-	string dataTypeDesc[] = { "DNA", "AA" };
-	map<char, unsigned long> baseOccurences;
-	for (unsigned int i = 0; i < _sequences.size(); i++) {
-		string s = _sequences[i];
-		for (unsigned int j = 0; j < s.length(); j++)
-			baseOccurences[s[j]]++;
-	}
-
-	string maps[] = { _DNA_MAP, _AA_MAP };
-	unsigned long counts[2];
-	for (unsigned int i = 0; i < 2; i++) {
-		counts[i] = 0;
-		string map = maps[i];
-		for (unsigned j = 0; j < map.length(); j++)
-			counts[i] += baseOccurences[map[j]];
-	}
-
-	if (verbose)
-		cout << counts[0] << " DNA characters and " << counts[1]
-				<< " AA characters." << endl;
-	if (counts[0] >= counts[1])
-	{
-		_dataType = _DNA_DATA;
-		charStates = 4;
-	}
-	else
-	{
-		_dataType = _AA_DATA;
-		charStates = 20;
-	}
-
-	cout << "The data appears to be " << dataTypeDesc[_dataType] << "." << endl;
-
-	_invarSites = vector<unsigned int>(_cols, 0);
-	for (int col=0; col < _cols; col++)
-	{
-		int row=1;
-		while (row < _rows && _sequences[0][col] == _sequences[row][col])
-			row++;
-		if (row == _rows)
-		{
-			if (verbose >= 5)
-				cout << "Column " << col << " is invariable" << endl;
-			_invarSites[col] = mapDNAToNum(_sequences[0][col]) + 1;
-		}
-	}
-	if (verbose >= 3)
-		cout << _invarSites.size() << " sites are invariable." << endl;
+	identifyDataTpe();
+	identifyInvarSites();
 }
 
+int Alignment::find(string name)
+{
+	for (unsigned int i = 0; i < _names.size(); i++)
+	{
+		if (_names[i] == name) return i;
+	}
 
+	return -1;
+}
 
-void Alignment::readPhylip(string fileName) {
+vector<unsigned int> Alignment::getNumericalSeq(unsigned int row)
+{
+	vector<unsigned int> seq;
+	string &s = _sequences[row];
+
+	for (unsigned int i = 0; i < s.size(); i++)
+		seq.push_back(mapDNAToNum(s[i]));
+
+	return seq;
+}
+
+void Alignment::readPhylip(string fileName)
+{
 	ifstream fileReader;
 	fileReader.open(fileName.c_str());
-	if (!fileReader.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+	if (!fileReader.is_open()) throw("\n\nError, cannot open file " + fileName);
 
 	string str;
 	safeGetline(fileReader, str);
@@ -106,83 +76,110 @@ void Alignment::readPhylip(string fileName) {
 	_cols = atoi(cols.c_str());
 	_rows = atoi(rows.c_str());
 
-	while (!fileReader.eof()) {
+	while (!fileReader.eof())
+	{
 		safeGetline(fileReader, str);
-		if (str.length()) {
+		if (str.length())
+		{
 			str = str.substr(str.find_first_not_of(whiteSpace));
 			string name = str.substr(0, str.find_first_of(whiteSpace));
 			str = str.substr(str.find_first_of(whiteSpace));
 			string seq = str.substr(str.find_first_not_of(whiteSpace));
 
-			if ((int) seq.length() < _cols)
-				cerr << "Sequence #" << _sequences.size() + 1 << " (" << name
-						<< ") has only " << seq.length() << " characters."
-						<< endl;
+			if ((int) seq.length() < _cols) cerr << "Sequence #" << _sequences.size() + 1 << " (" << name << ") has only " << seq.length() << " characters." << endl;
 			seq = adjustString(seq);
-			if (!name.empty() && !seq.empty()) {
+			if (!name.empty() && !seq.empty())
+			{
 				_names.push_back(name);
 				_sequences.push_back(seq);
 			}
 		}
 	}
-	if ((int) _sequences.size() < _rows)
-		cerr << "The alignment has only " << _sequences.size() << " rows."
-				<< endl;
+	if ((int) _sequences.size() < _rows) cerr << "The alignment has only " << _sequences.size() << " rows." << endl;
 }
 
-
-
-void Alignment::readFasta(string fileName) {
+void Alignment::readFasta(string fileName)
+{
 	ifstream fileReader;
 	fileReader.open(fileName.c_str());
-	if (!fileReader.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+	if (!fileReader.is_open()) throw("\n\nError, cannot open file " + fileName);
 
 	string s;
 	safeGetline(fileReader, s);
 	while ((!fileReader.eof()) && s[0] != '>')
 		safeGetline(fileReader, s);
 
-	while (!fileReader.eof()) {
+	while (!fileReader.eof())
+	{
 		string header;
 		string seq;
 		header = s;
 		s.clear();
-		while (!fileReader.eof() && s[0] != '>') {
+		while (!fileReader.eof() && s[0] != '>')
+		{
 			safeGetline(fileReader, s);
-			if (s[0] != '>')
-				seq += s;
+			if (s[0] != '>') seq += s;
 		}
 		seq = adjustString(seq, true);
 		header = adjustString(header.substr(1), false);
-		if (header.length() > 1 && seq.length()) {
+		if (header.length() > 1 && seq.length())
+		{
 			_names.push_back(header);
 			_sequences.push_back(seq);
 		}
 	}
-	_rows=_sequences.size();
-	_cols=_sequences[0].length();
+	_rows = _sequences.size();
+	_cols = _sequences[0].length();
 }
 
-
-
-int Alignment::find(string name) {
-	for (unsigned int i = 0; i < _names.size(); i++) {
-		if (_names[i] == name)
-			return i;
+void Alignment::identifyDataTpe()
+{
+	string dataTypeDesc[] = { "DNA", "AA" };
+	map<char, unsigned long> baseOccurences;
+	for (unsigned int i = 0; i < _sequences.size(); i++)
+	{
+		string s = _sequences[i];
+		for (unsigned int j = 0; j < s.length(); j++)
+			baseOccurences[s[j]]++;
 	}
 
-	return -1;
+	string maps[] = { _DNA_MAP, _AA_MAP };
+	unsigned long counts[2];
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		counts[i] = 0;
+		string map = maps[i];
+		for (unsigned j = 0; j < map.length(); j++)
+			counts[i] += baseOccurences[map[j]];
+	}
+
+	if (verbose) cout << counts[0] << " DNA characters and " << counts[1] << " AA characters." << endl;
+	if (counts[0] >= counts[1])
+	{
+		_dataType = _DNA_DATA;
+		charStates = 4;
+	} else
+	{
+		_dataType = _AA_DATA;
+		charStates = 20;
+	}
+
+	cout << "The data appears to be " << dataTypeDesc[_dataType] << "." << endl;
 }
 
-
-vector<unsigned int> Alignment::getNumericalSeq(unsigned int row)
+void Alignment::identifyInvarSites()
 {
-	vector<unsigned int> seq;
-	string &s = _sequences[row];
-
-	for (unsigned int i = 0; i < s.size(); i++)
-		seq.push_back(mapDNAToNum(s[i]));
-
-	return seq;
+	_invarSites = vector<unsigned int>(_cols, 0);
+	for (int col = 0; col < _cols; col++)
+	{
+		int row = 1;
+		while (row < _rows && _sequences[0][col] == _sequences[row][col])
+			row++;
+		if (row == _rows)
+		{
+			if (verbose >= 5) cout << "Column " << col << " is invariable" << endl;
+			_invarSites[col] = mapDNAToNum(_sequences[0][col]) + 1;
+		}
+	}
+	if (verbose >= 3) cout << _invarSites.size() << " sites are invariable." << endl;
 }

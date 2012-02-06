@@ -153,6 +153,7 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &inva
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
+
 double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned int> &invarSites)
 {
 	cout << "computeValuesIntToLeaf() " << getIdent() << endl;

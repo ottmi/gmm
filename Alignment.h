@@ -15,8 +15,6 @@ public:
 	virtual
 	~Alignment();
 	void read(string fileName);
-	void readPhylip(string fileName);
-	void readFasta(string fileName);
 	int find(string name);
 	int getCols() { return _cols; };
 	int getRows() { return _rows; };
@@ -32,6 +30,11 @@ private:
 	vector <string> _sequences;
 	vector <string> _names;
 	vector<unsigned int> _invarSites;
+
+	void readPhylip(string fileName);
+	void readFasta(string fileName);
+	void identifyDataTpe();
+	void identifyInvarSites();
 };
 
 #endif /* ALIGNMENT_H_ */

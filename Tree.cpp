@@ -172,6 +172,7 @@ void Tree::printNodes()
 				 << " child2=" <<  _internalNodes[i]->getChild(2)->getIdent() << endl;
 	}
 
+	cout << "Leaves: " << endl;
 	for (unsigned int i = 0; i < _leaves.size(); i++)
 	{
 		cout << _leaves[i]->getIdent() << " parent=" <<  _leaves[i]->getParent()->getIdent() << endl;

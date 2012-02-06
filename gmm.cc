@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 
 		Tree tree(alignment);
 		tree.readNewick(options.inputTree);
-		tree.printNodes();
+		if (verbose >= 2)
+			tree.printNodes();
 
 		tree.computeLH();
 		tree.updateQ();

@@ -83,7 +83,8 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites)
 {
 	cout << "computeValuesIntToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
-	_q->print();
+
+	if (verbose >= 3) _q->print();
 
 	vector<double> pG1 = pSiX2(numOfSites);
 	vector<double> pG2 = pRiX1(numOfSites);
@@ -141,7 +142,8 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites)
 {
 	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 	double logLikelihood = 0;
-	_q->print();
+
+	if (verbose >= 3) _q->print();
 
 	vector<double> pG1 = pSiX2(numOfSites);
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
@@ -194,7 +196,8 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites)
 {
 	cout << "computeValuesRootToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
-	_q->print();
+
+	if (verbose >= 3) _q->print();
 
 	vector<double> pG2 = pRiX1(numOfSites);
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
@@ -257,8 +260,9 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 	Node *child1 = childBranch1->getNeighbour(parent);
 	Node *child2 = childBranch2->getNeighbour(parent);
 
-	cout << "Branch::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion
-			<< " ownVer=" << _pRiX1Version << endl;
+	if (verbose >= 5)
+		cout << "Branch::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion
+				<< " ownVer=" << _pRiX1Version << endl;
 
 	if (_pRiX1.empty())
 		_pRiX1 = vector<double>(4 * numOfSites);
@@ -327,8 +331,9 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 		siblingBranch = parent->getBranch(2);
 	}
 
-	cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer="
-			<< _qVersion << " ownVer=" << _pSiX2Version << endl;
+	if (verbose >= 5)
+		cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer="
+				<< _qVersion << " ownVer=" << _pSiX2Version << endl;
 
 	if (_pSiX2.empty())
 		_pSiX2 = vector<double>(4 * numOfSites);

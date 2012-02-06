@@ -103,8 +103,6 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites)
 			}
 		}
 		_siteProb[site] = siteProb;
-//		cout << "i=" << site << " siteProb=" << siteProb << endl;
-
 		logLikelihood += log((1 - _beta) * siteProb);
 	}
 	updateQIntToInt(numOfSites);
@@ -117,26 +115,24 @@ void Branch::updateQIntToInt(unsigned int numOfSites)
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	_updatedQ = new Matrix(4);
 
-	double sum;
-	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+	vector<vector<double> > sum(4, vector<double>(4, 0.0));
+	for (unsigned int site = 0; site < numOfSites; site++)
 	{
-		double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
+		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
-			sum = 0.0;
-			for (unsigned int site = 0; site < numOfSites; site++)
+			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
+			for (unsigned int childBase = 0; childBase < 4; childBase++)
 			{
-					double siteProb = getProb(parentBase, childBase) * _pSiX2[site * 4 + parentBase] * _pRiX1[site * 4 + childBase] / marginalProb;
-					double denominator = _siteProb[site];
-					sum += siteProb / denominator;
-					//cout << "i=" << parentBase << " j=" << childBase << " k=" << site << " siteProb=" << siteProb << " denom=" << denominator << " sum=" << sum << endl;
+				double siteProb = getProb(parentBase, childBase) * _pSiX2[site * 4 + parentBase] * _pRiX1[site * 4 + childBase] / marginalProb;
+				double denominator = _siteProb[site];
+				sum[parentBase][childBase] += siteProb / denominator;
 			}
+		}
+	}
 
-			_updatedQ->setEntry(parentBase, childBase, sum/numOfSites);
-		} //end of FOR loop for child node
-	} //end of FOR loop for parent node
-	//_updatedQ->print();
-	//_q->update(newQ);
+	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int childBase = 0; childBase < 4; childBase++)
+			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
 double Branch::computeValuesIntToLeaf(unsigned int numOfSites)
@@ -160,7 +156,6 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites)
 			siteProb += getProb(parentBase, leafSeq[site]) * pG1[site * 4 + parentBase] / marginalProb;
 		}
 		_siteProb[site] = siteProb;
-
 		logLikelihood += log((1 - _beta) * siteProb);
 	}
 	updateQIntToLeaf(numOfSites);
@@ -174,31 +169,23 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites)
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	_updatedQ = new Matrix(4);
 
-	double sum;
-	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+	vector<vector<double> > sum(4, vector<double>(4, 0));
+	for (unsigned int site = 0; site < numOfSites; site++)
 	{
-		double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
+		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
-			sum = 0.0;
-			for (unsigned int site = 0; site < numOfSites; site++)
-			{
-				if (leafSeq[site] == childBase)
-				{
-					double siteProb = getProb(parentBase, childBase) * _pSiX2[site * 4 + parentBase] / marginalProb;
-					double denominator = _siteProb[site];
-					sum += siteProb / denominator;
-					//cout << "i=" << parentBase << " j=" << childBase << " k=" << site << " siteProb=" << siteProb << " denom=" << denominator << " sum=" << sum << endl;
-				}
-			}
+			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
+			unsigned int childBase = leafSeq[site];
+			double siteProb = getProb(parentBase, childBase) * _pSiX2[site * 4 + parentBase] / marginalProb;
+			double denominator = _siteProb[site];
+			sum[parentBase][childBase] += siteProb / denominator;
+		}
+	}
 
-			_updatedQ->setEntry(parentBase, childBase, sum/numOfSites);
-		} //end of FOR loop for child node
-	} //end of FOR loop for parent node
-	//_updatedQ->print();
-	//_q->update(newQ);
+	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int childBase = 0; childBase < 4; childBase++)
+			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
-
 
 double Branch::computeValuesRootToInt(unsigned int numOfSites)
 {
@@ -214,12 +201,11 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites)
 	{
 		double siteProb = 0.0;
 
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
+		for (unsigned int j = 0; j < 4; j++)
 		{
-			siteProb += getProb(rootSeq[site], childBase) * pG2[site * 4 + childBase];
+			siteProb += getProb(rootSeq[site], j) * pG2[site * 4 + j];
 		}
 		_siteProb[site] = siteProb;
-//		cout << "i=" << site << " siteProb=" << siteProb << endl;
 		logLikelihood += log((1 - _beta) * siteProb);
 	}
 
@@ -232,28 +218,21 @@ void Branch::updateQRootToInt(unsigned int numOfSites)
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	_updatedQ = new Matrix(4);
 
-	double sum;
-	for (unsigned int rootBase = 0; rootBase < 4; rootBase++)
+	vector<vector<double> > sum(4, vector<double>(4, 0));
+	for (unsigned int site = 0; site < numOfSites; site++)
 	{
+		unsigned int rootBase = rootSeq[site];
 		for (unsigned int childBase = 0; childBase < 4; childBase++)
 		{
-			sum = 0.0;
-			for (unsigned int site = 0; site < numOfSites; site++)
-			{
-				if (rootSeq[site] == rootBase)
-				{
-					double siteProb = getProb(rootBase, childBase) * _pRiX1[site * 4 + childBase];
-					double denominator = _siteProb[site];
-					sum += siteProb / denominator;
-//					cout << "i=" << rootBase << " j=" << childBase << " k=" << site << " siteProb=" << siteProb << " denom=" << denominator << " sum=" << sum << endl;
-				}
-			}
+			double siteProb = getProb(rootBase, childBase) * _pRiX1[site * 4 + childBase];
+			double denominator = _siteProb[site];
+			sum[rootBase][childBase] += siteProb / denominator;
+		}
+	}
 
-			_updatedQ->setEntry(rootBase, childBase, sum/numOfSites);
-		} //end of FOR loop for child node
-	} //end of FOR loop for parent node
-	//_updatedQ->print();
-	//_q->update(newQ);
+	for (unsigned int rootBase = 0; rootBase < 4; rootBase++)
+		for (unsigned int childBase = 0; childBase < 4; childBase++)
+			_updatedQ->setEntry(rootBase, childBase, sum[rootBase][childBase] / numOfSites);
 }
 
 /* This method computes the conditional probability P(x2|x1) */
@@ -274,12 +253,12 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 	Node *child1 = childBranch1->getNeighbour(parent);
 	Node *child2 = childBranch2->getNeighbour(parent);
 
-	cout << "Branch::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion << " ownVer=" << _pRiX1Version << endl;
+	cout << "Branch::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion
+			<< " ownVer=" << _pRiX1Version << endl;
 
 	if (_pRiX1.empty())
 		_pRiX1 = vector<double>(4 * numOfSites);
-	else if (_qVersion < _pRiX1Version)
-		return _pRiX1;
+	else if (_qVersion < _pRiX1Version) return _pRiX1;
 
 	vector<unsigned int> childSeq1;
 	vector<double> childProb1;
@@ -344,13 +323,12 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 		siblingBranch = parent->getBranch(2);
 	}
 
-	cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer=" << _qVersion << " ownVer=" << _pSiX2Version << endl;
+	cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer="
+			<< _qVersion << " ownVer=" << _pSiX2Version << endl;
 
 	if (_pSiX2.empty())
 		_pSiX2 = vector<double>(4 * numOfSites);
-	else if (_qVersion < _pSiX2Version)
-		return _pSiX2;
-
+	else if (_qVersion < _pSiX2Version) return _pSiX2;
 
 	vector<unsigned int> siblingSeq;
 	vector<double> siblingProbRiX1;

@@ -72,6 +72,11 @@ unsigned int mapDNAToNum(char c)
 		case 't':
 			d = 0x03;
 			break;
+
+		default:
+			string s = "Unsupported character: " + c;
+			throw(s);
+			break;
 	}
 	return d;
 }

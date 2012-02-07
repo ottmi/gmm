@@ -13,8 +13,6 @@ public:
 	virtual
 	~Branch();
 	Node* getNeighbour(Node *node);
-	void setDistance(double &distance);
-	double getDistance() { return _distance; };
 
 	double computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
 	void computeUpdatedQ(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
@@ -28,7 +26,6 @@ public:
 
 private:
 	vector <Node*> _nodes;
-	double _distance;
 	Matrix* _q;
 	Matrix* _updatedQ;
 	unsigned int _qVersion;

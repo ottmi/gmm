@@ -34,7 +34,6 @@ public:
 private:
 	string _label;
 	vector <Branch*> _branches;
-	vector <double> probs;
 	bool _isLeaf;
 	int _id;
 	vector<unsigned int> _seq;

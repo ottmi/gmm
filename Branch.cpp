@@ -11,7 +11,6 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_id = id;
 	_nodes.push_back(n1);
 	_nodes.push_back(n2);
-	_distance = -1.0;
 
 	_beta = 0.8;
 	for (unsigned int i = 0; i < charStates; i++)
@@ -41,12 +40,6 @@ Node* Branch::getNeighbour(Node *node)
 		return NULL;
 }
 
-void Branch::setDistance(double &distance)
-{
-	this->_distance = distance;
-	distance = -1.0;
-}
-
 void Branch::print()
 {
 	cout << getIdent() << endl;
@@ -56,7 +49,7 @@ void Branch::print()
 string Branch::getIdent()
 {
 	stringstream ss;
-	ss << _nodes[0]->getIdent() << "<---(" << _distance << ")--->" << _nodes[1]->getIdent();
+	ss << _nodes[0]->getIdent() << "<--->" << _nodes[1]->getIdent();
 	return ss.str();
 }
 

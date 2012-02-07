@@ -72,7 +72,7 @@ void Tree::readNewick(string &tree)
 				{
 					leaf = new Node(currentNode, _nodeCount++);
 					Branch *branch = leaf->getBranch(0);
-					branch->setDistance(distance);
+//					branch->setDistance(distance);
 					_branches.push_back(branch);
 				} else // same as above, no node and branch yet
 				{
@@ -83,8 +83,8 @@ void Tree::readNewick(string &tree)
 			} else
 			{
 				prevInternalNode->setLabel(label);
-				Branch *branch = prevInternalNode->getBranch(0);
-				branch->setDistance(distance);
+//				Branch *branch = prevInternalNode->getBranch(0);
+//				branch->setDistance(distance);
 			}
 
 			if (treeString[i] == ')') // internal node

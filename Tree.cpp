@@ -12,7 +12,8 @@ Tree::Tree(Alignment &alignment)
 {
 	_nodeCount = 0;
 	_alignment = alignment;
-	_numOfSites = _alignment.getCols();
+	_numOfSites = _alignment.getNumOfSites();
+	_numOfUniqueSites = _alignment.getNumOfUniqueSites();
 }
 
 Tree::~Tree()
@@ -137,10 +138,10 @@ void Tree::readNewick(string &tree)
 	}
 
 	cout << "The tree has " << _internalNodes.size() << " internal nodes, " << _leaves.size() << " leaves and " << _branches.size() << " branches." << endl;
-	if (_alignment.getRows() != (int) _leaves.size())
+	if (_alignment.getNumOfSequences() != _leaves.size())
 	{
 		stringstream ss;
-		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << _alignment.getRows() << ") do not match";
+		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << _alignment.getNumOfSequences() << ") do not match";
 		throw(ss.str());
 	}
 }
@@ -149,7 +150,7 @@ void Tree::computeLH()
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
-		_branches[i]->computeLH(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+		_branches[i]->computeLH(_numOfUniqueSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
 	}
 }
 

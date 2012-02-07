@@ -16,8 +16,9 @@ public:
 	~Alignment();
 	void read(string fileName);
 	int find(string name);
-	int getCols() { return _cols; };
-	int getRows() { return _rows; };
+	unsigned int getNumOfSites() { return _sequences[0].size(); };
+	unsigned int getNumOfUniqueSites() { return _compressedSequences[0].size(); };
+	unsigned int getNumOfSequences() { return _sequences.size(); };
 	int getDataType() { return _dataType; };
 
 	vector<unsigned int> getNumericalSeq(unsigned int row);
@@ -26,8 +27,6 @@ public:
 	vector<unsigned int>& getInvarSites() {return _invarSites; };
 
 private:
-	int _cols;
-	int _rows;
 	int _dataType;
 	vector <string> _names;
 	vector <string> _sequences;

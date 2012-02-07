@@ -7,7 +7,7 @@
 using namespace std;
 
 int verbose = 0;
-int charStates = 4;
+unsigned int charStates = 4;
 
 
 void printSyntax()

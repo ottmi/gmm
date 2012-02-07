@@ -14,7 +14,7 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_distance = -1.0;
 
 	_beta = 0.8;
-	for (unsigned int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < charStates; i++)
 		_invar.push_back(0.25);
 
 	_q = new Matrix(charStates);
@@ -113,12 +113,12 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 	{
 		double siteProb = 0.0;
 
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
 			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
-			for (unsigned int childBase = 0; childBase < 4; childBase++)
+			for (unsigned int childBase = 0; childBase < charStates; childBase++)
 			{
-				siteProb += getProb(parentBase, childBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + childBase] / marginalProb;
+				siteProb += getProb(parentBase, childBase) * pG1[site * charStates + parentBase] * pG2[site * charStates + childBase] / marginalProb;
 			}
 		}
 		_siteProb[site] = siteProb;
@@ -141,16 +141,16 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 	vector<double> &pG1 = _pSiX2;
 	vector<double> &pG2 = _pRiX1;
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	vector<vector<double> > sum(4, vector<double>(4, 0.0));
+	vector<vector<double> > sum(charStates, vector<double>(charStates, 0.0));
 
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
 			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
-			for (unsigned int childBase = 0; childBase < 4; childBase++)
+			for (unsigned int childBase = 0; childBase < charStates; childBase++)
 			{
-				double siteProb = getProb(parentBase, childBase) * pG1[site * 4 + parentBase] * pG2[site * 4 + childBase] / marginalProb;
+				double siteProb = getProb(parentBase, childBase) * pG1[site * charStates + parentBase] * pG2[site * charStates + childBase] / marginalProb;
 				double denominator = _siteProb[site];
 
 				if (site < invarStart)
@@ -164,9 +164,9 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 		}
 	}
 
-	_updatedQ = new Matrix(4);
-	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
+	_updatedQ = new Matrix(charStates);
+	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+		for (unsigned int childBase = 0; childBase < charStates; childBase++)
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
@@ -191,10 +191,10 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 	{
 		double siteProb = 0.0;
 
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
 			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
-			siteProb += getProb(parentBase, leafSeq[site]) * pG1[site * 4 + parentBase] / marginalProb;
+			siteProb += getProb(parentBase, leafSeq[site]) * pG1[site * charStates + parentBase] / marginalProb;
 		}
 		_siteProb[site] = siteProb;
 
@@ -216,15 +216,15 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	vector<double> &pG1 = _pSiX2;
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	vector<vector<double> > sum(4, vector<double>(4, 0));
+	vector<vector<double> > sum(charStates, vector<double>(charStates, 0));
 
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
 			double marginalProb = grandParentBranch->getMarginalProbCol(parentBase);
 			unsigned int childBase = leafSeq[site];
-			double siteProb = getProb(parentBase, childBase) * pG1[site * 4 + parentBase] / marginalProb;
+			double siteProb = getProb(parentBase, childBase) * pG1[site * charStates + parentBase] / marginalProb;
 			double denominator = _siteProb[site];
 
 			if (site < invarStart)
@@ -237,9 +237,9 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 		}
 	}
 
-	_updatedQ = new Matrix(4);
-	for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
+	_updatedQ = new Matrix(charStates);
+	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+		for (unsigned int childBase = 0; childBase < charStates; childBase++)
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
@@ -263,9 +263,9 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 	{
 		double siteProb = 0.0;
 
-		for (unsigned int j = 0; j < 4; j++)
+		for (unsigned int j = 0; j < charStates; j++)
 		{
-			siteProb += getProb(rootSeq[site], j) * pG2[site * 4 + j];
+			siteProb += getProb(rootSeq[site], j) * pG2[site * charStates + j];
 		}
 		_siteProb[site] = siteProb;
 
@@ -286,14 +286,14 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	vector<double> &pG2 = _pRiX1;
-	vector<vector<double> > sum(4, vector<double>(4, 0));
+	vector<vector<double> > sum(charStates, vector<double>(charStates, 0));
 
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		unsigned int rootBase = rootSeq[site];
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
+		for (unsigned int childBase = 0; childBase < charStates; childBase++)
 		{
-			double siteProb = getProb(rootBase, childBase) * pG2[site * 4 + childBase];
+			double siteProb = getProb(rootBase, childBase) * pG2[site * charStates + childBase];
 			double denominator = _siteProb[site];
 
 			if (site < invarStart)
@@ -306,9 +306,9 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 		}
 	}
 
-	_updatedQ = new Matrix(4);
-	for (unsigned int rootBase = 0; rootBase < 4; rootBase++)
-		for (unsigned int childBase = 0; childBase < 4; childBase++)
+	_updatedQ = new Matrix(charStates);
+	for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
+		for (unsigned int childBase = 0; childBase < charStates; childBase++)
 			_updatedQ->setEntry(rootBase, childBase, sum[rootBase][childBase] / numOfSites);
 }
 
@@ -322,7 +322,7 @@ void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &pat
 	double alphaSum = 0;
 	double betaSum = 0;
 	double invarSum = 0;
-	vector<double> invar(4, 0.0);
+	vector<double> invar(charStates, 0.0);
 	for (unsigned int site = invarStart; site < numOfUniqueSites; site++)
 	{
 		unsigned int invarChar = invarSites[site - invarStart];
@@ -336,7 +336,7 @@ void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &pat
 	double beta = _beta * betaSum;
 
 	_beta = beta / (alpha + beta);
-	for (unsigned int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < charStates; i++)
 		_invar[i] = invar[i] / invarSum;
 }
 
@@ -363,7 +363,7 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 				<< " ownVer=" << _pRiX1Version << endl;
 
 	if (_pRiX1.empty())
-		_pRiX1 = vector<double>(4 * numOfSites);
+		_pRiX1 = vector<double>(charStates * numOfSites);
 	else if (_qVersion < _pRiX1Version) return _pRiX1;
 
 	vector<unsigned int> childSeq1;
@@ -385,15 +385,15 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
 			if (child1->isLeaf())
 				prob1 = childBranch1->pX1X2(parentBase, childSeq1[site]);
 			else
 			{
 				prob1 = 0;
-				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob1 += childBranch1->pX1X2(parentBase, childBase) * childProb1[site * 4 + childBase];
+				for (unsigned int childBase = 0; childBase < charStates; childBase++)
+					prob1 += childBranch1->pX1X2(parentBase, childBase) * childProb1[site * charStates + childBase];
 			}
 
 			if (child2->isLeaf())
@@ -401,11 +401,11 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 			else
 			{
 				prob2 = 0;
-				for (unsigned int childBase = 0; childBase < 4; childBase++)
-					prob2 += childBranch2->pX1X2(parentBase, childBase) * childProb2[site * 4 + childBase];
+				for (unsigned int childBase = 0; childBase < charStates; childBase++)
+					prob2 += childBranch2->pX1X2(parentBase, childBase) * childProb2[site * charStates + childBase];
 			}
 
-			_pRiX1[site * 4 + parentBase] = prob1 * prob2;
+			_pRiX1[site * charStates + parentBase] = prob1 * prob2;
 		}
 	}
 
@@ -434,7 +434,7 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 				<< _qVersion << " ownVer=" << _pSiX2Version << endl;
 
 	if (_pSiX2.empty())
-		_pSiX2 = vector<double>(4 * numOfSites);
+		_pSiX2 = vector<double>(charStates * numOfSites);
 	else if (_qVersion < _pSiX2Version) return _pSiX2;
 
 	vector<unsigned int> siblingSeq;
@@ -455,7 +455,7 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 	double grandParentProb;
 	for (unsigned int site = 0; site < numOfSites; site++)
 
-		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
 			if (sibling->isLeaf())
 			{
@@ -463,9 +463,9 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 			} else
 			{
 				siblingProb = 0;
-				for (unsigned int siblingBase = 0; siblingBase < 4; siblingBase++)
+				for (unsigned int siblingBase = 0; siblingBase < charStates; siblingBase++)
 				{
-					siblingProb += siblingBranch->pX1X2(parentBase, siblingBase) * siblingProbRiX1[site * 4 + siblingBase];
+					siblingProb += siblingBranch->pX1X2(parentBase, siblingBase) * siblingProbRiX1[site * charStates + siblingBase];
 				}
 			}
 
@@ -475,13 +475,13 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 			} else
 			{
 				grandParentProb = 0;
-				for (unsigned int grandParentBase = 0; grandParentBase < 4; grandParentBase++)
+				for (unsigned int grandParentBase = 0; grandParentBase < charStates; grandParentBase++)
 				{
-					grandParentProb += grandParentBranch->pX1X2(grandParentBase, parentBase) * grandParentProbSiX2[site * 4 + grandParentBase];
+					grandParentProb += grandParentBranch->pX1X2(grandParentBase, parentBase) * grandParentProbSiX2[site * charStates + grandParentBase];
 				}
 			}
 
-			_pSiX2[site * 4 + parentBase] = siblingProb * grandParentProb;
+			_pSiX2[site * charStates + parentBase] = siblingProb * grandParentProb;
 		}
 
 	_pSiX2Version++;

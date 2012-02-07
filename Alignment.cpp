@@ -49,8 +49,12 @@ vector<unsigned int> Alignment::getNumericalSeq(unsigned int row)
 	vector<unsigned int> seq;
 	string &s = _compressedSequences[row];
 
-	for (unsigned int i = 0; i < s.size(); i++)
-		seq.push_back(mapDNAToNum(s[i]));
+	if (_dataType == _DNA_DATA)
+		for (unsigned int i = 0; i < s.size(); i++)
+			seq.push_back(mapDNAToNum(s[i]));
+	else
+		for (unsigned int i = 0; i < s.size(); i++)
+			seq.push_back(mapAAToNum(s[i]));
 
 	return seq;
 }
@@ -203,7 +207,10 @@ void Alignment::compress()
 		for (unsigned int row = 0; row < getNumOfSequences(); row++)
 			_compressedSequences[row].push_back(invar[row][col]);
 		_patternCount.push_back(invarCount[col]);
-		_invarSites.push_back(mapDNAToNum(invar[0][col]));
+		if (_dataType == _DNA_DATA)
+			_invarSites.push_back(mapDNAToNum(invar[0][col]));
+		else
+			_invarSites.push_back(mapAAToNum(invar[0][col]));
 	}
 
 	if (verbose >= 10)

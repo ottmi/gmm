@@ -21,7 +21,7 @@ Node::Node(Node *parent, int id)
 		_branches.push_back(branch);
 	}
 
-	for (int i = 0; i < charStates; i++)
+	for (unsigned int i = 0; i < charStates; i++)
 		probs.push_back(1.0 / charStates);
 }
 

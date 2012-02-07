@@ -9,5 +9,6 @@ string adjustString(string s, bool upercase=false);
 istream& safeGetline(istream& is, string& t);
 
 unsigned int mapDNAToNum(char c);
+unsigned int mapAAToNum(char c);
 
 #endif /* HELPER_H_ */

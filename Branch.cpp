@@ -70,9 +70,9 @@ double Branch::computeLH(unsigned int numOfSites, vector<unsigned int> &patternC
 		lh = computeValuesIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
 	else
 		lh = computeValuesIntToInt(numOfSites, patternCount, invarSites, invarStart);
+	updateParameters(numOfSites, patternCount, invarSites, invarStart);
 
 	cout << "logLH=" << fixed << setprecision(10) << lh << endl << endl;
-	updateParameters(numOfSites, patternCount, invarSites, invarStart);
 	return lh;
 }
 
@@ -294,38 +294,25 @@ void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &pat
 	for (unsigned int site=0; site<invarStart; site++)
 		siteCount+= patternCount[site];
 
-	double sum = 0;
+	double alphaSum = 0;
+	double betaSum = 0;
+	double invarSum = 0;
+	vector<double> invar(4, 0.0);
 	for (unsigned int site=invarStart; site<numOfSites; site++)
 	{
 		unsigned int invarChar = invarSites[site-invarStart];
 		double denominator = (1-_beta) * _siteProb[site] + _beta * _invar[invarChar];
-		sum+= patternCount[site] * _siteProb[site] / denominator;
+		alphaSum+= patternCount[site] * _siteProb[site] / denominator;
+		betaSum+= patternCount[site] * _invar[invarChar] / denominator;
+		invar[invarChar] = _invar[invarChar] * patternCount[site] * _beta / denominator;
+		invarSum+= invar[invarChar];
 	}
-	double alpha = (1-_beta) * (siteCount / (1-_beta) + sum);
+	double alpha = (1-_beta) * (siteCount / (1-_beta) + alphaSum);
+	double beta = _beta * betaSum;
 
-	sum = 0;
-	for (unsigned int site=invarStart; site<numOfSites; site++)
-	{
-		unsigned int invarChar = invarSites[site-invarStart];
-		double denominator = (1-_beta) * _siteProb[site] + _beta * _invar[invarChar];
-		sum+= patternCount[site] * _invar[invarChar] / denominator;
-	}
-	double beta = _beta * sum;
-	beta = beta / (alpha+beta);
-
-	sum = 0;
-	vector<double> invarNew(4, 0.0);
-	for (unsigned int site=invarStart; site<numOfSites; site++)
-	{
-		unsigned int invarChar = invarSites[site-invarStart];
-		double denominator = (1-_beta) * _siteProb[site] + _beta * _invar[invarChar];
-		invarNew[invarChar] = _invar[invarChar] * patternCount[site] * _beta / denominator;
-		sum+= invarNew[invarChar];
-	}
-
-	_beta = beta;
+	_beta = beta / (alpha+beta);
 	for (unsigned int i=0; i<4; i++)
-		_invar[i] = invarNew[i] / sum;
+		_invar[i] = invar[i] / invarSum;
 
 	cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1]<< " invar[2]=" << _invar[2]<< " invar[3]=" << _invar[3] << endl;
 }

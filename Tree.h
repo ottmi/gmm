@@ -29,7 +29,6 @@ private:
 	Alignment _alignment;
 	unsigned int _nodeCount;
 	unsigned int _numOfSites;
-	unsigned int _numOfUniqueSites;
 };
 
 #endif /* TREE_H_ */

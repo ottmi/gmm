@@ -60,16 +60,16 @@ string Branch::getIdent()
 	return ss.str();
 }
 
-double Branch::computeLH(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+double Branch::computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	double lh;
 
 	if (_nodes[0]->isLeaf())
-		lh = computeValuesRootToInt(numOfSites, patternCount, invarSites, invarStart);
+		lh = computeValuesRootToInt(patternCount, invarSites, invarStart);
 	else if (_nodes[1]->isLeaf())
-		lh = computeValuesIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
+		lh = computeValuesIntToLeaf(patternCount, invarSites, invarStart);
 	else
-		lh = computeValuesIntToInt(numOfSites, patternCount, invarSites, invarStart);
+		lh = computeValuesIntToInt(patternCount, invarSites, invarStart);
 
 	cout << "logLH=" << fixed << setprecision(10) << lh << endl << endl;
 	return lh;
@@ -92,10 +92,11 @@ void Branch::updateQ()
 	free(_updatedQ);
 }
 
-double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	cout << "computeValuesIntToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
+	unsigned int numOfUniqueSites = patternCount.size();
 
 	if (verbose >= 3)
 	{
@@ -103,12 +104,12 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned in
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
 	}
 
-	vector<double> pG1 = pSiX2(numOfSites);
-	vector<double> pG2 = pRiX1(numOfSites);
-	if (_siteProb.empty()) _siteProb = vector<double>(numOfSites);
+	vector<double> pG1 = pSiX2(numOfUniqueSites);
+	vector<double> pG2 = pRiX1(numOfUniqueSites);
+	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 
-	for (unsigned int site = 0; site < numOfSites; site++)
+	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
 
@@ -136,12 +137,13 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned in
 
 void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
+	unsigned int numOfUniqueSites = patternCount.size();
 	vector<double> &pG1 = _pSiX2;
 	vector<double> &pG2 = _pRiX1;
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	vector<vector<double> > sum(4, vector<double>(4, 0.0));
 
-	for (unsigned int site = 0; site < numOfSites; site++)
+	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
@@ -168,10 +170,11 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
-double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 	double logLikelihood = 0;
+	unsigned int numOfUniqueSites = patternCount.size();
 
 	if (verbose >= 3)
 	{
@@ -179,12 +182,12 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned i
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
 	}
 
-	vector<double> pG1 = pSiX2(numOfSites);
+	vector<double> pG1 = pSiX2(numOfUniqueSites);
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	if (_siteProb.empty()) _siteProb = vector<double>(numOfSites);
+	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 
-	for (unsigned int site = 0; site < numOfSites; site++)
+	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
 
@@ -209,12 +212,13 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned i
 
 void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
+	unsigned int numOfUniqueSites = patternCount.size();
 	vector<double> &pG1 = _pSiX2;
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	vector<vector<double> > sum(4, vector<double>(4, 0));
 
-	for (unsigned int site = 0; site < numOfSites; site++)
+	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < 4; parentBase++)
 		{
@@ -239,10 +243,11 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
 }
 
-double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	cout << "computeValuesRootToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
+	unsigned int numOfUniqueSites = patternCount.size();
 
 	if (verbose >= 3)
 	{
@@ -250,11 +255,11 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned i
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
 	}
 
-	vector<double> pG2 = pRiX1(numOfSites);
+	vector<double> pG2 = pRiX1(numOfUniqueSites);
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
-	if (_siteProb.empty()) _siteProb = vector<double>(numOfSites);
+	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 
-	for (unsigned int site = 0; site < numOfSites; site++)
+	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
 
@@ -278,11 +283,12 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned i
 
 void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
+	unsigned int numOfUniqueSites = patternCount.size();
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	vector<double> &pG2 = _pRiX1;
 	vector<vector<double> > sum(4, vector<double>(4, 0));
 
-	for (unsigned int site = 0; site < numOfSites; site++)
+	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		unsigned int rootBase = rootSeq[site];
 		for (unsigned int childBase = 0; childBase < 4; childBase++)
@@ -308,15 +314,16 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 
 void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
-	unsigned int siteCount = 0;
-	for (unsigned int site = 0; site < invarStart; site++)
-		siteCount += patternCount[site];
+	unsigned int numOfUniqueSites = patternCount.size();
+	unsigned int siteCount = numOfSites;
+	for (unsigned int site = invarStart; site < numOfUniqueSites; site++)
+		siteCount -= patternCount[site];
 
 	double alphaSum = 0;
 	double betaSum = 0;
 	double invarSum = 0;
 	vector<double> invar(4, 0.0);
-	for (unsigned int site = invarStart; site < numOfSites; site++)
+	for (unsigned int site = invarStart; site < numOfUniqueSites; site++)
 	{
 		unsigned int invarChar = invarSites[site - invarStart];
 		double denominator = (1 - _beta) * _siteProb[site] + _beta * _invar[invarChar];

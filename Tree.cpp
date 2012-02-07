@@ -13,7 +13,6 @@ Tree::Tree(Alignment &alignment)
 	_nodeCount = 0;
 	_alignment = alignment;
 	_numOfSites = _alignment.getNumOfSites();
-	_numOfUniqueSites = _alignment.getNumOfUniqueSites();
 }
 
 Tree::~Tree()
@@ -150,19 +149,19 @@ void Tree::computeLH()
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
-		_branches[i]->computeLH(_numOfUniqueSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+		_branches[i]->computeLH(_alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
 	}
 }
 
 void Tree::updateModel()
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)
-		_branches[i]->computeUpdatedQ(_numOfUniqueSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+		_branches[i]->computeUpdatedQ(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
 
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
 		_branches[i]->updateQ();
-		_branches[i]->updateParameters(_numOfUniqueSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+		_branches[i]->updateParameters(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
 	}
 }
 

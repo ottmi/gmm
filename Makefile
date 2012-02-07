@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS  = -Wall -g -gdwarf-2 -O3
+CXXFLAGS  = -Wall -g -gdwarf-2 -O0
 LFLAGS = -lm 
 
 OBJ = Alignment.o Branch.o Matrix.o Node.o Tree.o helper.o gmm.o

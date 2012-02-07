@@ -206,7 +206,7 @@ void Alignment::compress()
 		for (int row = 0; row < _rows; row++)
 			_compressedSequences[row].push_back(invar[row][col]);
 		_patternCount.push_back(invarCount[col]);
-		_invarSites.push_back(mapDNAToNum(invar[col][0]));
+		_invarSites.push_back(mapDNAToNum(invar[0][col]));
 	}
 	_cols = (int) _patternCount.size();
 

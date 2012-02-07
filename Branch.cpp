@@ -72,6 +72,7 @@ double Branch::computeLH(unsigned int numOfSites, vector<unsigned int> &patternC
 		lh = computeValuesIntToInt(numOfSites, patternCount, invarSites, invarStart);
 
 	cout << "logLH=" << fixed << setprecision(10) << lh << endl << endl;
+	updateParameters(numOfSites, patternCount, invarSites, invarStart);
 	return lh;
 }
 
@@ -285,6 +286,48 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	for (unsigned int rootBase = 0; rootBase < 4; rootBase++)
 		for (unsigned int childBase = 0; childBase < 4; childBase++)
 			_updatedQ->setEntry(rootBase, childBase, sum[rootBase][childBase] / numOfSites);
+}
+
+void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+{
+	unsigned int siteCount = 0;
+	for (unsigned int site=0; site<invarStart; site++)
+		siteCount+= patternCount[site];
+
+	double sum = 0;
+	for (unsigned int site=invarStart; site<numOfSites; site++)
+	{
+		unsigned int invarChar = invarSites[site-invarStart];
+		double denominator = (1-_beta) * _siteProb[site] + _beta * _invar[invarChar];
+		sum+= patternCount[site] * _siteProb[site] / denominator;
+	}
+	double alpha = (1-_beta) * (siteCount / (1-_beta) + sum);
+
+	sum = 0;
+	for (unsigned int site=invarStart; site<numOfSites; site++)
+	{
+		unsigned int invarChar = invarSites[site-invarStart];
+		double denominator = (1-_beta) * _siteProb[site] + _beta * _invar[invarChar];
+		sum+= patternCount[site] * _invar[invarChar] / denominator;
+	}
+	double beta = _beta * sum;
+	beta = beta / (alpha+beta);
+
+	sum = 0;
+	vector<double> invarNew(4, 0.0);
+	for (unsigned int site=invarStart; site<numOfSites; site++)
+	{
+		unsigned int invarChar = invarSites[site-invarStart];
+		double denominator = (1-_beta) * _siteProb[site] + _beta * _invar[invarChar];
+		invarNew[invarChar] = _invar[invarChar] * patternCount[site] * _beta / denominator;
+		sum+= invarNew[invarChar];
+	}
+
+	_beta = beta;
+	for (unsigned int i=0; i<4; i++)
+		_invar[i] = invarNew[i] / sum;
+
+	cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1]<< " invar[2]=" << _invar[2]<< " invar[3]=" << _invar[3] << endl;
 }
 
 /* This method computes the conditional probability P(x2|x1) */

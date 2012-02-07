@@ -193,8 +193,5 @@ void Tree::printBranches()
 
 void Tree::print()
 {
-	for (unsigned int i = 0; i < _internalNodes.size(); i++)
-	{
-		cout << _internalNodes[i]->toString() << ";" << endl;
-	}
+	cout << _root->toString() << ";" << endl;
 }

@@ -100,8 +100,7 @@ int main(int argc, char **argv)
 		tree.computeLH();
 		tree.updateModel();
 		tree.computeLH();
-		tree.updateModel();
-		tree.computeLH();
+		tree.print();
 	}
 	catch (string& s)
 	{

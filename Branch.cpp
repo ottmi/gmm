@@ -70,10 +70,19 @@ double Branch::computeLH(unsigned int numOfSites, vector<unsigned int> &patternC
 		lh = computeValuesIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
 	else
 		lh = computeValuesIntToInt(numOfSites, patternCount, invarSites, invarStart);
-	updateParameters(numOfSites, patternCount, invarSites, invarStart);
 
 	cout << "logLH=" << fixed << setprecision(10) << lh << endl << endl;
 	return lh;
+}
+
+void Branch::computeUpdatedQ(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+{
+	if (_nodes[0]->isLeaf())
+		updateQRootToInt(numOfSites, patternCount, invarSites, invarStart);
+	else if (_nodes[1]->isLeaf())
+		updateQIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
+	else
+		updateQIntToInt(numOfSites, patternCount, invarSites, invarStart);
 }
 
 void Branch::updateQ()
@@ -88,7 +97,11 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned in
 	cout << "computeValuesIntToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
 
-	if (verbose >= 3) _q->print();
+	if (verbose >= 3)
+	{
+		_q->print();
+		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
+	}
 
 	vector<double> pG1 = pSiX2(numOfSites);
 	vector<double> pG2 = pRiX1(numOfSites);
@@ -117,7 +130,6 @@ double Branch::computeValuesIntToInt(unsigned int numOfSites, vector<unsigned in
 			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
 		}
 	}
-	updateQIntToInt(numOfSites, patternCount, invarSites, invarStart);
 
 	return logLikelihood;
 }
@@ -161,7 +173,11 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned i
 	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 	double logLikelihood = 0;
 
-	if (verbose >= 3) _q->print();
+	if (verbose >= 3)
+	{
+		_q->print();
+		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
+	}
 
 	vector<double> pG1 = pSiX2(numOfSites);
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
@@ -187,7 +203,6 @@ double Branch::computeValuesIntToLeaf(unsigned int numOfSites, vector<unsigned i
 			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
 		}
 	}
-	updateQIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
 
 	return logLikelihood;
 }
@@ -229,7 +244,11 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned i
 	cout << "computeValuesRootToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
 
-	if (verbose >= 3) _q->print();
+	if (verbose >= 3)
+	{
+		_q->print();
+		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
+	}
 
 	vector<double> pG2 = pRiX1(numOfSites);
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
@@ -254,7 +273,6 @@ double Branch::computeValuesRootToInt(unsigned int numOfSites, vector<unsigned i
 		}
 	}
 
-	updateQRootToInt(numOfSites, patternCount, invarSites, invarStart);
 	return logLikelihood;
 }
 
@@ -291,30 +309,28 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	unsigned int siteCount = 0;
-	for (unsigned int site=0; site<invarStart; site++)
-		siteCount+= patternCount[site];
+	for (unsigned int site = 0; site < invarStart; site++)
+		siteCount += patternCount[site];
 
 	double alphaSum = 0;
 	double betaSum = 0;
 	double invarSum = 0;
 	vector<double> invar(4, 0.0);
-	for (unsigned int site=invarStart; site<numOfSites; site++)
+	for (unsigned int site = invarStart; site < numOfSites; site++)
 	{
-		unsigned int invarChar = invarSites[site-invarStart];
-		double denominator = (1-_beta) * _siteProb[site] + _beta * _invar[invarChar];
-		alphaSum+= patternCount[site] * _siteProb[site] / denominator;
-		betaSum+= patternCount[site] * _invar[invarChar] / denominator;
+		unsigned int invarChar = invarSites[site - invarStart];
+		double denominator = (1 - _beta) * _siteProb[site] + _beta * _invar[invarChar];
+		alphaSum += patternCount[site] * _siteProb[site] / denominator;
+		betaSum += patternCount[site] * _invar[invarChar] / denominator;
 		invar[invarChar] = _invar[invarChar] * patternCount[site] * _beta / denominator;
-		invarSum+= invar[invarChar];
+		invarSum += invar[invarChar];
 	}
-	double alpha = (1-_beta) * (siteCount / (1-_beta) + alphaSum);
+	double alpha = (1 - _beta) * (siteCount / (1 - _beta) + alphaSum);
 	double beta = _beta * betaSum;
 
-	_beta = beta / (alpha+beta);
-	for (unsigned int i=0; i<4; i++)
+	_beta = beta / (alpha + beta);
+	for (unsigned int i = 0; i < 4; i++)
 		_invar[i] = invar[i] / invarSum;
-
-	cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1]<< " invar[2]=" << _invar[2]<< " invar[3]=" << _invar[3] << endl;
 }
 
 /* This method computes the conditional probability P(x2|x1) */

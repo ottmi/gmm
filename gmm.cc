@@ -98,9 +98,9 @@ int main(int argc, char **argv)
 			tree.printNodes();
 
 		tree.computeLH();
-		tree.updateQ();
+		tree.updateModel();
 		tree.computeLH();
-		tree.updateQ();
+		tree.updateModel();
 		tree.computeLH();
 	}
 	catch (string& s)

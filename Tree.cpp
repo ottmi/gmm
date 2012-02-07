@@ -154,11 +154,15 @@ void Tree::computeLH()
 	}
 }
 
-void Tree::updateQ()
+void Tree::updateModel()
 {
+	for (unsigned int i = 0; i < _branches.size(); i++)
+		_branches[i]->computeUpdatedQ(_numOfUniqueSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
 		_branches[i]->updateQ();
+		_branches[i]->updateParameters(_numOfUniqueSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
 	}
 }
 

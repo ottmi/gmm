@@ -85,6 +85,38 @@ void Branch::updateQ()
 	free(_updatedQ);
 }
 
+void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+{
+	unsigned int numOfUniqueSites = patternCount.size();
+	unsigned int siteCount = numOfSites;
+	for (unsigned int site = invarStart; site < numOfUniqueSites; site++)
+		siteCount -= patternCount[site];
+
+	double alphaSum = 0;
+	double betaSum = 0;
+	double invarSum = 0;
+	vector<double> invar(charStates, 0.0);
+	for (unsigned int site = invarStart; site < numOfUniqueSites; site++)
+	{
+		unsigned int invarChar = invarSites[site - invarStart];
+		double denominator = (1 - _beta) * _siteProb[site] + _beta * _invar[invarChar];
+		alphaSum += patternCount[site] * _siteProb[site] / denominator;
+		betaSum += patternCount[site] * _invar[invarChar] / denominator;
+		invar[invarChar] = _invar[invarChar] * patternCount[site] * _beta / denominator;
+		invarSum += invar[invarChar];
+	}
+	double alpha = (1 - _beta) * (siteCount / (1 - _beta) + alphaSum);
+	double beta = _beta * betaSum;
+
+	_beta = beta / (alpha + beta);
+	for (unsigned int i = 0; i < charStates; i++)
+		_invar[i] = invar[i] / invarSum;
+}
+
+/*
+ * Private functions start here
+ */
+
 double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	cout << "computeValuesIntToInt() " << getIdent() << endl;
@@ -303,34 +335,6 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
 		for (unsigned int childBase = 0; childBase < charStates; childBase++)
 			_updatedQ->setEntry(rootBase, childBase, sum[rootBase][childBase] / numOfSites);
-}
-
-void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
-{
-	unsigned int numOfUniqueSites = patternCount.size();
-	unsigned int siteCount = numOfSites;
-	for (unsigned int site = invarStart; site < numOfUniqueSites; site++)
-		siteCount -= patternCount[site];
-
-	double alphaSum = 0;
-	double betaSum = 0;
-	double invarSum = 0;
-	vector<double> invar(charStates, 0.0);
-	for (unsigned int site = invarStart; site < numOfUniqueSites; site++)
-	{
-		unsigned int invarChar = invarSites[site - invarStart];
-		double denominator = (1 - _beta) * _siteProb[site] + _beta * _invar[invarChar];
-		alphaSum += patternCount[site] * _siteProb[site] / denominator;
-		betaSum += patternCount[site] * _invar[invarChar] / denominator;
-		invar[invarChar] = _invar[invarChar] * patternCount[site] * _beta / denominator;
-		invarSum += invar[invarChar];
-	}
-	double alpha = (1 - _beta) * (siteCount / (1 - _beta) + alphaSum);
-	double beta = _beta * betaSum;
-
-	_beta = beta / (alpha + beta);
-	for (unsigned int i = 0; i < charStates; i++)
-		_invar[i] = invar[i] / invarSum;
 }
 
 /* This method computes the conditional probability P(x2|x1) */

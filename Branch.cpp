@@ -76,16 +76,35 @@ void Branch::computeUpdatedQ(unsigned int numOfSites, vector<unsigned int> &patt
 		updateQIntToLeaf(numOfSites, patternCount, invarSites, invarStart);
 	else
 		updateQIntToInt(numOfSites, patternCount, invarSites, invarStart);
+
+	double sum = 0;
+	for (unsigned int row = 0; row < charStates; row++)
+		for (unsigned int col = 0; col < charStates; col++)
+			sum += _updatedQ->getEntry(row, col) * numOfSites;
+
+	for (unsigned int row = 0; row < charStates; row++)
+		for (unsigned int col = 0; col < charStates; col++)
+			_updatedQ->setEntry(row, col, _updatedQ->getEntry(row, col) * numOfSites / sum);
+
 }
 
-void Branch::updateQ()
+bool Branch::updateQ(double qDelta)
 {
-	_q->update(*_updatedQ);
+	double sum = 0;
+	for (unsigned int row = 0; row < charStates; row++)
+		for (unsigned int col = 0; col < charStates; col++)
+			sum += pow(_q->getEntry(row, col) - _updatedQ->getEntry(row, col), 2);
+
+	free(_q);
+	_q = _updatedQ;
+	_updatedQ = NULL;
 	_qVersion++;
-	free(_updatedQ);
+
+	return (bool) (sum > qDelta);
 }
 
-void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
+bool Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart,
+		double betaDelta)
 {
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int siteCount = numOfSites;
@@ -107,10 +126,15 @@ void Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &pat
 	}
 	double alpha = (1 - _beta) * (siteCount / (1 - _beta) + alphaSum);
 	double beta = _beta * betaSum;
+	beta = beta / (alpha + beta);
 
-	_beta = beta / (alpha + beta);
+	bool updateRequired = (fabs(_beta - beta) > betaDelta);
+
+	_beta = beta;
 	for (unsigned int i = 0; i < charStates; i++)
 		_invar[i] = invar[i] / invarSum;
+
+	return updateRequired;
 }
 
 /*

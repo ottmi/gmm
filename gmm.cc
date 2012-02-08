@@ -9,7 +9,6 @@ using namespace std;
 int verbose = 0;
 unsigned int charStates = 4;
 
-
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
@@ -97,8 +96,15 @@ int main(int argc, char **argv)
 		if (verbose >= 2)
 			tree.printNodes();
 
-		tree.computeLH();
-		tree.updateModel();
+		unsigned int iteration = 0;
+		do
+		{
+			cout << "Iteration " << iteration << endl;
+			tree.computeLH();
+			iteration++;
+			cout << endl << endl;
+		}
+		while (tree.updateModel(0.0001, 0.0001));
 		tree.computeLH();
 		tree.print();
 	}

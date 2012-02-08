@@ -153,16 +153,22 @@ void Tree::computeLH()
 	}
 }
 
-void Tree::updateModel()
+bool Tree::updateModel(double qDelta, double betaDelta)
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)
 		_branches[i]->computeUpdatedQ(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
 
+	unsigned int updates = 0;
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
-		_branches[i]->updateQ();
-		_branches[i]->updateParameters(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+		if (_branches[i]->updateQ(qDelta))
+			updates++;
+
+		if (_branches[i]->updateParameters(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart(), betaDelta))
+			updates++;
 	}
+
+	return (updates > 0);
 }
 
 void Tree::printNodes()

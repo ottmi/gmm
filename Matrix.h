@@ -24,6 +24,7 @@ public:
 	double getColSum(unsigned int col);
 
 	double determinant();
+	Matrix minor(const unsigned int row, const unsigned int col);
 
 	void print();
 

@@ -53,12 +53,16 @@ vector<Node*> Node::getTraversal(Node *parent)
 string Node::toString(Node *parent)
 {
 	stringstream ss;
+	Branch *parentBranch = NULL;
 
 	vector<Node*> list;
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
 		Node *neighbour = _branches[i]->getNeighbour(this);
-		if (neighbour != parent) list.push_back(neighbour);
+		if (neighbour != parent)
+			list.push_back(neighbour);
+		else
+			parentBranch = _branches[i];
 	}
 
 	if (list.size() >= 1)
@@ -74,6 +78,7 @@ string Node::toString(Node *parent)
 	}
 
 	ss << _label;
+	if (parentBranch) ss << ":" << parentBranch->getLength();
 
 	return ss.str();
 }

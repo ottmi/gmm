@@ -53,6 +53,11 @@ string Branch::getIdent()
 	return ss.str();
 }
 
+double Branch::getLength()
+{
+	return -0.25 * log(_q->determinant());
+}
+
 double Branch::computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	double lh;

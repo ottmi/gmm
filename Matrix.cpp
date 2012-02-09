@@ -6,66 +6,57 @@ Matrix::Matrix(unsigned int dim)
 {
 	_dim = dim;
 	vector<double> v = vector<double>(_dim, .0);
-	_m = vector< vector<double> >(_dim, v);
+	_m = vector<vector<double> >(_dim, v);
 }
-
 
 Matrix::~Matrix()
 {
 	// TODO Auto-generated destructor stub
 }
 
-
 void Matrix::zero()
 {
-	for (unsigned int i=0; i<_dim; i++)
-		for (unsigned int j=0; j<_dim; j++)
+	for (unsigned int i = 0; i < _dim; i++)
+		for (unsigned int j = 0; j < _dim; j++)
 			_m[i][j] = .0;
 }
 
-
-void Matrix::set(vector< vector<double> > x)
+void Matrix::set(vector<vector<double> > x)
 {
-	for (unsigned int i=0; i<_dim; i++)
-		for (unsigned int j=0; j<_dim; j++)
+	for (unsigned int i = 0; i < _dim; i++)
+		for (unsigned int j = 0; j < _dim; j++)
 			_m[i][j] = x[i][j];
 }
 
-
 void Matrix::set(vector<double> x)
 {
-	for (unsigned int i=0; i<_dim; i++)
-		for (unsigned int j=0; j<_dim; j++)
-			_m[i][j] = x[i*_dim + j];
+	for (unsigned int i = 0; i < _dim; i++)
+		for (unsigned int j = 0; j < _dim; j++)
+			_m[i][j] = x[i * _dim + j];
 }
-
 
 void Matrix::setDiag(double x)
 {
-	for (unsigned int i=0; i<_dim; i++)
+	for (unsigned int i = 0; i < _dim; i++)
 		_m[i][i] = x;
 }
 
-
 void Matrix::setOffDiag(double x)
 {
-	for (unsigned int i=0; i<_dim; i++)
-		for (unsigned int j=0; j<_dim; j++)
-			if (i != j)
-				_m[i][j] = x;
+	for (unsigned int i = 0; i < _dim; i++)
+		for (unsigned int j = 0; j < _dim; j++)
+			if (i != j) _m[i][j] = x;
 }
-
 
 void Matrix::setRow(unsigned int row, vector<double> x)
 {
-	for (unsigned int j=0; j<_dim; j++)
+	for (unsigned int j = 0; j < _dim; j++)
 		_m[row][j] = x[j];
 }
 
-
 void Matrix::setCol(unsigned int col, vector<double> x)
 {
-	for (unsigned int i=0; i<_dim; i++)
+	for (unsigned int i = 0; i < _dim; i++)
 		_m[i][col] = x[i];
 }
 
@@ -77,12 +68,12 @@ void Matrix::setEntry(unsigned int row, unsigned int col, double x)
 void Matrix::update(Matrix& x)
 {
 	double sum = 0;
-	for (unsigned int i=0; i<_dim; i++)
-		for (unsigned int j=0; j<_dim; j++)
-			sum+= x.getEntry(i, j);
+	for (unsigned int i = 0; i < _dim; i++)
+		for (unsigned int j = 0; j < _dim; j++)
+			sum += x.getEntry(i, j);
 
-	for (unsigned int i=0; i<_dim; i++)
-		for (unsigned int j=0; j<_dim; j++)
+	for (unsigned int i = 0; i < _dim; i++)
+		for (unsigned int j = 0; j < _dim; j++)
 			_m[i][j] = x.getEntry(i, j) / sum;
 }
 
@@ -91,32 +82,44 @@ double Matrix::getEntry(unsigned int row, unsigned int col)
 	return _m[row][col];
 }
 
-
 double Matrix::getRowSum(unsigned int row)
 {
 	double sum = .0;
-	for (unsigned int i=0; i<_dim; i++)
-		sum+= _m[row][i];
+	for (unsigned int i = 0; i < _dim; i++)
+		sum += _m[row][i];
 	return sum;
 }
-
 
 double Matrix::getColSum(unsigned int col)
 {
 	double sum = .0;
-	for (unsigned int i=0; i<_dim; i++)
-		sum+= _m[i][col];
+	for (unsigned int i = 0; i < _dim; i++)
+		sum += _m[i][col];
 	return sum;
 }
 
+double Matrix::determinant()
+{
+	double det = 0;
+	if (_dim != 4) throw("Matrix::determinant(): Only 4x4 matrices are supported");
+	det = _m[0][3] * _m[1][2] * _m[2][1] * _m[3][0] - _m[0][2] * _m[1][3] * _m[2][1] * _m[3][0] - _m[0][3] * _m[1][1] * _m[2][2] * _m[3][0]
+			+ _m[0][1] * _m[1][3] * _m[2][2] * _m[3][0] + _m[0][2] * _m[1][1] * _m[2][3] * _m[3][0] - _m[0][1] * _m[1][2] * _m[2][3] * _m[3][0]
+			- _m[0][3] * _m[1][2] * _m[2][0] * _m[3][1] + _m[0][2] * _m[1][3] * _m[2][0] * _m[3][1] + _m[0][3] * _m[1][0] * _m[2][2] * _m[3][1]
+			- _m[0][0] * _m[1][3] * _m[2][2] * _m[3][1] - _m[0][2] * _m[1][0] * _m[2][3] * _m[3][1] + _m[0][0] * _m[1][2] * _m[2][3] * _m[3][1]
+			+ _m[0][3] * _m[1][1] * _m[2][0] * _m[3][2] - _m[0][1] * _m[1][3] * _m[2][0] * _m[3][2] - _m[0][3] * _m[1][0] * _m[2][1] * _m[3][2]
+			+ _m[0][0] * _m[1][3] * _m[2][1] * _m[3][2] + _m[0][1] * _m[1][0] * _m[2][3] * _m[3][2] - _m[0][0] * _m[1][1] * _m[2][3] * _m[3][2]
+			- _m[0][2] * _m[1][1] * _m[2][0] * _m[3][3] + _m[0][1] * _m[1][2] * _m[2][0] * _m[3][3] + _m[0][2] * _m[1][0] * _m[2][1] * _m[3][3]
+			- _m[0][0] * _m[1][2] * _m[2][1] * _m[3][3] - _m[0][1] * _m[1][0] * _m[2][2] * _m[3][3] + _m[0][0] * _m[1][1] * _m[2][2] * _m[3][3];
+	return det;
+}
 
 void Matrix::print()
 {
-	cout.precision(8);
-	for (unsigned int i=0; i<_dim; i++)
-	{
-		for (unsigned int j=0; j<_dim; j++)
-			cout << fixed << _m[i][j] << " ";
-		cout << endl;
-	}
+cout.precision(8);
+for (unsigned int i = 0; i < _dim; i++)
+{
+	for (unsigned int j = 0; j < _dim; j++)
+		cout << fixed << _m[i][j] << " ";
+	cout << endl;
+}
 }

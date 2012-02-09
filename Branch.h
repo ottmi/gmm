@@ -21,6 +21,7 @@ public:
 
 	void print();
 	string getIdent();
+	double getLength();
 
 	void initializeQ();
 

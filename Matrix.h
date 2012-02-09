@@ -23,6 +23,8 @@ public:
 	double getRowSum(unsigned int row);
 	double getColSum(unsigned int col);
 
+	double determinant();
+
 	void print();
 
 

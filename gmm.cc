@@ -12,12 +12,14 @@ unsigned int charStates = 4;
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  gmm -s <FILE> -t<FILE> [-v[NUM]]" << endl;
+	cout << "  gmm -s <FILE> [-d|-c] -t<FILE> [-v[NUM]]" << endl;
 	cout << "  gmm -h" << endl;
 	cout << endl;
 
 	cout << "Options:" << endl;
 	cout << "  -s\tSequence alignment" << endl;
+	cout << "  -d\tTreat alignment sequences as dicodons" << endl;
+	cout << "  -c\tTreat alignment sequences as codons" << endl;
 	cout << "  -t\tInput tree" << endl;
 	cout << "  -v\tBe increasingly verbose" << endl;
 	cout << "  -h\tThis help page" << endl;
@@ -30,13 +32,20 @@ int parseArguments(int argc, char** argv, Options *options)
 	char c;
 
 	options->help = false;
+	options->alignmentGrouping = 1;
 
-	while ( (c = getopt(argc, argv, "s:t:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "s:dct:v::h")) != -1)
 	{
 		switch (c)
 		{
 			case 's':
 				options->alignment = optarg;
+				break;
+			case 'd':
+				options->alignmentGrouping = 2;
+				break;
+			case 'c':
+				options->alignmentGrouping = 3;
 				break;
 			case 't':
 				options->inputTree = optarg;
@@ -89,7 +98,7 @@ int main(int argc, char **argv)
 
 	Alignment alignment;
 	try {
-		alignment.read(options.alignment);
+		alignment.read(options.alignment, options.alignmentGrouping);
 
 		Tree tree(alignment);
 		tree.readNewick(options.inputTree);

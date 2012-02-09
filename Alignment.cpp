@@ -3,6 +3,7 @@
 #include "helper.h"
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 #include <map>
 
 Alignment::Alignment()
@@ -14,7 +15,7 @@ Alignment::~Alignment()
 	// TODO Auto-generated destructor stub
 }
 
-void Alignment::read(string fileName)
+void Alignment::read(string fileName, unsigned int grouping)
 {
 	string ext = fileName.substr(fileName.find_last_of('.') + 1);
 
@@ -27,11 +28,15 @@ void Alignment::read(string fileName)
 		cerr << "Unknown input alignment format" << endl;
 		exit(255);
 	}
+	cout << "The alignment contains " << _sequences.size() << " sequences with " << _sequences[0].size() << " characters each." << endl;
 
-	cout << "The alignment contains " << getNumOfSequences() << " sequences with " << getNumOfSites() << " sites each." << endl;
+	identifyDataTpe(grouping);
+	string dataTypeDesc[] = { "DNA", "AA" };
+	cout << "The data appears to be " << dataTypeDesc[_dataType] << ", using " << charStates << "-state system." << endl;
 
-	identifyDataTpe();
+	translateToNumerical(grouping);
 	compress();
+	cout << "There are " << getNumOfUniqueSites() << " unique sites, " << _invarSites.size() << " of which are invariant." << endl << endl;
 }
 
 int Alignment::find(string name)
@@ -44,19 +49,16 @@ int Alignment::find(string name)
 	return -1;
 }
 
-vector<unsigned int> Alignment::getNumericalSeq(unsigned int row)
+unsignedIntVec_t& Alignment::getNumericalSeq(unsigned int row)
 {
-	vector<unsigned int> seq;
-	string &s = _compressedSequences[row];
-
-	if (_dataType == _DNA_DATA)
-		for (unsigned int i = 0; i < s.size(); i++)
-			seq.push_back(mapDNAToNum(s[i]));
+	if (row < getNumOfSequences())
+		return _compressedSequences[row];
 	else
-		for (unsigned int i = 0; i < s.size(); i++)
-			seq.push_back(mapAAToNum(s[i]));
-
-	return seq;
+	{
+		stringstream ss;
+		ss << "Alignment::getNumericalSeq(" << row << "): There are only " << getNumOfSequences() << " sequences in the alignment";
+		throw(ss.str());
+	}
 }
 
 void Alignment::readPhylip(string fileName)
@@ -133,9 +135,8 @@ void Alignment::readFasta(string fileName)
 	}
 }
 
-void Alignment::identifyDataTpe()
+void Alignment::identifyDataTpe(unsigned int grouping)
 {
-	string dataTypeDesc[] = { "DNA", "AA" };
 	map<char, unsigned long> baseOccurences;
 	for (unsigned int i = 0; i < _sequences.size(); i++)
 	{
@@ -158,31 +159,50 @@ void Alignment::identifyDataTpe()
 	if (counts[0] >= counts[1])
 	{
 		_dataType = _DNA_DATA;
-		charStates = 4;
+		if (grouping == 1)
+			charStates = 4;
+		else if (grouping == 2)
+			charStates = 16;
+		else if (grouping == 3)
+			charStates = 64;
 	} else
 	{
 		_dataType = _AA_DATA;
 		charStates = 20;
 	}
+}
 
-	cout << "The data appears to be " << dataTypeDesc[_dataType] << "." << endl;
+void Alignment::translateToNumerical(unsigned int grouping)
+{
+	for (unsigned int i = 0; i<_sequences.size(); i++)
+	{
+		unsignedIntVec_t numSeq;
+		for (unsigned int j = 0; j<_sequences[i].size(); j+= grouping)
+		{
+			if (_dataType == _DNA_DATA)
+				numSeq.push_back(mapDNAToNum(_sequences[i].substr(j, grouping)));
+			else
+				numSeq.push_back(mapAAToNum(_sequences[i][j]));
+		}
+		_numericalSequences.push_back(numSeq);
+	}
 }
 
 void Alignment::compress()
 {
-	map<string, unsigned int> patterns;
+	map<unsignedIntVec_t, unsigned int> patterns;
 	for (unsigned int col = 0; col < getNumOfSites(); col++)
 	{
-		string site;
+		unsignedIntVec_t site;
 		for (unsigned int row = 0; row < getNumOfSequences(); row++)
-			site.push_back(_sequences[row][col]);
+			site.push_back(_numericalSequences[row][col]);
 		patterns[site]++;
 	}
 
-	_compressedSequences = vector<string>(getNumOfSequences());
-	vector<string> invar(getNumOfSequences());
-	vector<unsigned int> invarCount;
-	for (map<string, unsigned int>::iterator it = patterns.begin(); it != patterns.end(); it++)
+	_compressedSequences = vector<unsignedIntVec_t>(getNumOfSequences());
+	vector<unsignedIntVec_t> invar(getNumOfSequences());
+	unsignedIntVec_t invarCount;
+	for (map<unsignedIntVec_t, unsigned int>::iterator it = patterns.begin(); it != patterns.end(); it++)
 	{
 		unsigned int row = 1;
 		while (row < getNumOfSequences() && it->first[0] == it->first[row])
@@ -207,28 +227,33 @@ void Alignment::compress()
 		for (unsigned int row = 0; row < getNumOfSequences(); row++)
 			_compressedSequences[row].push_back(invar[row][col]);
 		_patternCount.push_back(invarCount[col]);
-		if (_dataType == _DNA_DATA)
-			_invarSites.push_back(mapDNAToNum(invar[0][col]));
-		else
-			_invarSites.push_back(mapAAToNum(invar[0][col]));
+		_invarSites.push_back(invar[0][col]);
 	}
+
 
 	if (verbose >= 10)
 	{
 		cout << "\t";
-		for (unsigned int col = 0; col < getNumOfSites(); col++)
+		for (unsigned int col = 0; col < getNumOfUniqueSites(); col++)
 			cout << col / 10;
 		cout << endl << "\t";
-		for (unsigned int col = 0; col < getNumOfSites(); col++)
+		for (unsigned int col = 0; col < getNumOfUniqueSites(); col++)
 			cout << col % 10;
 		cout << endl;
 
 		for (unsigned int row = 0; row < getNumOfSequences(); row++)
-			cout << _names[row] << "\t" << _compressedSequences[row] << endl;
+		{
+			cout << _names[row] << "\t";
+			for (unsigned int col= 0; col < getNumOfUniqueSites(); col++)
+				 cout << mapNumToDNA(_compressedSequences[row][col], 1);
+			cout << endl;
+
+		}
 
 		cout << "\t";
-		for (unsigned int col = 0; col < getNumOfSequences(); col++)
+		for (unsigned int col = 0; col < getNumOfUniqueSites(); col++)
 			cout << _patternCount[col];
 		cout << endl;
 	}
+
 }

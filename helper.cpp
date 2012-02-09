@@ -1,84 +1,100 @@
 #include "helper.h"
+#include "globals.h"
 #include <fstream>
-
 
 
 string adjustString(string s, bool upercase)
 {
 	string r = "";
 
-	for (unsigned int i=0; i<s.length(); i++)
+	for (unsigned int i = 0; i < s.length(); i++)
 	{
 		char c = s[i];
 		if (c != '\t' && c != '\n' && c != '\r' && c != ' ')
-	  {
+		{
 			if (upercase)
-				r+= toupper(c);
+				r += toupper(c);
 			else
-				r+= c;
-	  }
+				r += c;
+		}
 	}
 
-	return(r);
+	return (r);
 }
-
-
 
 istream& safeGetline(istream& is, string& t)
 {
 	/* Courtesy of http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf */
-    t.clear();
-    istream::sentry se(is);
-    streambuf* sb = is.rdbuf();
+	t.clear();
+	istream::sentry se(is);
+	streambuf* sb = is.rdbuf();
 
-    for(;;) {
-        int c = sb->sbumpc();
-        switch (c) {
-        case '\r':
-            c = sb->sgetc();
-            if(c == '\n')
-                sb->sbumpc();
-            return is;
-        case '\n':
-        case EOF:
-            return is;
-        default:
-            t += (char)c;
-        }
-    }
+	for (;;)
+	{
+		int c = sb->sbumpc();
+		switch (c)
+		{
+			case '\r':
+				c = sb->sgetc();
+				if (c == '\n') sb->sbumpc();
+				return is;
+			case '\n':
+			case EOF:
+				return is;
+			default:
+				t += (char) c;
+		}
+	}
 }
 
-unsigned int mapDNAToNum(char c)
+unsigned int mapDNAToNum(string s)
 {
 	unsigned int d = 0;
-	switch (c)
+	for (unsigned int i = 0; i < s.size(); i++)
 	{
-		case 'A':
-		case 'a':
-			d = 0x00;
-			break;
+		d = d << 2;
+		switch (s[i])
+		{
+			case 'A':
+			case 'a':
+				d += 0x00;
+				break;
 
-		case 'C':
-		case 'c':
-			d = 0x01;
-			break;
+			case 'C':
+			case 'c':
+				d += 0x01;
+				break;
 
-		case 'G':
-		case 'g':
-			d = 0x02;
-			break;
+			case 'G':
+			case 'g':
+				d += 0x02;
+				break;
 
-		case 'T':
-		case 't':
-			d = 0x03;
-			break;
+			case 'T':
+			case 't':
+				d += 0x03;
+				break;
 
-		default:
-			string s = "Unsupported character: " + c;
-			throw(s);
-			break;
+			default:
+				throw("Unsupported character: " + s[i]);
+				break;
+		}
 	}
+
 	return d;
+}
+
+string mapNumToDNA(unsigned int val, unsigned int len)
+{
+	string map = _DNA_MAP;
+	string s;
+	for (unsigned int i = 0; i < len; i++)
+	{
+		s = map[val & 0x3] + s;
+		val = val >> 2;
+	}
+
+	return s;
 }
 
 unsigned int mapAAToNum(char c)

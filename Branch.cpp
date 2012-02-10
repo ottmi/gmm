@@ -5,7 +5,14 @@
 #include <cmath>
 #include <iomanip>
 #include <cstdlib>
+
+#ifdef _OPENMP
 #include <omp.h>
+#else
+#define omp_get_max_threads() 1
+#define omp_get_num_threads() 1
+#define omp_get_thread_num() 0
+#endif
 
 Branch::Branch(int id, Node *n1, Node *n2)
 {
@@ -164,7 +171,9 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 
+#ifdef _OPENMP
 #pragma omp parallel for reduction(+:logLikelihood)
+#endif
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
@@ -199,7 +208,9 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
@@ -222,10 +233,12 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 		}
 	}
 
-	for (int i = 1; i< omp_get_max_threads(); i++)
-	  for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
-	    for (unsigned int childBase = 0; childBase < charStates; childBase++)
-	    	sum[0][parentBase][childBase]+= sum[i][parentBase][childBase];
+#ifdef _OPENMP
+	for (int i = 1; i < omp_get_max_threads(); i++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+			for (unsigned int childBase = 0; childBase < charStates; childBase++)
+				sum[0][parentBase][childBase] += sum[i][parentBase][childBase];
+#endif
 
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
@@ -250,7 +263,9 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 
+#ifdef _OPENMP
 #pragma omp parallel for reduction(+:logLikelihood)
+#endif
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
@@ -282,7 +297,9 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
@@ -297,15 +314,18 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 			else
 			{
 				unsigned int invarChar = invarSites[site - invarStart];
-				sum[omp_get_thread_num()][parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
+				sum[omp_get_thread_num()][parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb
+						/ (_beta * _invar[invarChar] + (1 - _beta) * denominator);
 			}
 		}
 	}
 
-	for (int i = 1; i< omp_get_max_threads(); i++)
-	  for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
-	    for (unsigned int childBase = 0; childBase < charStates; childBase++)
-	    	sum[0][parentBase][childBase]+= sum[i][parentBase][childBase];
+#ifdef _OPENMP
+	for (int i = 1; i < omp_get_max_threads(); i++)
+		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+			for (unsigned int childBase = 0; childBase < charStates; childBase++)
+				sum[0][parentBase][childBase] += sum[i][parentBase][childBase];
+#endif
 
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
@@ -329,7 +349,9 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 
+#ifdef _OPENMP
 #pragma omp parallel for reduction(+:logLikelihood)
+#endif
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
@@ -359,7 +381,9 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	vector<double> &pG2 = _pRiX1;
 	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		unsigned int rootBase = rootSeq[site];
@@ -378,10 +402,12 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 		}
 	}
 
-	for (int i = 1; i< omp_get_max_threads(); i++)
-	  for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
-	    for (unsigned int childBase = 0; childBase < charStates; childBase++)
-	    	sum[0][rootBase][childBase]+= sum[i][rootBase][childBase];
+	#ifdef _OPENMP
+	for (int i = 1; i < omp_get_max_threads(); i++)
+		for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
+			for (unsigned int childBase = 0; childBase < charStates; childBase++)
+				sum[0][rootBase][childBase] += sum[i][rootBase][childBase];
+#endif
 
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
@@ -429,7 +455,9 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 	else
 		childProb2 = childBranch2->pRiX1(numOfSites);
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
@@ -500,7 +528,9 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 	else
 		grandParentProbSiX2 = grandParentBranch->pSiX2(numOfSites);
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
 	for (unsigned int site = 0; site < numOfSites; site++)
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <cstdlib>
+#include <cstring>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -206,7 +207,8 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 	vector<double> &pG1 = _pSiX2;
 	vector<double> &pG2 = _pRiX1;
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
+	double sum[omp_get_max_threads()][charStates][charStates];
+	memset(sum, 0.0, sizeof(sum));
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -295,7 +297,8 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	vector<double> &pG1 = _pSiX2;
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
+	double sum[omp_get_max_threads()][charStates][charStates];
+	memset(sum, 0.0, sizeof(sum));
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -379,7 +382,8 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	vector<double> &pG2 = _pRiX1;
-	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
+	double sum[omp_get_max_threads()][charStates][charStates];
+	memset(sum, 0.0, sizeof(sum));
 
 #ifdef _OPENMP
 #pragma omp parallel for

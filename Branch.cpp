@@ -17,8 +17,8 @@ Branch::Branch(int id, Node *n1, Node *n2)
 		_invar.push_back(0.25);
 
 	_q = new Matrix(charStates);
-	_q->setDiag(1.0 / 8.0);
-	_q->setOffDiag(1.0 / 24.0);
+	_q->setDiag(1.0 / (2*charStates));
+	_q->setOffDiag(1.0 / (6*charStates));
 
 	_qVersion = 0;
 	_pRiX1Version = 0;

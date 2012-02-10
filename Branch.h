@@ -32,11 +32,11 @@ private:
 	unsigned int _qVersion;
 	double _beta;
 	vector<double> _invar;
-	vector<double> _pRiX1;
+	double* _pRiX1;
 	unsigned int _pRiX1Version;
-	vector<double> _pSiX2;
+	double* _pSiX2;
 	unsigned int _pSiX2Version;
-	vector<double> _siteProb;
+	double* _siteProb;
 	int _id;
 
 	double computeValuesIntToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
@@ -47,8 +47,8 @@ private:
 	void updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
 
 	double pX1X2(unsigned int parent, unsigned int child);
-	vector<double>& pRiX1(unsigned int numOfSites);
-	vector<double>& pSiX2(unsigned int numOfSites);
+	double* pRiX1(unsigned int numOfSites);
+	double* pSiX2(unsigned int numOfSites);
 
 	double getProb(unsigned int from, unsigned int to);
 	double getMarginalProbRow(unsigned int row);

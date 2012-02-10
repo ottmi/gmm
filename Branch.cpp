@@ -30,12 +30,18 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_q->setOffDiag(1.0 / (6 * charStates));
 
 	_qVersion = 0;
+	_pRiX1 = NULL;
 	_pRiX1Version = 0;
+	_pSiX2 = NULL;
 	_pSiX2Version = 0;
+	_siteProb = NULL;
 }
 
 Branch::~Branch()
 {
+	free(_pRiX1);
+	free(_pSiX2);
+	free(_siteProb);
 	// TODO Auto-generated destructor stub
 }
 
@@ -167,9 +173,9 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
 	}
 
-	vector<double> pG1 = pSiX2(numOfUniqueSites);
-	vector<double> pG2 = pRiX1(numOfUniqueSites);
-	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
+	double* pG1 = pSiX2(numOfUniqueSites);
+	double* pG2 = pRiX1(numOfUniqueSites);
+	if (_siteProb == NULL) _siteProb = new double[numOfUniqueSites];
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 
 #ifdef _OPENMP
@@ -204,8 +210,8 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	unsigned int numOfUniqueSites = patternCount.size();
-	vector<double> &pG1 = _pSiX2;
-	vector<double> &pG2 = _pRiX1;
+	double *pG1 = _pSiX2;
+	double *pG2 = _pRiX1;
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
@@ -260,10 +266,10 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
 	}
 
-	vector<double> pG1 = pSiX2(numOfUniqueSites);
+	double* pG1 = pSiX2(numOfUniqueSites);
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
+	if (_siteProb == NULL) _siteProb = new double[numOfUniqueSites];
 
 #ifdef _OPENMP
 #pragma omp parallel for reduction(+:logLikelihood)
@@ -294,7 +300,7 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	unsigned int numOfUniqueSites = patternCount.size();
-	vector<double> &pG1 = _pSiX2;
+	double* pG1 = _pSiX2;
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	double sum[omp_get_max_threads()][charStates][charStates];
@@ -348,9 +354,9 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
 	}
 
-	vector<double> pG2 = pRiX1(numOfUniqueSites);
+	double* pG2 = pRiX1(numOfUniqueSites);
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
-	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
+	if (_siteProb == NULL) _siteProb = new double[numOfUniqueSites];
 
 #ifdef _OPENMP
 #pragma omp parallel for reduction(+:logLikelihood)
@@ -381,7 +387,7 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 {
 	unsigned int numOfUniqueSites = patternCount.size();
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
-	vector<double> &pG2 = _pRiX1;
+	double* pG2 = _pRiX1;
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
 
@@ -429,7 +435,7 @@ double Branch::pX1X2(unsigned int parent, unsigned int child)
 }
 
 // probability away from root
-vector<double>& Branch::pRiX1(unsigned int numOfSites)
+double* Branch::pRiX1(unsigned int numOfSites)
 {
 	Node *parent = _nodes[1]; // this should be the node away from root
 	Branch *childBranch1 = parent->getBranch(1);
@@ -441,19 +447,19 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 		cout << "Branch::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion
 				<< " ownVer=" << _pRiX1Version << endl;
 
-	if (_pRiX1.empty())
-		_pRiX1 = vector<double>(charStates * numOfSites);
+	if (_pRiX1 == NULL)
+		_pRiX1 = new double[charStates * numOfSites];
 	else if (_qVersion < _pRiX1Version) return _pRiX1;
 
 	vector<unsigned int> childSeq1;
-	vector<double> childProb1;
+	double* childProb1;
 	if (child1->isLeaf())
 		childSeq1 = child1->getSequence();
 	else
 		childProb1 = childBranch1->pRiX1(numOfSites);
 
 	vector<unsigned int> childSeq2;
-	vector<double> childProb2;
+	double* childProb2;
 	if (child2->isLeaf())
 		childSeq2 = child2->getSequence();
 	else
@@ -495,7 +501,7 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 }
 
 // probability towards root
-vector<double>& Branch::pSiX2(unsigned int numOfSites)
+double* Branch::pSiX2(unsigned int numOfSites)
 {
 	Node *parent = _nodes[0]; // this should be the node towards the root
 	Node *grandParent = parent->getParent();
@@ -514,19 +520,19 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 		cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer="
 				<< _qVersion << " ownVer=" << _pSiX2Version << endl;
 
-	if (_pSiX2.empty())
-		_pSiX2 = vector<double>(charStates * numOfSites);
+	if (_pSiX2 == NULL)
+		_pSiX2 = new double[charStates * numOfSites];
 	else if (_qVersion < _pSiX2Version) return _pSiX2;
 
 	vector<unsigned int> siblingSeq;
-	vector<double> siblingProbRiX1;
+	double* siblingProbRiX1;
 	if (sibling->isLeaf())
 		siblingSeq = sibling->getSequence();
 	else
 		siblingProbRiX1 = siblingBranch->pRiX1(numOfSites);
 
 	vector<unsigned int> grandParentSeq;
-	vector<double> grandParentProbSiX2;
+	double* grandParentProbSiX2;
 	if (grandParent->isLeaf())
 		grandParentSeq = grandParent->getSequence();
 	else
@@ -565,7 +571,7 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 				}
 			}
 
-			_pSiX2[site * charStates + parentBase] = siblingProb * grandParentProb;
+			_pSiX2[charStates * site + parentBase] = siblingProb * grandParentProb;
 		}
 
 	_pSiX2Version++;

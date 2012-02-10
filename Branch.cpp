@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <cstdlib>
+#include <omp.h>
 
 Branch::Branch(int id, Node *n1, Node *n2)
 {
@@ -17,8 +18,8 @@ Branch::Branch(int id, Node *n1, Node *n2)
 		_invar.push_back(0.25);
 
 	_q = new Matrix(charStates);
-	_q->setDiag(1.0 / (2*charStates));
-	_q->setOffDiag(1.0 / (6*charStates));
+	_q->setDiag(1.0 / (2 * charStates));
+	_q->setOffDiag(1.0 / (6 * charStates));
 
 	_qVersion = 0;
 	_pRiX1Version = 0;
@@ -196,8 +197,9 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 	vector<double> &pG1 = _pSiX2;
 	vector<double> &pG2 = _pRiX1;
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	vector<vector<double> > sum(charStates, vector<double>(charStates, 0.0));
+	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
 
+#pragma omp parallel for
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
@@ -209,20 +211,26 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 				double denominator = _siteProb[site];
 
 				if (site < invarStart)
-					sum[parentBase][childBase] += patternCount[site] * siteProb / denominator;
+					sum[omp_get_thread_num()][parentBase][childBase] += patternCount[site] * siteProb / denominator;
 				else
 				{
 					unsigned int invarChar = invarSites[site - invarStart];
-					sum[parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
+					sum[omp_get_thread_num()][parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb
+							/ (_beta * _invar[invarChar] + (1 - _beta) * denominator);
 				}
 			}
 		}
 	}
 
+	for (int i = 1; i< omp_get_max_threads(); i++)
+	  for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+	    for (unsigned int childBase = 0; childBase < charStates; childBase++)
+	    	sum[0][parentBase][childBase]+= sum[i][parentBase][childBase];
+
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		for (unsigned int childBase = 0; childBase < charStates; childBase++)
-			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
+			_updatedQ->setEntry(parentBase, childBase, sum[0][parentBase][childBase] / numOfSites);
 }
 
 double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
@@ -272,8 +280,9 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	vector<double> &pG1 = _pSiX2;
 	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
-	vector<vector<double> > sum(charStates, vector<double>(charStates, 0));
+	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
 
+#pragma omp parallel for
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
@@ -284,19 +293,24 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 			double denominator = _siteProb[site];
 
 			if (site < invarStart)
-				sum[parentBase][childBase] += patternCount[site] * siteProb / denominator;
+				sum[omp_get_thread_num()][parentBase][childBase] += patternCount[site] * siteProb / denominator;
 			else
 			{
 				unsigned int invarChar = invarSites[site - invarStart];
-				sum[parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
+				sum[omp_get_thread_num()][parentBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
 			}
 		}
 	}
 
+	for (int i = 1; i< omp_get_max_threads(); i++)
+	  for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+	    for (unsigned int childBase = 0; childBase < charStates; childBase++)
+	    	sum[0][parentBase][childBase]+= sum[i][parentBase][childBase];
+
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		for (unsigned int childBase = 0; childBase < charStates; childBase++)
-			_updatedQ->setEntry(parentBase, childBase, sum[parentBase][childBase] / numOfSites);
+			_updatedQ->setEntry(parentBase, childBase, sum[0][parentBase][childBase] / numOfSites);
 }
 
 double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
@@ -343,8 +357,9 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	vector<double> &pG2 = _pRiX1;
-	vector<vector<double> > sum(charStates, vector<double>(charStates, 0));
+	vector<vector<vector<double> > > sum(omp_get_max_threads(), vector<vector<double> >(charStates, vector<double>(charStates, 0.0)));
 
+#pragma omp parallel for
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		unsigned int rootBase = rootSeq[site];
@@ -354,19 +369,24 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 			double denominator = _siteProb[site];
 
 			if (site < invarStart)
-				sum[rootBase][childBase] += patternCount[site] * siteProb / denominator;
+				sum[omp_get_thread_num()][rootBase][childBase] += patternCount[site] * siteProb / denominator;
 			else
 			{
 				unsigned int invarChar = invarSites[site - invarStart];
-				sum[rootBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
+				sum[omp_get_thread_num()][rootBase][childBase] += patternCount[site] * (1 - _beta) * siteProb / (_beta * _invar[invarChar] + (1 - _beta) * denominator);
 			}
 		}
 	}
 
+	for (int i = 1; i< omp_get_max_threads(); i++)
+	  for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
+	    for (unsigned int childBase = 0; childBase < charStates; childBase++)
+	    	sum[0][rootBase][childBase]+= sum[i][rootBase][childBase];
+
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
 		for (unsigned int childBase = 0; childBase < charStates; childBase++)
-			_updatedQ->setEntry(rootBase, childBase, sum[rootBase][childBase] / numOfSites);
+			_updatedQ->setEntry(rootBase, childBase, sum[0][rootBase][childBase] / numOfSites);
 }
 
 /* This method computes the conditional probability P(x2|x1) */

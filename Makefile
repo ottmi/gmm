@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS  = -Wall -g -gdwarf-2 -O3 -fopenmp
-LFLAGS = -lm  -fopenmp
+LFLAGS = -lm -fopenmp
 
 OBJ = Alignment.o Branch.o Matrix.o Node.o Tree.o helper.o gmm.o
 BIN = gmm

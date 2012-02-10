@@ -163,6 +163,7 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 
+#pragma omp parallel for reduction(+:logLikelihood)
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
@@ -241,6 +242,7 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 
+#pragma omp parallel for reduction(+:logLikelihood)
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
@@ -313,6 +315,7 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
 	if (_siteProb.empty()) _siteProb = vector<double>(numOfUniqueSites);
 
+#pragma omp parallel for reduction(+:logLikelihood)
 	for (unsigned int site = 0; site < numOfUniqueSites; site++)
 	{
 		double siteProb = 0.0;
@@ -406,13 +409,13 @@ vector<double>& Branch::pRiX1(unsigned int numOfSites)
 	else
 		childProb2 = childBranch2->pRiX1(numOfSites);
 
-	double prob1;
-	double prob2;
+#pragma omp parallel for
 	for (unsigned int site = 0; site < numOfSites; site++)
 	{
-
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
+			double prob1;
+			double prob2;
 			if (child1->isLeaf())
 				prob1 = childBranch1->pX1X2(parentBase, childSeq1[site]);
 			else
@@ -477,12 +480,13 @@ vector<double>& Branch::pSiX2(unsigned int numOfSites)
 	else
 		grandParentProbSiX2 = grandParentBranch->pSiX2(numOfSites);
 
-	double siblingProb;
-	double grandParentProb;
+#pragma omp parallel for
 	for (unsigned int site = 0; site < numOfSites; site++)
-
 		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		{
+			double siblingProb;
+			double grandParentProb;
+
 			if (sibling->isLeaf())
 			{
 				siblingProb = siblingBranch->pX1X2(parentBase, siblingSeq[site]);

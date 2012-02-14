@@ -16,7 +16,7 @@ Node::Node(Node *parent, int id)
 		{
 			cerr << "Error: parent of node #" << _id << " (node #" << parent->_id << ") already has " << parent->_branches.size() << " neighbours." << endl;
 		}
-		Branch *branch = new Branch(_id, parent, this);
+		Branch *branch = new Branch(_id - 1, parent, this);
 		parent->_branches.push_back(branch);
 		_branches.push_back(branch);
 	}

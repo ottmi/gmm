@@ -55,6 +55,16 @@ Node* Branch::getNeighbour(Node *node)
 		return NULL;
 }
 
+Node* Branch::getNode(unsigned int num)
+{
+	if (num > _nodes.size() - 1)
+	{
+		stringstream ss;
+		ss << "Branch(" << _id << ")::getNode(" << num << "): there are only " << _nodes.size() << " adjacent nodes";
+	}
+	return _nodes[num];
+}
+
 void Branch::print()
 {
 	cout << getIdent() << endl;
@@ -64,13 +74,54 @@ void Branch::print()
 string Branch::getIdent()
 {
 	stringstream ss;
-	ss << _nodes[0]->getIdent() << "<--->" << _nodes[1]->getIdent();
+	ss << _nodes[0]->getIdent() << "<---(" << _id << ")---" << _nodes[1]->getIdent();
 	return ss.str();
 }
 
 double Branch::getLength()
 {
 	return -0.25 * log(_q->determinant());
+}
+
+void Branch::unlinkNode(Node *node)
+{
+	if (_nodes[0] == node)
+		_nodes.erase(_nodes.begin());
+	else if (_nodes[1] == node)
+		_nodes.erase(_nodes.begin() + 1);
+	else
+	{
+		stringstream ss;
+		ss << "Branch(" << _id << ")::unlinkNode(" << node->getIdent() << "): not found";
+		throw(ss.str());
+	}
+	node->removeBranch(this);
+	if (verbose >= 5)
+		cout << "Unlinked branch " <<  getId() << " from node " << node->getIdent() << endl;
+
+}
+
+void Branch::linkNode(Node *node)
+{
+	if (_nodes.size() == 2)
+	{
+		stringstream ss;
+		ss << "Branch(" << _id << ")::linkNode(" << node->getIdent() << "): there are already " << _nodes.size() << " adjacent nodes";
+		throw(ss.str());
+	} else
+	{
+		_nodes.push_back(node);
+		node->addBranch(this);
+		if (verbose >= 5)
+			cout << "Linked branch " <<  getId() << " to node " << node->getIdent() << endl;
+	}
+}
+
+void Branch::swapNodes()
+{
+	Node* temp = _nodes[0];
+	_nodes[0] = _nodes[1];
+	_nodes[1] = temp;
 }
 
 double Branch::computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
@@ -155,6 +206,41 @@ bool Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &pat
 		_invar[i] = invar[i] / invarSum;
 
 	return updateRequired;
+}
+
+void Branch::NNI(int branch)
+{
+	// branch indicates which branch of the left node will be swapped, i.e. 0 for the 1st branch, 1 for the 2nd
+
+	if (_nodes[0]->isLeaf())
+		throw("NNI: Node " + _nodes[0]->getIdent() + " is a leaf node");
+	else if (_nodes[1]->isLeaf()) throw("NNI: Node " + _nodes[1]->getIdent() + " is a leaf node");
+
+	Branch *branch0; // this is the outgoing branch from the left node we are going to swap
+	for (unsigned int i = 0; i < 3; i++)
+	{
+		branch0 = _nodes[0]->getBranch(i);
+		if (branch0 != this && !branch--) break;
+	}
+
+	Branch *branch1; // this is the outgoing branch from the right node we are going to swap
+	for (unsigned int i = 0; i < 3; i++)
+	{
+		branch1 = _nodes[1]->getBranch(i);
+		if (branch1 != this) break;
+	}
+
+	//unlink the branch from the left node
+	branch0->unlinkNode(_nodes[0]);
+
+	//unlink the branch from the right node
+	branch1->unlinkNode(_nodes[1]);
+
+	//link the right node's branch to the left node
+	branch1->linkNode(_nodes[0]);
+
+	//link the left node's branch to the right node
+	branch0->linkNode(_nodes[1]);
 }
 
 /*

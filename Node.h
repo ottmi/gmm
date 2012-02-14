@@ -21,6 +21,11 @@ public:
 	string getIdent();
 	Branch* getBranch(int id);
 	vector<Branch*>& getBranches() { return _branches; };
+
+	void removeBranch(Branch* b);
+	void addBranch(Branch* b);
+	void reroot(Branch *branch);
+
 	string toString(Node *parent = NULL);
 	Node* getParent();
 	Node *getChild(int num);

@@ -189,6 +189,21 @@ void Tree::printNodes()
 	}
 }
 
+void Tree::optimize()
+{
+	for (unsigned int i=0; i< _branches.size(); i++)
+	{
+		if (!_branches[i]->getNode(0)->isLeaf() && !_branches[i]->getNode(1)->isLeaf())
+		{
+			cout << _branches[i]->getIdent() << endl;
+			_branches[i]->NNI(1);
+			print();
+			break;
+		}
+	}
+	_root->reroot(NULL);
+}
+
 void Tree::printBranches()
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)

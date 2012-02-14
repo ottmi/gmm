@@ -13,11 +13,18 @@ public:
 	virtual
 	~Branch();
 	Node* getNeighbour(Node *node);
+	Node* getNode(unsigned int num);
+	unsigned int getId() { return _id; };
+
+	void unlinkNode(Node *node);
+	void linkNode(Node *node);
+	void swapNodes();
 
 	double computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
 	void computeUpdatedQ(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
 	bool updateQ(double qDelta);
 	bool updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart, double betaDelta);
+	void NNI(int branch);
 
 	void print();
 	string getIdent();

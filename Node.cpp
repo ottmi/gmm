@@ -95,6 +95,56 @@ Branch* Node::getBranch(int id)
 	}
 }
 
+void Node::removeBranch(Branch* b)
+{
+	unsigned int i=0;
+	while (_branches[i] != b)
+			i++;
+
+	if (_branches[i] == b)
+			_branches.erase(_branches.begin() + i);
+	else
+	{
+		stringstream ss;
+		ss << "Node(" << getIdent() << ")::removeBranch(" << b->getId() << "): not found";
+		throw(ss.str());
+	}
+}
+
+void Node::addBranch(Branch* b)
+{
+	if ((_isLeaf && _branches.size() >= 1) || (!_isLeaf && _branches.size() >= 3))
+	{
+		stringstream ss;
+		ss << "Node(" << getIdent() << ")::addBranch(" << b->getId() << "): there are already " << _branches.size() << " branches";
+		throw(ss.str());
+	} else
+	_branches.push_back(b);
+}
+
+void Node::reroot(Branch *branch)
+{
+	if (branch != NULL) // if this was the root node, branch would be NULL
+	{
+		if (branch->getNode(1) != this) // make _nodes[0] point towards the root
+			branch->swapNodes();
+
+		for (unsigned int i=0; i<_branches.size(); i++)
+		{
+			if (_branches[i] == branch)
+			{
+				_branches.erase(_branches.begin() + i); // remove branch from the list
+				break;
+			}
+		}
+		_branches.insert(_branches.begin(), branch); // re-insert at the front, so _branches[0] points towards the root
+	}
+
+	for (unsigned int i=0; i<_branches.size(); i++)
+		if (_branches[i] != branch)
+			_branches[i]->getNeighbour(this)->reroot(_branches[i]); // re-root all children recursively
+}
+
 Node* Node::getParent()
 {
 	if (!_branches.empty())

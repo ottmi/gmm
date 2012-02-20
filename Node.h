@@ -29,6 +29,12 @@ public:
 	string toString(Node *parent = NULL);
 	Node* getParent();
 	Node *getChild(int num);
+
+	Branch* getNeighbourBranch(Node *neighbour);
+	Branch* getNeighbourBranch(Node *exclude1, Node *exclude2);
+	Node* getNeighbour(Node *neighbour);
+	Node* getNeighbour(Node *exclude1, Node *exclude2);
+
 	vector<Node*> getTraversal(Node *parent = NULL);
 
 	bool isLeaf() { return _isLeaf; };

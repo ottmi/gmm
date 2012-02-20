@@ -191,6 +191,7 @@ void Tree::printNodes()
 
 void Tree::optimize()
 {
+	/*
 	for (unsigned int i=0; i< _branches.size(); i++)
 	{
 		if (!_branches[i]->getNode(0)->isLeaf() && !_branches[i]->getNode(1)->isLeaf())
@@ -201,6 +202,10 @@ void Tree::optimize()
 			break;
 		}
 	}
+*/
+	_branches[1]->SPR( _internalNodes[0], _branches[5]);
+	_branches[5]->SPR( _internalNodes[0], _branches[6]);
+
 	_root->reroot(NULL);
 }
 

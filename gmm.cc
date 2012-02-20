@@ -103,8 +103,12 @@ int main(int argc, char **argv)
 		Tree tree(alignment);
 		tree.readNewick(options.inputTree);
 		if (verbose >= 2)
+		{
 			tree.printNodes();
+			tree.printBranches();
+		}
 
+/*
 		unsigned int iteration = 0;
 		do
 		{
@@ -115,7 +119,7 @@ int main(int argc, char **argv)
 		}
 		while (tree.updateModel(0.0001, 0.0001));
 		tree.computeLH();
-
+*/
 		tree.optimize();
 		tree.printNodes();
 

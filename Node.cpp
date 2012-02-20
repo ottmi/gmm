@@ -97,12 +97,12 @@ Branch* Node::getBranch(int id)
 
 void Node::removeBranch(Branch* b)
 {
-	unsigned int i=0;
+	unsigned int i = 0;
 	while (_branches[i] != b)
-			i++;
+		i++;
 
 	if (_branches[i] == b)
-			_branches.erase(_branches.begin() + i);
+		_branches.erase(_branches.begin() + i);
 	else
 	{
 		stringstream ss;
@@ -119,7 +119,7 @@ void Node::addBranch(Branch* b)
 		ss << "Node(" << getIdent() << ")::addBranch(" << b->getId() << "): there are already " << _branches.size() << " branches";
 		throw(ss.str());
 	} else
-	_branches.push_back(b);
+		_branches.push_back(b);
 }
 
 void Node::reroot(Branch *branch)
@@ -129,7 +129,7 @@ void Node::reroot(Branch *branch)
 		if (branch->getNode(1) != this) // make _nodes[0] point towards the root
 			branch->swapNodes();
 
-		for (unsigned int i=0; i<_branches.size(); i++)
+		for (unsigned int i = 0; i < _branches.size(); i++)
 		{
 			if (_branches[i] == branch)
 			{
@@ -140,9 +140,8 @@ void Node::reroot(Branch *branch)
 		_branches.insert(_branches.begin(), branch); // re-insert at the front, so _branches[0] points towards the root
 	}
 
-	for (unsigned int i=0; i<_branches.size(); i++)
-		if (_branches[i] != branch)
-			_branches[i]->getNeighbour(this)->reroot(_branches[i]); // re-root all children recursively
+	for (unsigned int i = 0; i < _branches.size(); i++)
+		if (_branches[i] != branch) _branches[i]->getNeighbour(this)->reroot(_branches[i]); // re-root all children recursively
 }
 
 Node* Node::getParent()
@@ -167,6 +166,38 @@ Node* Node::getChild(int num)
 		ss << "Node(" << getIdent() << ")::getChild(" << num << "): there are only " << _branches.size() << " branches";
 		throw(ss.str());
 	}
+}
+
+Branch* Node::getNeighbourBranch(Node *neighbour)
+{
+	unsigned int i = 0;
+	while (_branches[i]->getNeighbour(this) != neighbour && i < _branches.size())
+		i++;
+
+	if (i >= _branches.size())
+		throw ("Node::getNeighbourBranch(): could not find a suitable neighbour");
+	return _branches[i];
+}
+
+Branch* Node::getNeighbourBranch(Node *exclude1, Node *exclude2)
+{
+	unsigned int i = 0;
+	while ((_branches[i]->getNeighbour(this) == exclude1 || _branches[i]->getNeighbour(this) == exclude2) && i < _branches.size())
+		i++;
+
+	if (i >= _branches.size())
+		throw ("Node::getNeighbourBranch(): could not find a suitable neighbour");
+	return _branches[i];
+}
+
+Node* Node::getNeighbour(Node *neighbour)
+{
+	return getNeighbourBranch(neighbour)->getNeighbour(this);
+}
+
+Node* Node::getNeighbour(Node *exclude1, Node *exclude2)
+{
+	return getNeighbourBranch(exclude1, exclude2)->getNeighbour(this);
 }
 
 string Node::getIdent()

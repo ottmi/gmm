@@ -243,6 +243,51 @@ void Branch::NNI(int branch)
 	branch0->linkNode(_nodes[1]);
 }
 
+void Branch::SPR(Node *parentNode, Branch *insertBranch)
+{
+	if (verbose >= 2)
+		cout << "Branch(" << getId() << ")::SPR(" << parentNode->getIdent() << ", " << insertBranch->getId() << ")" << endl;
+
+	Node *childNode = getNeighbour(parentNode);
+
+	if (parentNode->isLeaf()) throw("Branch::SPR() parentNode is a leaf node !");
+
+	/* Find the nearest internal node towards the root and the branch leading to it
+	 * This will usually be our grandparent, but it has to be an internal node
+	 * So if it's the actual root (which is a leaf) we choose the next internal node instead */
+	Node *grandParentNode = parentNode->getParent();
+	if (grandParentNode->isLeaf())
+		grandParentNode = parentNode->getNeighbour(childNode, grandParentNode);
+	Branch *grandParentBranch = parentNode->getNeighbourBranch(grandParentNode);
+
+	cout << "Grandparent: " << grandParentNode->getIdent() << " Branch: " << grandParentBranch->getIdent() << endl;
+
+	// Identify the branch that leads to our sibling
+	Branch *siblingBranch = parentNode->getNeighbourBranch(childNode, grandParentNode);
+
+	// Unlink our sibling including its branch from our parent
+	siblingBranch->unlinkNode(parentNode);
+
+	// Unlink our parent including its branch from its parent.
+	grandParentBranch->unlinkNode(grandParentNode);
+
+	// Link our sibling there instead
+	siblingBranch->linkNode(grandParentNode);
+
+	// That's the parent node of the branch where we're going to insert our subtree
+	Node *insertParentNode = insertBranch->getNode(0);
+
+	// Unlink the insertion branch from its parent
+	insertBranch->unlinkNode(insertParentNode);
+
+	// Link the branch leading into our parent there instead
+	grandParentBranch->linkNode(insertParentNode);
+
+	// Link the insertion branch as sibling to our parent node
+	insertBranch->linkNode(parentNode);
+}
+
+
 /*
  * Private functions start here
  */

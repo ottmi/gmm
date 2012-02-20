@@ -17,7 +17,14 @@ Tree::Tree(Alignment &alignment)
 
 Tree::~Tree()
 {
-	// TODO Auto-generated destructor stub
+	for (unsigned int i = 0; i <= _leaves.size(); i++)
+		delete _leaves[i];
+
+	for (unsigned int i = 0; i <= _internalNodes.size(); i++)
+		delete _internalNodes[i];
+
+	for (unsigned int i = 0; i <= _branches.size(); i++)
+		delete _branches[i];
 }
 
 void Tree::readNewick(string &tree)

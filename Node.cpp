@@ -5,21 +5,10 @@
 #include <iostream>
 #include <sstream>
 
-Node::Node(Node *parent, int id)
+Node::Node(int id)
 {
 	_id = id;
 	_isLeaf = false; // this will be set to true in setSequence()
-
-	if (parent)
-	{
-		if (parent->_branches.size() >= 3)
-		{
-			cerr << "Error: parent of node #" << _id << " (node #" << parent->_id << ") already has " << parent->_branches.size() << " neighbours." << endl;
-		}
-		Branch *branch = new Branch(_id - 1, parent, this);
-		parent->_branches.push_back(branch);
-		_branches.push_back(branch);
-	}
 }
 
 Node::~Node()

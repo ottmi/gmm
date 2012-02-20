@@ -18,8 +18,6 @@
 Branch::Branch(int id, Node *n1, Node *n2)
 {
 	_id = id;
-	_nodes.push_back(n1);
-	_nodes.push_back(n2);
 
 	_beta = 0.8;
 	for (unsigned int i = 0; i < charStates; i++)
@@ -35,6 +33,9 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_pSiX2 = NULL;
 	_pSiX2Version = 0;
 	_siteProb = NULL;
+
+	if (n1) linkNode(n1);
+	if (n2) linkNode(n2);
 }
 
 Branch::~Branch()
@@ -96,8 +97,7 @@ void Branch::unlinkNode(Node *node)
 		throw(ss.str());
 	}
 	node->removeBranch(this);
-	if (verbose >= 5)
-		cout << "Unlinked branch " <<  getId() << " from node " << node->getIdent() << endl;
+	if (verbose >= 5) cout << "Unlinked branch " << getId() << " from node " << node->getIdent() << endl;
 
 }
 
@@ -112,8 +112,7 @@ void Branch::linkNode(Node *node)
 	{
 		_nodes.push_back(node);
 		node->addBranch(this);
-		if (verbose >= 5)
-			cout << "Linked branch " <<  getId() << " to node " << node->getIdent() << endl;
+		if (verbose >= 5) cout << "Linked branch " << getId() << " to node " << node->getIdent() << endl;
 	}
 }
 
@@ -463,7 +462,7 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 		}
 	}
 
-	#ifdef _OPENMP
+#ifdef _OPENMP
 	for (int i = 1; i < omp_get_max_threads(); i++)
 		for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
 			for (unsigned int childBase = 0; childBase < charStates; childBase++)

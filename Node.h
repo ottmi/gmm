@@ -10,7 +10,7 @@ class Branch;
 class Node
 {
 public:
-	Node(Node *parent, int id);
+	Node(int id);
 	virtual
 	~Node();
 

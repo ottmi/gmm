@@ -17,13 +17,13 @@ Tree::Tree(Alignment &alignment)
 
 Tree::~Tree()
 {
-	for (unsigned int i = 0; i <= _leaves.size(); i++)
+	for (unsigned int i = 0; i < _leaves.size(); i++)
 		delete _leaves[i];
 
-	for (unsigned int i = 0; i <= _internalNodes.size(); i++)
+	for (unsigned int i = 0; i < _internalNodes.size(); i++)
 		delete _internalNodes[i];
 
-	for (unsigned int i = 0; i <= _branches.size(); i++)
+	for (unsigned int i = 0; i < _branches.size(); i++)
 		delete _branches[i];
 }
 
@@ -57,13 +57,14 @@ void Tree::readNewick(string &tree)
 			if (verbose >= 5) cout << "Internal Node #" << _internalNodes.size() << " starts" << endl;
 			if (currentNode)
 			{
-				currentNode = new Node(currentNode, _nodeCount++);
-				Branch *branch = currentNode->getBranch(0);
+				Node *newNode = new Node(_nodeCount++);
+				Branch *branch = new Branch(_nodeCount-1, currentNode, newNode);
+				currentNode = newNode;
 				_branches.push_back(branch);
 			}
 			else // there was no current node, so this is the first node, hence no branch leading into it
 			{
-				currentNode = new Node(currentNode, _nodeCount++);
+				currentNode = new Node(_nodeCount++);
 			}
 			_internalNodes.push_back(currentNode);
 			nextCouldBeLeaf = true;
@@ -77,13 +78,12 @@ void Tree::readNewick(string &tree)
 				Node *leaf;
 				if (currentNode)
 				{
-					leaf = new Node(currentNode, _nodeCount++);
-					Branch *branch = leaf->getBranch(0);
-//					branch->setDistance(distance);
+					leaf = new Node(_nodeCount++);
+					Branch *branch = new Branch(_nodeCount-1, currentNode, leaf);
 					_branches.push_back(branch);
 				} else // same as above, no node and branch yet
 				{
-					leaf = new Node(currentNode, _nodeCount++);
+					leaf = new Node(_nodeCount++);
 				}
 				leaf->setLabel(label);
 				_leaves.push_back(leaf);

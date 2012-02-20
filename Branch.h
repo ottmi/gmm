@@ -25,9 +25,6 @@ public:
 	bool updateQ(double qDelta);
 	bool updateParameters(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart, double betaDelta);
 
-	void NNI(int branch);
-	void SPR(Node *parentNode, Branch *insertBranch);
-
 	void print();
 	string getIdent();
 	double getLength();

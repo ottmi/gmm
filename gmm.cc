@@ -1,6 +1,7 @@
 #include "globals.h"
 #include "Tree.h"
 #include "Alignment.h"
+#include "Optimizer.h"
 #include <string>
 #include <stdlib.h>
 #include <iostream>
@@ -108,7 +109,10 @@ int main(int argc, char **argv)
 			tree.printBranches();
 		}
 
-/*
+		Optimizer optimizer;
+		optimizer.rearrange(tree);
+
+		/*
 		unsigned int iteration = 0;
 		do
 		{
@@ -120,7 +124,6 @@ int main(int argc, char **argv)
 		while (tree.updateModel(0.0001, 0.0001));
 		tree.computeLH();
 */
-		tree.optimize();
 		tree.printNodes();
 
 		tree.print();

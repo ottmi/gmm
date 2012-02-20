@@ -17,11 +17,15 @@ public:
 	void readNewick(string &tree);
 	void computeLH();
 	bool updateModel(double qDelta, double betaDelta);
-	void optimize();
 
 	void printBranches();
 	void printNodes();
 	void print();
+
+	vector<Node*>& getLeaves() { return _leaves; };
+	vector<Node*>& getInternalNodes() { return _internalNodes; };
+	vector<Branch*>& getBranches() { return _branches; };
+
 private:
 	Node *_root;
 	vector<Node*> _leaves;

@@ -1,5 +1,7 @@
 #include <iostream>
+#include <stdlib.h>
 #include "Optimizer.h"
+#include "helper.h"
 #include "globals.h"
 
 Optimizer::Optimizer()
@@ -58,22 +60,25 @@ void Optimizer::NNI(Branch* branch, int swap)
 	leftBranch->linkNode(rightNode);
 }
 
-
 void Optimizer::SPR(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent)
 {
 	if (verbose >= 2)
-		cout << "SPR: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " toBranch=" << toBranch->getId() << " toParent=" << toParent->getIdent() << endl;
+		cout << "SPR: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " toBranch=" << toBranch->getId() << " toParent="
+				<< toParent->getIdent() << endl;
 
 	Node *fromChild = fromBranch->getNeighbour(fromParent);
 
-	if (fromParent->isLeaf()) throw("SPR: fromParent is a leaf node !");
+	if (fromBranch->getNode(0) != fromParent && fromBranch->getNode(1) != fromParent)
+		throw("SPR: fromParent " + fromParent->getIdent() + " doesn't link to fromBranch " + str(fromBranch->getId()));
+	if (toBranch->getNode(0) != toParent && toBranch->getNode(1) != toParent)
+		throw("SPR: toParent " + toParent->getIdent() + " doesn't link to toBranch " + str(toBranch->getId()));
+	if (fromParent->isLeaf()) throw("SPR: fromParent " + fromParent->getIdent() + " is a leaf node !");
 
 	/* Find the nearest internal node towards the root and the branch leading to it
 	 * This will usually be our grandparent, but it has to be an internal node
 	 * So if it's the actual root (which is a leaf) we choose the next internal node instead */
 	Node *fromGrandParent = fromParent->getParent();
-	if (fromGrandParent->isLeaf())
-		fromGrandParent = fromParent->getNeighbour(fromChild, fromGrandParent);
+	if (fromGrandParent->isLeaf()) fromGrandParent = fromParent->getNeighbour(fromChild, fromGrandParent);
 	Branch *fromParentBranch = fromParent->getNeighbourBranch(fromGrandParent);
 
 	// Identify the branch that leads to our sibling
@@ -97,5 +102,4 @@ void Optimizer::SPR(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node
 	// Link the insertion branch as sibling to our parent node
 	toBranch->linkNode(fromParent);
 }
-
 

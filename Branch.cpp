@@ -301,8 +301,11 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	unsigned int numOfUniqueSites = patternCount.size();
-	double *pG1 = _pSiX2;
-	double *pG2 = _pRiX1;
+	double* pG1 = pSiX2(numOfUniqueSites);
+	double* pG2 = pRiX1(numOfUniqueSites);
+	if (_siteProb == NULL)
+		computeValuesIntToInt(patternCount, invarSites, invarStart);
+
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
@@ -391,8 +394,11 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	unsigned int numOfUniqueSites = patternCount.size();
-	double* pG1 = _pSiX2;
 	unsigned int* leafSeq = _nodes[1]->getSequence();
+	double* pG1 = pSiX2(numOfUniqueSites);
+	if (_siteProb == NULL)
+		computeValuesIntToLeaf(patternCount, invarSites, invarStart);
+
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
@@ -478,7 +484,10 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 {
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int* rootSeq = _nodes[0]->getSequence();
-	double* pG2 = _pRiX1;
+	double* pG2 = pRiX1(numOfUniqueSites);
+	if (_siteProb == NULL)
+		computeValuesRootToInt(patternCount, invarSites, invarStart);
+
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
 

@@ -16,8 +16,8 @@ public:
 	void read(string fileName, unsigned int grouping);
 	int find(string name);
 	unsigned int getNumOfSites() { return _numOfSites; };
-	unsigned int getNumOfUniqueSites() { return _numOfUniqueSites; };
-	unsigned int getNumOfSequences() { return _numOfSequences; };
+	unsigned int getNumOfUniqueSites() { return _patternCount.size(); };
+	unsigned int getNumOfSequences() { return _sequences.size(); };
 	int getDataType() { return _dataType; };
 
 	unsigned int* getNumericalSeq(unsigned int row);
@@ -35,8 +35,6 @@ private:
 	vector <unsigned int> _invarSites;
 	unsigned int _invarStart;
 	unsigned int _numOfSites;
-	unsigned int _numOfUniqueSites;
-	unsigned int _numOfSequences;
 
 	void readPhylip(string fileName);
 	void readFasta(string fileName);

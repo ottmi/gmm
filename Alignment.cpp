@@ -33,7 +33,6 @@ void Alignment::read(string fileName, unsigned int grouping)
 		exit(255);
 	}
 	cout << "The alignment contains " << _sequences.size() << " sequences with " << _sequences[0].size() << " characters each." << endl;
-	_numOfSequences = _sequences.size();
 	if (_sequences[0].size() % grouping != 0)
 		throw("The alignment is supposed to be grouped into sites of " + str(grouping) + " columns each, but " + str(_sequences[0].size()) + " is not divisible by " + str(grouping));
 	_numOfSites = _sequences[0].size() / grouping;
@@ -44,7 +43,7 @@ void Alignment::read(string fileName, unsigned int grouping)
 
 	translateToNumerical(grouping);
 	compress();
-	cout << "There are " << _numOfUniqueSites << " unique sites, " << _invarSites.size() << " of which are invariant." << endl << endl;
+	cout << "There are " << getNumOfUniqueSites() << " unique sites, " << _invarSites.size() << " of which are invariant." << endl << endl;
 }
 
 int Alignment::find(string name)
@@ -203,19 +202,18 @@ void Alignment::compress()
 	for (unsigned int col = 0; col < _numOfSites; col++)
 	{
 		vector<unsigned int> site;
-		for (unsigned int row = 0; row < _numOfSequences; row++)
+		for (unsigned int row = 0; row < getNumOfSequences(); row++)
 			site.push_back(_numericalSequences[row][col]);
 		patterns[site]++;
 	}
 
-	_numOfUniqueSites = patterns.size();
-	_compressedSequences = vector<unsigned int*>(_numOfSequences);
-	for (unsigned int i = 0; i < _numOfSequences; i++)
-		_compressedSequences[i] = new unsigned int[_numOfUniqueSites];
-	_patternCount.resize(_numOfUniqueSites, 0);
+	_compressedSequences = vector<unsigned int*>(getNumOfSequences());
+	for (unsigned int i = 0; i < getNumOfSequences(); i++)
+		_compressedSequences[i] = new unsigned int[patterns.size()];
+	_patternCount.resize(patterns.size(), 0);
 
 	unsigned int k = 0;
-	unsigned int l = _numOfUniqueSites;
+	unsigned int l = patterns.size();
 	for (map<vector<unsigned int>, unsigned int>::iterator it = patterns.begin(); it != patterns.end(); it++)
 	{
 		unsigned int row = 1;
@@ -226,11 +224,11 @@ void Alignment::compress()
 		{
 			_patternCount[--l] = it->second;
 			_invarSites.push_back(it->first[0]);
-			for (unsigned int i = 0; i < _numOfSequences; i++)
+			for (unsigned int i = 0; i < getNumOfSequences(); i++)
 				_compressedSequences[i][l] = it->first[i];
 		} else
 		{
-			for (unsigned int i = 0; i < _numOfSequences; i++)
+			for (unsigned int i = 0; i < getNumOfSequences(); i++)
 				_compressedSequences[i][k] = it->first[i];
 			_patternCount[k++] = it->second;
 		}

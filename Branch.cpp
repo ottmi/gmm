@@ -26,6 +26,7 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_q = new Matrix(charStates);
 	_q->setDiag(1.0 / (2 * charStates));
 	_q->setOffDiag(1.0 / (6 * charStates));
+	_updatedQ = NULL;
 
 	_qVersion = 0;
 	_pRiX1 = NULL;
@@ -46,6 +47,7 @@ Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
 	_invar = branch->_invar;
 
 	_q = new Matrix(*branch->_q);
+	_updatedQ = NULL;
 
 	_qVersion = 0;
 	if (branch->_pRiX1 != NULL)
@@ -81,6 +83,8 @@ Branch::~Branch()
 	if (_pRiX1 != NULL) delete[] _pRiX1;
 	if (_pSiX2 != NULL) delete[] _pSiX2;
 	if (_siteProb != NULL) delete[] _siteProb;
+	if (_q != NULL) delete _q;
+	if (_updatedQ != NULL) delete _updatedQ;
 }
 
 Node* Branch::getNeighbour(Node *node)

@@ -9,6 +9,8 @@ using namespace std;
 
 class Tree
 {
+	friend class Optimizer;
+
 public:
 	Tree(Alignment* alignment);
 	Tree (Tree const &tree);

@@ -15,7 +15,7 @@ public:
 	~Node();
 
 	void setSequence(unsigned int* seq);
-	void setLabel(string &label) { this->_label = label; label.clear(); };
+	void setLabel(string &label) { this->_label = label; };
 	string& getLabel() { return _label; };
 	int getId() { return _id; };
 	string getIdent();

@@ -41,36 +41,36 @@ Tree& Tree::operator= (Tree const &tree)
 
 void Tree::copy(Tree const &tree)
 {
-	vector<Branch*> const &branches = tree.getBranches();
-	vector<Node*> const &internalNodes = tree.getInternalNodes();
-	vector<Node*> const &leaves = tree.getLeaves();
-	vector<Node*> nodes(internalNodes.size()+leaves.size(), NULL);
+	vector<Node*> nodes(tree._internalNodes.size()+tree._leaves.size(), NULL);
 
 	_alignment = tree._alignment;
-	_internalNodes.resize(internalNodes.size(), NULL);
-	for (unsigned int i=0; i<internalNodes.size(); i++)
+	_internalNodes.resize(tree._internalNodes.size(), NULL);
+	for (unsigned int i=0; i<tree._internalNodes.size(); i++)
 	{
-		Node *node = new Node(internalNodes[i]->getId());
+		Node *node = new Node(tree._internalNodes[i]->getId());
 		_internalNodes[i] = node;
 		nodes[node->getId()] = node;
 	}
 
-	_leaves.resize(leaves.size(), NULL);
-	for (unsigned int i=0; i<leaves.size(); i++)
+	_leaves.resize(tree._leaves.size(), NULL);
+	for (unsigned int i=0; i<tree._leaves.size(); i++)
 	{
-		Node *node = new Node(leaves[i]->getId());
-		node->setSequence(leaves[i]->getSequence());
+		Node *node = new Node(tree._leaves[i]->getId());
+		node->setSequence(tree._leaves[i]->getSequence());
+		node->setLabel(tree._leaves[i]->getLabel());
 		_leaves[i] = node;
 		nodes[node->getId()] = node;
 	}
 
-	_branches.resize(branches.size(), NULL);
-	for (unsigned int i=0; i<branches.size(); i++)
+	_root = nodes[tree._root->getId()];
+
+	_branches.resize(tree._branches.size(), NULL);
+	for (unsigned int i=0; i<tree._branches.size(); i++)
 	{
-		int id = branches[i]->getId();
-		Node *node0 = nodes[branches[i]->getNode(0)->getId()];
-		Node *node1 = nodes[branches[i]->getNode(1)->getId()];
-		Branch *branch = new Branch(branches[i], node0, node1, _alignment->getNumOfUniqueSites());
+		int id = tree._branches[i]->getId();
+		Node *node0 = nodes[tree._branches[i]->getNode(0)->getId()];
+		Node *node1 = nodes[tree._branches[i]->getNode(1)->getId()];
+		Branch *branch = new Branch(tree._branches[i], node0, node1, _alignment->getNumOfUniqueSites());
 		_branches[id] = branch;
 	}
 }
@@ -135,10 +135,12 @@ void Tree::readNewick(string &tree)
 					leaf = new Node(nodeCount++);
 				}
 				leaf->setLabel(label);
+				label.clear();
 				_leaves.push_back(leaf);
 			} else
 			{
 				prevInternalNode->setLabel(label);
+				label.clear();
 //				Branch *branch = prevInternalNode->getBranch(0);
 //				branch->setDistance(distance);
 			}
@@ -172,6 +174,7 @@ void Tree::readNewick(string &tree)
 
 	_root = prevInternalNode;
 	_root->setLabel(label);
+	label.clear();
 	if (_root->getBranches().size() == 1)
 	{
 		cout << "The root at " << _root->getLabel() << " is a leaf" << endl;

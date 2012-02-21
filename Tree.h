@@ -10,9 +10,12 @@ using namespace std;
 class Tree
 {
 public:
-	Tree(Alignment &alignment);
+	Tree(Alignment* alignment);
+	Tree (Tree const &tree);
 	virtual
 	~Tree();
+
+	Tree& operator= (Tree const &tree);
 
 	void readNewick(string &tree);
 	void computeLH();
@@ -22,18 +25,18 @@ public:
 	void printNodes();
 	void print();
 
-	vector<Node*>& getLeaves() { return _leaves; };
-	vector<Node*>& getInternalNodes() { return _internalNodes; };
-	vector<Branch*>& getBranches() { return _branches; };
+	vector<Node*> const& getLeaves() const { return _leaves; };
+	vector<Node*> const& getInternalNodes() const { return _internalNodes; };
+	vector<Branch*> const& getBranches() const { return _branches; };
 
 private:
+	void copy(Tree const &tree);
+
 	Node *_root;
 	vector<Node*> _leaves;
 	vector<Node*> _internalNodes;
 	vector<Branch*> _branches;
-	Alignment _alignment;
-	unsigned int _nodeCount;
-	unsigned int _numOfSites;
+	Alignment* _alignment;
 };
 
 #endif /* TREE_H_ */

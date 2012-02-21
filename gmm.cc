@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	try {
 		alignment.read(options.alignment, options.alignmentGrouping);
 
-		Tree tree(alignment);
+		Tree tree(&alignment);
 		tree.readNewick(options.inputTree);
 		if (verbose >= 2)
 		{

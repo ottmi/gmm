@@ -7,12 +7,16 @@
 #include <cctype>
 #include <vector>
 #include <sstream>
+#include <map>
 
-Tree::Tree(Alignment &alignment)
+Tree::Tree(Alignment* alignment)
 {
-	_nodeCount = 0;
 	_alignment = alignment;
-	_numOfSites = _alignment.getNumOfSites();
+}
+
+Tree::Tree (Tree const &tree)
+{
+	copy(tree);
 }
 
 Tree::~Tree()
@@ -25,6 +29,50 @@ Tree::~Tree()
 
 	for (unsigned int i = 0; i < _branches.size(); i++)
 		delete _branches[i];
+}
+
+Tree& Tree::operator= (Tree const &tree)
+{
+	if (this != &tree)
+		copy(tree);
+
+	return *this;
+}
+
+void Tree::copy(Tree const &tree)
+{
+	vector<Branch*> const &branches = tree.getBranches();
+	vector<Node*> const &internalNodes = tree.getInternalNodes();
+	vector<Node*> const &leaves = tree.getLeaves();
+	vector<Node*> nodes(internalNodes.size()+leaves.size(), NULL);
+
+	_alignment = tree._alignment;
+	_internalNodes.resize(internalNodes.size(), NULL);
+	for (unsigned int i=0; i<internalNodes.size(); i++)
+	{
+		Node *node = new Node(internalNodes[i]->getId());
+		_internalNodes[i] = node;
+		nodes[node->getId()] = node;
+	}
+
+	_leaves.resize(leaves.size(), NULL);
+	for (unsigned int i=0; i<leaves.size(); i++)
+	{
+		Node *node = new Node(leaves[i]->getId());
+		node->setSequence(leaves[i]->getSequence());
+		_leaves[i] = node;
+		nodes[node->getId()] = node;
+	}
+
+	_branches.resize(branches.size(), NULL);
+	for (unsigned int i=0; i<branches.size(); i++)
+	{
+		int id = branches[i]->getId();
+		Node *node0 = nodes[branches[i]->getNode(0)->getId()];
+		Node *node1 = nodes[branches[i]->getNode(1)->getId()];
+		Branch *branch = new Branch(branches[i], node0, node1, _alignment->getNumOfUniqueSites());
+		_branches[id] = branch;
+	}
 }
 
 void Tree::readNewick(string &tree)
@@ -44,6 +92,7 @@ void Tree::readNewick(string &tree)
 	cout << "Tree: " << treeString << endl;
 
 	unsigned int i = 0;
+	unsigned int nodeCount = 0;
 	Node *prevInternalNode, *currentNode;
 	prevInternalNode = currentNode = NULL;
 	string label;
@@ -57,14 +106,14 @@ void Tree::readNewick(string &tree)
 			if (verbose >= 5) cout << "Internal Node #" << _internalNodes.size() << " starts" << endl;
 			if (currentNode)
 			{
-				Node *newNode = new Node(_nodeCount++);
-				Branch *branch = new Branch(_nodeCount-1, currentNode, newNode);
+				Node *newNode = new Node(nodeCount++);
+				Branch *branch = new Branch(nodeCount-2, currentNode, newNode);
 				currentNode = newNode;
 				_branches.push_back(branch);
 			}
 			else // there was no current node, so this is the first node, hence no branch leading into it
 			{
-				currentNode = new Node(_nodeCount++);
+				currentNode = new Node(nodeCount++);
 			}
 			_internalNodes.push_back(currentNode);
 			nextCouldBeLeaf = true;
@@ -78,12 +127,12 @@ void Tree::readNewick(string &tree)
 				Node *leaf;
 				if (currentNode)
 				{
-					leaf = new Node(_nodeCount++);
-					Branch *branch = new Branch(_nodeCount-1, currentNode, leaf);
+					leaf = new Node(nodeCount++);
+					Branch *branch = new Branch(nodeCount-2, currentNode, leaf);
 					_branches.push_back(branch);
 				} else // same as above, no node and branch yet
 				{
-					leaf = new Node(_nodeCount++);
+					leaf = new Node(nodeCount++);
 				}
 				leaf->setLabel(label);
 				_leaves.push_back(leaf);
@@ -133,21 +182,21 @@ void Tree::readNewick(string &tree)
 	for (unsigned int i = 0; i < _leaves.size(); i++)
 	{
 		label = _leaves[i]->getLabel();
-		int a = _alignment.find(label);
+		int a = _alignment->find(label);
 		if (a < 0)
 			throw("The alignment contains no sequence \"" + label + "\"");
 		else
 		{
-			unsigned int* seq = _alignment.getNumericalSeq(a);
+			unsigned int* seq = _alignment->getNumericalSeq(a);
 			_leaves[i]->setSequence(seq);
 		}
 	}
 
 	cout << "The tree has " << _internalNodes.size() << " internal nodes, " << _leaves.size() << " leaves and " << _branches.size() << " branches." << endl;
-	if (_alignment.getNumOfSequences() != _leaves.size())
+	if (_alignment->getNumOfSequences() != _leaves.size())
 	{
 		stringstream ss;
-		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << _alignment.getNumOfSequences() << ") do not match";
+		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << _alignment->getNumOfSequences() << ") do not match";
 		throw(ss.str());
 	}
 }
@@ -156,14 +205,14 @@ void Tree::computeLH()
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
-		_branches[i]->computeLH(_alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+		_branches[i]->computeLH(_alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
 	}
 }
 
 bool Tree::updateModel(double qDelta, double betaDelta)
 {
 	for (unsigned int i = 0; i < _branches.size(); i++)
-		_branches[i]->computeUpdatedQ(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart());
+		_branches[i]->computeUpdatedQ(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
 
 	unsigned int updates = 0;
 	for (unsigned int i = 0; i < _branches.size(); i++)
@@ -171,7 +220,7 @@ bool Tree::updateModel(double qDelta, double betaDelta)
 		if (_branches[i]->updateQ(qDelta))
 			updates++;
 
-		if (_branches[i]->updateParameters(_numOfSites, _alignment.getPatternCount(), _alignment.getInvarSites(), _alignment.getInvarStart(), betaDelta))
+		if (_branches[i]->updateParameters(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart(), betaDelta))
 			updates++;
 	}
 

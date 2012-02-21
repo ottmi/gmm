@@ -13,10 +13,10 @@ Alignment::Alignment()
 Alignment::~Alignment()
 {
 	for (unsigned int i = 0; i<_numericalSequences.size(); i++)
-		delete _numericalSequences[i];
+		delete[] _numericalSequences[i];
 
 	for (unsigned int i = 0; i<_compressedSequences.size(); i++)
-		delete _compressedSequences[i];
+		delete[] _compressedSequences[i];
 }
 
 void Alignment::read(string fileName, unsigned int grouping)

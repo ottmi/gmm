@@ -15,7 +15,7 @@ Node::~Node()
 {
 }
 
-void Node::setSequence(vector<unsigned int> &seq)
+void Node::setSequence(unsigned int* seq)
 {
 	_seq = seq;
 	_isLeaf = true;
@@ -212,17 +212,10 @@ string Node::getIdent()
 
 unsigned int Node::getBase(unsigned int site)
 {
-	if (site < _seq.size())
-		return _seq[site];
-	else
-	{
-		stringstream ss;
-		ss << "Node(" << getIdent() << ")::getBase(" << site << "): invalid site";
-		throw(ss.str());
-	}
+	return _seq[site];
 }
 
-vector<unsigned int>& Node::getSequence()
+unsigned int* Node::getSequence()
 {
 	if (_isLeaf)
 		return _seq;
@@ -232,5 +225,4 @@ vector<unsigned int>& Node::getSequence()
 		ss << "Node(" << getIdent() << ")::getSequence(): is not a leaf";
 		throw(ss.str());
 	}
-
 }

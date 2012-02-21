@@ -317,7 +317,7 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 	}
 
 	double* pG1 = pSiX2(numOfUniqueSites);
-	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
+	unsigned int* leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	if (_siteProb == NULL) _siteProb = new double[numOfUniqueSites];
 
@@ -351,7 +351,7 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 {
 	unsigned int numOfUniqueSites = patternCount.size();
 	double* pG1 = _pSiX2;
-	vector<unsigned int> leafSeq = _nodes[1]->getSequence();
+	unsigned int* leafSeq = _nodes[1]->getSequence();
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
@@ -405,7 +405,7 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 	}
 
 	double* pG2 = pRiX1(numOfUniqueSites);
-	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
+	unsigned int* rootSeq = _nodes[0]->getSequence();
 	if (_siteProb == NULL) _siteProb = new double[numOfUniqueSites];
 
 #ifdef _OPENMP
@@ -436,7 +436,7 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
 	unsigned int numOfUniqueSites = patternCount.size();
-	vector<unsigned int> rootSeq = _nodes[0]->getSequence();
+	unsigned int* rootSeq = _nodes[0]->getSequence();
 	double* pG2 = _pRiX1;
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
@@ -501,14 +501,14 @@ double* Branch::pRiX1(unsigned int numOfSites)
 		_pRiX1 = new double[charStates * numOfSites];
 	else if (_qVersion < _pRiX1Version) return _pRiX1;
 
-	vector<unsigned int> childSeq1;
+	unsigned int* childSeq1;
 	double* childProb1;
 	if (child1->isLeaf())
 		childSeq1 = child1->getSequence();
 	else
 		childProb1 = childBranch1->pRiX1(numOfSites);
 
-	vector<unsigned int> childSeq2;
+	unsigned int* childSeq2;
 	double* childProb2;
 	if (child2->isLeaf())
 		childSeq2 = child2->getSequence();
@@ -574,14 +574,14 @@ double* Branch::pSiX2(unsigned int numOfSites)
 		_pSiX2 = new double[charStates * numOfSites];
 	else if (_qVersion < _pSiX2Version) return _pSiX2;
 
-	vector<unsigned int> siblingSeq;
+	unsigned int* siblingSeq;
 	double* siblingProbRiX1;
 	if (sibling->isLeaf())
 		siblingSeq = sibling->getSequence();
 	else
 		siblingProbRiX1 = siblingBranch->pRiX1(numOfSites);
 
-	vector<unsigned int> grandParentSeq;
+	unsigned int* grandParentSeq;
 	double* grandParentProbSiX2;
 	if (grandParent->isLeaf())
 		grandParentSeq = grandParent->getSequence();

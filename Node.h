@@ -14,7 +14,7 @@ public:
 	virtual
 	~Node();
 
-	void setSequence(vector<unsigned int> &seq);
+	void setSequence(unsigned int* seq);
 	void setLabel(string &label) { this->_label = label; label.clear(); };
 	string& getLabel() { return _label; };
 	int getId() { return _id; };
@@ -40,14 +40,14 @@ public:
 	bool isLeaf() { return _isLeaf; };
 
 	unsigned int getBase(unsigned int position);
-	vector<unsigned int>& getSequence();
+	unsigned int* getSequence();
 
 private:
 	string _label;
 	vector <Branch*> _branches;
 	bool _isLeaf;
 	int _id;
-	vector<unsigned int> _seq;
+	unsigned int* _seq;
 };
 
 #endif /* NODE_H_ */

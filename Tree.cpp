@@ -138,7 +138,7 @@ void Tree::readNewick(string &tree)
 			throw("The alignment contains no sequence \"" + label + "\"");
 		else
 		{
-			vector<unsigned int> seq = _alignment.getNumericalSeq(a);
+			unsigned int* seq = _alignment.getNumericalSeq(a);
 			_leaves[i]->setSequence(seq);
 		}
 	}

@@ -7,8 +7,6 @@
 
 using namespace std;
 
-typedef vector <unsigned int> unsignedIntVec_t;
-
 class Alignment
 {
 public:
@@ -17,25 +15,28 @@ public:
 	~Alignment();
 	void read(string fileName, unsigned int grouping);
 	int find(string name);
-	unsigned int getNumOfSites() { return _numericalSequences[0].size(); };
-	unsigned int getNumOfUniqueSites() { return _compressedSequences[0].size(); };
-	unsigned int getNumOfSequences() { return _numericalSequences.size(); };
+	unsigned int getNumOfSites() { return _numOfSites; };
+	unsigned int getNumOfUniqueSites() { return _numOfUniqueSites; };
+	unsigned int getNumOfSequences() { return _numOfSequences; };
 	int getDataType() { return _dataType; };
 
-	unsignedIntVec_t& getNumericalSeq(unsigned int row);
-	unsignedIntVec_t& getPatternCount() { return _patternCount; };
+	unsigned int* getNumericalSeq(unsigned int row);
+	vector <unsigned int>& getPatternCount() { return _patternCount; };
 	unsigned int getInvarStart() {return _invarStart; };
-	unsignedIntVec_t& getInvarSites() {return _invarSites; };
+	vector <unsigned int>& getInvarSites() {return _invarSites; };
 
 private:
 	int _dataType;
 	vector <string> _names;
 	vector <string> _sequences;
-	vector <unsignedIntVec_t> _numericalSequences;
-	vector <unsignedIntVec_t> _compressedSequences;
-	unsignedIntVec_t _patternCount;
+	vector <unsigned int*> _numericalSequences;
+	vector <unsigned int*> _compressedSequences;
+	vector <unsigned int> _patternCount;
+	vector <unsigned int> _invarSites;
 	unsigned int _invarStart;
-	unsignedIntVec_t _invarSites;
+	unsigned int _numOfSites;
+	unsigned int _numOfUniqueSites;
+	unsigned int _numOfSequences;
 
 	void readPhylip(string fileName);
 	void readFasta(string fileName);

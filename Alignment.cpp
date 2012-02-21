@@ -12,7 +12,11 @@ Alignment::Alignment()
 
 Alignment::~Alignment()
 {
-	// TODO Auto-generated destructor stub
+	for (unsigned int i = 0; i<_numericalSequences.size(); i++)
+		delete _numericalSequences[i];
+
+	for (unsigned int i = 0; i<_compressedSequences.size(); i++)
+		delete _compressedSequences[i];
 }
 
 void Alignment::read(string fileName, unsigned int grouping)
@@ -29,6 +33,10 @@ void Alignment::read(string fileName, unsigned int grouping)
 		exit(255);
 	}
 	cout << "The alignment contains " << _sequences.size() << " sequences with " << _sequences[0].size() << " characters each." << endl;
+	_numOfSequences = _sequences.size();
+	if (_sequences[0].size() % grouping != 0)
+		throw("The alignment is supposed to be grouped into sites of " + str(grouping) + " columns each, but " + str(_sequences[0].size()) + " is not divisible by " + str(grouping));
+	_numOfSites = _sequences[0].size() / grouping;
 
 	identifyDataTpe(grouping);
 	string dataTypeDesc[] = { "DNA", "AA" };
@@ -36,7 +44,7 @@ void Alignment::read(string fileName, unsigned int grouping)
 
 	translateToNumerical(grouping);
 	compress();
-	cout << "There are " << getNumOfUniqueSites() << " unique sites, " << _invarSites.size() << " of which are invariant." << endl << endl;
+	cout << "There are " << _numOfUniqueSites << " unique sites, " << _invarSites.size() << " of which are invariant." << endl << endl;
 }
 
 int Alignment::find(string name)
@@ -49,7 +57,7 @@ int Alignment::find(string name)
 	return -1;
 }
 
-unsignedIntVec_t& Alignment::getNumericalSeq(unsigned int row)
+unsigned int* Alignment::getNumericalSeq(unsigned int row)
 {
 	if (row < getNumOfSequences())
 		return _compressedSequences[row];
@@ -176,13 +184,14 @@ void Alignment::translateToNumerical(unsigned int grouping)
 {
 	for (unsigned int i = 0; i<_sequences.size(); i++)
 	{
-		unsignedIntVec_t numSeq;
+		unsigned int* numSeq = new unsigned int[_numOfSites];
+		unsigned int k = 0;
 		for (unsigned int j = 0; j<_sequences[i].size(); j+= grouping)
 		{
 			if (_dataType == _DNA_DATA)
-				numSeq.push_back(mapDNAToNum(_sequences[i].substr(j, grouping)));
+				numSeq[k++] = mapDNAToNum(_sequences[i].substr(j, grouping));
 			else
-				numSeq.push_back(mapAAToNum(_sequences[i][j]));
+				numSeq[k++] = mapAAToNum(_sequences[i][j]);
 		}
 		_numericalSequences.push_back(numSeq);
 	}
@@ -190,19 +199,24 @@ void Alignment::translateToNumerical(unsigned int grouping)
 
 void Alignment::compress()
 {
-	map<unsignedIntVec_t, unsigned int> patterns;
-	for (unsigned int col = 0; col < getNumOfSites(); col++)
+	map<vector<unsigned int>, unsigned int> patterns;
+	for (unsigned int col = 0; col < _numOfSites; col++)
 	{
-		unsignedIntVec_t site;
-		for (unsigned int row = 0; row < getNumOfSequences(); row++)
+		vector<unsigned int> site;
+		for (unsigned int row = 0; row < _numOfSequences; row++)
 			site.push_back(_numericalSequences[row][col]);
 		patterns[site]++;
 	}
 
-	_compressedSequences = vector<unsignedIntVec_t>(getNumOfSequences());
-	vector<unsignedIntVec_t> invar(getNumOfSequences());
-	unsignedIntVec_t invarCount;
-	for (map<unsignedIntVec_t, unsigned int>::iterator it = patterns.begin(); it != patterns.end(); it++)
+	_numOfUniqueSites = patterns.size();
+	_compressedSequences = vector<unsigned int*>(_numOfSequences);
+	for (unsigned int i = 0; i < _numOfSequences; i++)
+		_compressedSequences[i] = new unsigned int[_numOfUniqueSites];
+	_patternCount.resize(_numOfUniqueSites, 0);
+
+	unsigned int k = 0;
+	unsigned int l = _numOfUniqueSites;
+	for (map<vector<unsigned int>, unsigned int>::iterator it = patterns.begin(); it != patterns.end(); it++)
 	{
 		unsigned int row = 1;
 		while (row < getNumOfSequences() && it->first[0] == it->first[row])
@@ -210,26 +224,18 @@ void Alignment::compress()
 
 		if (row == getNumOfSequences())	// this site contains only identical characters
 		{
-			for (unsigned int i = 0; i < getNumOfSequences(); i++)
-				invar[i].push_back(it->first[i]);
-			invarCount.push_back(it->second);
+			_patternCount[--l] = it->second;
+			_invarSites.push_back(it->first[0]);
+			for (unsigned int i = 0; i < _numOfSequences; i++)
+				_compressedSequences[i][l] = it->first[i];
 		} else
 		{
-			for (unsigned int i = 0; i < getNumOfSequences(); i++)
-				_compressedSequences[i].push_back(it->first[i]);
-			_patternCount.push_back(it->second);
+			for (unsigned int i = 0; i < _numOfSequences; i++)
+				_compressedSequences[i][k] = it->first[i];
+			_patternCount[k++] = it->second;
 		}
 	}
-
-	_invarStart = _patternCount.size();
-	for (unsigned col = 0; col < invarCount.size(); col++) // append the invariable sites to the variable sites
-	{
-		for (unsigned int row = 0; row < getNumOfSequences(); row++)
-			_compressedSequences[row].push_back(invar[row][col]);
-		_patternCount.push_back(invarCount[col]);
-		_invarSites.push_back(invar[0][col]);
-	}
-
+	_invarStart = l;
 
 	if (verbose >= 10)
 	{

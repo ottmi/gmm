@@ -10,8 +10,10 @@ class Branch
 {
 public:
 	Branch(int id, Node *n1, Node *n2);
+	Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites);
 	virtual
 	~Branch();
+
 	Node* getNeighbour(Node *node);
 	Node* getNode(unsigned int num);
 	unsigned int getId() { return _id; };

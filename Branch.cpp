@@ -38,12 +38,49 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	if (n2) linkNode(n2);
 }
 
+Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
+{
+	_id = branch->_id;
+
+	_beta = branch->_beta;
+	_invar = branch->_invar;
+
+	_q = new Matrix(*branch->_q);
+
+	_qVersion = 0;
+	if (branch->_pRiX1 != NULL)
+	{
+		_pRiX1 = new double[charStates * numOfSites];
+		memcpy(_pRiX1, branch->_pRiX1, charStates * numOfSites);
+	} else
+		_pRiX1 = NULL;
+	_pRiX1Version = 0;
+
+	if (branch->_pSiX2 != NULL)
+	{
+		_pSiX2 = new double[charStates * numOfSites];
+		;
+		memcpy(_pSiX2, branch->_pSiX2, charStates * numOfSites);
+	} else
+		_pSiX2 = NULL;
+	_pSiX2Version = 0;
+
+	if (branch->_siteProb != NULL)
+	{
+		_siteProb = new double[numOfSites];
+		memcpy(_siteProb, branch->_siteProb, numOfSites);
+	} else
+		_siteProb = NULL;
+
+	if (n1) linkNode(n1);
+	if (n2) linkNode(n2);
+}
+
 Branch::~Branch()
 {
-	free(_pRiX1);
-	free(_pSiX2);
-	free(_siteProb);
-	// TODO Auto-generated destructor stub
+	if (_pRiX1 != NULL) delete[] _pRiX1;
+	if (_pSiX2 != NULL) delete[] _pSiX2;
+	if (_siteProb != NULL) delete[] _siteProb;
 }
 
 Node* Branch::getNeighbour(Node *node)
@@ -165,7 +202,7 @@ bool Branch::updateQ(double qDelta)
 		for (unsigned int col = 0; col < charStates; col++)
 			sum += pow(_q->getEntry(row, col) - _updatedQ->getEntry(row, col), 2);
 
-	free(_q);
+	delete _q;
 	_q = _updatedQ;
 	_updatedQ = NULL;
 	_qVersion++;

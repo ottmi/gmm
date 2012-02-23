@@ -39,6 +39,19 @@ vector<Node*> Node::getTraversal(Node *parent)
 	return list;
 }
 
+void Node::getDescendantBranches(Node *parent, vector<int> &branches)
+{
+	for (unsigned int i = 0; i < _branches.size(); i++)
+	{
+		Node *neighbour = _branches[i]->getNeighbour(this);
+		if (neighbour != parent)
+		{
+			branches.push_back(_branches[i]->getId());
+			neighbour->getDescendantBranches(this, branches);
+		}
+	}
+}
+
 string Node::toString(Node *parent)
 {
 	stringstream ss;

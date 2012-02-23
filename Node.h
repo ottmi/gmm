@@ -36,6 +36,7 @@ public:
 	Node* getNeighbour(Node *exclude1, Node *exclude2);
 
 	vector<Node*> getTraversal(Node *parent = NULL);
+	void getDescendantBranches(Node *parent, vector<int> &branches);
 
 	bool isLeaf() { return _isLeaf; };
 

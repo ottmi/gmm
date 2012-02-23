@@ -17,10 +17,52 @@ Optimizer::~Optimizer()
 
 void Optimizer::rearrange(Tree &tree)
 {
-	vector<Branch*> branches = tree.getBranches();
-	vector<Node*> internalNodes = tree.getInternalNodes();
+	for (unsigned int i = 0; i < tree._branches.size(); i++)
+	{
+		Branch *branch = tree._branches[i];
+		for (unsigned int j = 0; j < 2; j++)
+		{
+			if (!branch->getNode(j)->isLeaf())
+			{
+				vector<int> candidates = getSprInsertCandidates(branch, branch->getNode(j));
+				for (unsigned int k = 0; k < candidates.size(); k++)
+				{
+					Tree t = tree;
+					Branch *fromBranch = t._branches[branch->getId()];
+					Branch *toBranch = t._branches[candidates[k]];
 
-	SPR(branches[1], internalNodes[0], branches[5], internalNodes[2]);
+					for (unsigned int l = 0; l < 2; l++)
+						if (!toBranch->getNode(l)->isLeaf())
+						{
+							SPR(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l));
+							t._root->reroot(NULL);
+							t.print();
+							toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
+						}
+				}
+			}
+		}
+	}
+}
+
+vector<int> Optimizer::getSprInsertCandidates(Branch *fromBranch, Node *fromParent)
+{
+	Node *fromChild = fromBranch->getNeighbour(fromParent);
+
+	if (fromBranch->getNode(0) != fromParent && fromBranch->getNode(1) != fromParent)
+		throw("SPR: fromParent " + fromParent->getIdent() + " doesn't link to fromBranch " + str(fromBranch->getId()));
+	if (fromParent->isLeaf()) throw("SPR: fromParent " + fromParent->getIdent() + " is a leaf node !");
+
+	/* Find the nearest internal node towards the root and the branch leading to it
+	 * This will usually be our grandparent, but it has to be an internal node
+	 * So if it's the actual root (which is a leaf) we choose the next internal node instead */
+	Node *fromGrandParent = fromParent->getParent();
+	if (fromGrandParent->isLeaf()) fromGrandParent = fromParent->getNeighbour(fromChild, fromGrandParent);
+
+	vector<int> branches;
+	fromGrandParent->getDescendantBranches(fromParent, branches);
+
+	return branches;
 }
 
 void Optimizer::NNI(Branch* branch, int swap)

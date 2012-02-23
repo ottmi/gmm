@@ -4,6 +4,7 @@
 #include "Tree.h"
 #include "Node.h"
 #include "Branch.h"
+#include <vector>
 using namespace std;
 
 class Optimizer
@@ -16,6 +17,8 @@ class Optimizer
 
 		void NNI(Branch* branch, int swap);
 		void SPR(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent);
+
+		vector<int> getSprInsertCandidates(Branch *fromBranch, Node *fromParent);
 };
 
 #endif /* OPTIMIZER_H_ */

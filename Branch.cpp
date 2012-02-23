@@ -99,10 +99,11 @@ Node* Branch::getNeighbour(Node *node)
 
 Node* Branch::getNode(unsigned int num)
 {
-	if (num > _nodes.size() - 1)
+	if (num >= _nodes.size())
 	{
 		stringstream ss;
 		ss << "Branch(" << _id << ")::getNode(" << num << "): there are only " << _nodes.size() << " adjacent nodes";
+		throw(ss.str());
 	}
 	return _nodes[num];
 }
@@ -116,7 +117,10 @@ void Branch::print()
 string Branch::getIdent()
 {
 	stringstream ss;
-	ss << _nodes[0]->getIdent() << "<---(" << _id << ")---" << _nodes[1]->getIdent();
+	if (_nodes.size() > 0)
+		ss << _nodes[0]->getIdent() << "<---(" << _id << ")---";
+	if (_nodes.size() > 1)
+		ss << _nodes[1]->getIdent();
 	return ss.str();
 }
 

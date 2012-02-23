@@ -51,6 +51,7 @@ void Tree::copy(Tree const &tree)
 	{
 		Node *node = new Node(tree._internalNodes[i]->getId());
 		_internalNodes[i] = node;
+		_internalNodes[i]->setLabel(tree._internalNodes[i]->getLabel());
 		nodes[node->getId()] = node;
 	}
 

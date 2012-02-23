@@ -16,6 +16,7 @@ public:
 
 	Node* getNeighbour(Node *node);
 	Node* getNode(unsigned int num);
+	unsigned int getNumOfNodes() { return _nodes.size(); };
 	unsigned int getId() { return _id; };
 
 	void unlinkNode(Node *node);

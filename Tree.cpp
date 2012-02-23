@@ -41,6 +41,8 @@ Tree& Tree::operator= (Tree const &tree)
 
 void Tree::copy(Tree const &tree)
 {
+	if (verbose >=5)
+		cout << "Tree::copy start" << endl;
 	vector<Node*> nodes(tree._internalNodes.size()+tree._leaves.size(), NULL);
 
 	_alignment = tree._alignment;
@@ -68,11 +70,18 @@ void Tree::copy(Tree const &tree)
 	for (unsigned int i=0; i<tree._branches.size(); i++)
 	{
 		int id = tree._branches[i]->getId();
-		Node *node0 = nodes[tree._branches[i]->getNode(0)->getId()];
-		Node *node1 = nodes[tree._branches[i]->getNode(1)->getId()];
+		unsigned int numOfNodes = tree._branches[i]->getNumOfNodes();
+		Node *node0 = NULL;
+		Node *node1 = NULL;
+		if (numOfNodes >= 1)
+			node0 = nodes[tree._branches[i]->getNode(0)->getId()];
+		if (numOfNodes >= 2)
+			node1 = nodes[tree._branches[i]->getNode(1)->getId()];
 		Branch *branch = new Branch(tree._branches[i], node0, node1, _alignment->getNumOfUniqueSites());
 		_branches[id] = branch;
 	}
+	if (verbose >=5)
+		cout << "Tree::copy finish" << endl;
 }
 
 void Tree::readNewick(string &tree)

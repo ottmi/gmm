@@ -17,52 +17,101 @@ Optimizer::~Optimizer()
 
 void Optimizer::rearrange(Tree &tree)
 {
+	Tree savedTree = tree;
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
-		Branch *branch = tree._branches[i];
 		for (unsigned int j = 0; j < 2; j++)
 		{
-			if (!branch->getNode(j)->isLeaf())
+			if (!tree._branches[i]->getNode(j)->isLeaf())
 			{
-				vector<int> candidates = getSprInsertCandidates(branch, branch->getNode(j));
-				for (unsigned int k = 0; k < candidates.size(); k++)
-				{
-					Tree t = tree;
-					Branch *fromBranch = t._branches[branch->getId()];
-					Branch *toBranch = t._branches[candidates[k]];
+				Tree reducedTree = tree;
+				Branch *fromCandidate = reducedTree._branches[tree._branches[i]->getId()];
 
+				vector<int> toCandidates;
+				subtreePrune(fromCandidate, fromCandidate->getNode(j), toCandidates);
+				//reducedTree.printBranches();
+
+				for (unsigned int k = 0; k < toCandidates.size(); k++)
+				{
 					for (unsigned int l = 0; l < 2; l++)
+					{
+						Tree t = reducedTree;
+						Branch *fromBranch = t._branches[fromCandidate->getId()];
+						Branch *toBranch = t._branches[toCandidates[k]];
+
 						if (!toBranch->getNode(l)->isLeaf())
 						{
-							SPR(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l));
+							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l));
 							t._root->reroot(NULL);
 							t.print();
 							toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
 						}
+					}
 				}
 			}
 		}
 	}
 }
 
-vector<int> Optimizer::getSprInsertCandidates(Branch *fromBranch, Node *fromParent)
+void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates)
 {
-	Node *fromChild = fromBranch->getNeighbour(fromParent);
-
 	if (fromBranch->getNode(0) != fromParent && fromBranch->getNode(1) != fromParent)
 		throw("SPR: fromParent " + fromParent->getIdent() + " doesn't link to fromBranch " + str(fromBranch->getId()));
 	if (fromParent->isLeaf()) throw("SPR: fromParent " + fromParent->getIdent() + " is a leaf node !");
 
-	/* Find the nearest internal node towards the root and the branch leading to it
-	 * This will usually be our grandparent, but it has to be an internal node
-	 * So if it's the actual root (which is a leaf) we choose the next internal node instead */
+	Node *fromChild = fromBranch->getNeighbour(fromParent);
+
+	// Find the nearest internal node linking into fromParent, starting with the grandparent
 	Node *fromGrandParent = fromParent->getParent();
-	if (fromGrandParent->isLeaf()) fromGrandParent = fromParent->getNeighbour(fromChild, fromGrandParent);
+	// If fromChild is closer to the root than fromParent, fromParent->getParent() will link to fromChild
+	// We don't want this, so we pick a child node instead
+	// Also, it has to be an internal node
+	if (fromGrandParent->isLeaf() || fromGrandParent == fromChild) fromGrandParent = fromParent->getChild(1);
+	// Make sure it's an internal node, otherwise choose the other link.
+	// If both children are internal nodes, it doesn't matter which one we choose
+	if (fromGrandParent->isLeaf() || fromGrandParent == fromChild) fromGrandParent = fromParent->getChild(2);
+	// If both children are leaf nodes, we can't perform an SPR move on that branch
+	if (fromGrandParent->isLeaf()) return;
 
-	vector<int> branches;
-	fromGrandParent->getDescendantBranches(fromParent, branches);
+	Branch *fromParentBranch = fromParent->getNeighbourBranch(fromGrandParent);
 
-	return branches;
+	if (verbose >= 2) cout << "subtreePrune: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " fromParentBranch=" << fromParentBranch->getId() << " fromGrandParent=" << fromGrandParent->getIdent() << endl;
+
+	// Identify the branch that leads to our sibling
+	Branch *fromSiblingBranch = fromParent->getNeighbourBranch(fromChild, fromGrandParent);
+	Node *fromSibling = fromSiblingBranch->getNeighbour(fromParent);
+
+	// Unlink our sibling including its branch from our parent
+	fromSiblingBranch->unlinkNode(fromParent);
+
+	// Unlink our parent including its branch from its parent.
+	fromParentBranch->unlinkNode(fromGrandParent);
+
+	// Link our sibling there instead
+	fromSiblingBranch->linkNode(fromGrandParent);
+
+	// Let's enumerate all possible insertion branches
+	fromGrandParent->getDescendantBranches(fromSibling, insertCandidates);
+	fromSibling->getDescendantBranches(fromGrandParent, insertCandidates);
+}
+
+void Optimizer::subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent)
+{
+	if (verbose >= 2)
+		cout << "subtreeRegraft: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " toBranch=" << toBranch->getId()
+				<< " toParent=" << toParent->getIdent() << endl;
+	// fromParent is an internal node with only 2 branches. Find the branch that leads away from the parent
+	Branch *fromParentBranch = fromParent->getBranch(0);
+	if (fromParentBranch == fromBranch) fromParentBranch = fromParent->getBranch(1);
+
+	// Unlink the insertion branch from its parent
+	toBranch->unlinkNode(toParent);
+
+	// Link the branch leading away from our parent there instead
+	fromParentBranch->linkNode(toParent);
+
+	// Link the insertion branch as sibling to our parent node
+	toBranch->linkNode(fromParent);
 }
 
 void Optimizer::NNI(Branch* branch, int swap)
@@ -101,47 +150,3 @@ void Optimizer::NNI(Branch* branch, int swap)
 	//link the left node's branch to the right node
 	leftBranch->linkNode(rightNode);
 }
-
-void Optimizer::SPR(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent)
-{
-	if (verbose >= 2)
-		cout << "SPR: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " toBranch=" << toBranch->getId() << " toParent="
-				<< toParent->getIdent() << endl;
-
-	Node *fromChild = fromBranch->getNeighbour(fromParent);
-
-	if (fromBranch->getNode(0) != fromParent && fromBranch->getNode(1) != fromParent)
-		throw("SPR: fromParent " + fromParent->getIdent() + " doesn't link to fromBranch " + str(fromBranch->getId()));
-	if (toBranch->getNode(0) != toParent && toBranch->getNode(1) != toParent)
-		throw("SPR: toParent " + toParent->getIdent() + " doesn't link to toBranch " + str(toBranch->getId()));
-	if (fromParent->isLeaf()) throw("SPR: fromParent " + fromParent->getIdent() + " is a leaf node !");
-
-	/* Find the nearest internal node towards the root and the branch leading to it
-	 * This will usually be our grandparent, but it has to be an internal node
-	 * So if it's the actual root (which is a leaf) we choose the next internal node instead */
-	Node *fromGrandParent = fromParent->getParent();
-	if (fromGrandParent->isLeaf()) fromGrandParent = fromParent->getNeighbour(fromChild, fromGrandParent);
-	Branch *fromParentBranch = fromParent->getNeighbourBranch(fromGrandParent);
-
-	// Identify the branch that leads to our sibling
-	Branch *fromSiblingBranch = fromParent->getNeighbourBranch(fromChild, fromGrandParent);
-
-	// Unlink our sibling including its branch from our parent
-	fromSiblingBranch->unlinkNode(fromParent);
-
-	// Unlink our parent including its branch from its parent.
-	fromParentBranch->unlinkNode(fromGrandParent);
-
-	// Link our sibling there instead
-	fromSiblingBranch->linkNode(fromGrandParent);
-
-	// Unlink the insertion branch from its parent
-	toBranch->unlinkNode(toParent);
-
-	// Link the branch leading into our parent there instead
-	fromParentBranch->linkNode(toParent);
-
-	// Link the insertion branch as sibling to our parent node
-	toBranch->linkNode(fromParent);
-}
-

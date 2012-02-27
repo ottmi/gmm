@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
+#include <fstream>
 #include "Optimizer.h"
 #include "helper.h"
 #include "globals.h"
@@ -41,8 +42,7 @@ void Optimizer::rearrange(Tree &tree)
 
 						if (!toBranch->getNode(l)->isLeaf())
 						{
-							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l));
-							t._root->reroot(NULL);
+							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
 							t.print();
 							toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
 						}
@@ -95,7 +95,7 @@ void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& 
 	fromSibling->getDescendantBranches(fromGrandParent, insertCandidates);
 }
 
-void Optimizer::subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent)
+void Optimizer::subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent, Node *root)
 {
 	if (verbose >= 2)
 		cout << "subtreeRegraft: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " toBranch=" << toBranch->getId()
@@ -112,6 +112,12 @@ void Optimizer::subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toB
 
 	// Link the insertion branch as sibling to our parent node
 	toBranch->linkNode(fromParent);
+
+	// Make sure that all Node::_branches[0] and Branch::_nodes[0] point towards the root
+	root->reroot(NULL);
+
+	// Reset all _pRiX1 and _pSiX2 vectors towards the root
+	fromParentBranch->resetVectors();
 }
 
 void Optimizer::NNI(Branch* branch, int swap)

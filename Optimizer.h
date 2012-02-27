@@ -17,7 +17,7 @@ class Optimizer
 
 		void NNI(Branch* branch, int swap);
 		void subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates);
-		void subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent);
+		void subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent, Node *root);
 };
 
 #endif /* OPTIMIZER_H_ */

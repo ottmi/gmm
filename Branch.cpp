@@ -49,14 +49,14 @@ Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
 	_q = new Matrix(*branch->_q);
 	_updatedQ = NULL;
 
-	_qVersion = 0;
+	_qVersion = branch->_qVersion;
 	if (branch->_pRiX1 != NULL)
 	{
 		_pRiX1 = new double[charStates * numOfSites];
 		memcpy(_pRiX1, branch->_pRiX1, charStates * numOfSites);
 	} else
 		_pRiX1 = NULL;
-	_pRiX1Version = 0;
+	_pRiX1Version = branch->_pRiX1Version;
 
 	if (branch->_pSiX2 != NULL)
 	{
@@ -65,7 +65,7 @@ Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
 		memcpy(_pSiX2, branch->_pSiX2, charStates * numOfSites);
 	} else
 		_pSiX2 = NULL;
-	_pSiX2Version = 0;
+	_pSiX2Version = branch->_pSiX2Version;
 
 	if (branch->_siteProb != NULL)
 	{
@@ -166,6 +166,15 @@ void Branch::swapNodes()
 	Node* temp = _nodes[0];
 	_nodes[0] = _nodes[1];
 	_nodes[1] = temp;
+}
+
+void Branch::resetVectors()
+{
+	_pRiX1Version = _qVersion;
+	_pSiX2Version = _qVersion;
+
+	if (_nodes[0]->getBranch(0) != this) // _nodes[0] is the root then
+		_nodes[0]->getBranch(0)->resetVectors();
 }
 
 double Branch::computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)

@@ -14,7 +14,7 @@ Tree::Tree(Alignment* alignment)
 	_alignment = alignment;
 }
 
-Tree::Tree (Tree const &tree)
+Tree::Tree(Tree const &tree)
 {
 	copy(tree);
 }
@@ -31,23 +31,21 @@ Tree::~Tree()
 		delete _branches[i];
 }
 
-Tree& Tree::operator= (Tree const &tree)
+Tree& Tree::operator=(Tree const &tree)
 {
-	if (this != &tree)
-		copy(tree);
+	if (this != &tree) copy(tree);
 
 	return *this;
 }
 
 void Tree::copy(Tree const &tree)
 {
-	if (verbose >=5)
-		cout << "Tree::copy start" << endl;
-	vector<Node*> nodes(tree._internalNodes.size()+tree._leaves.size(), NULL);
+	if (verbose >= 5) cout << "Tree::copy start" << endl;
+	vector<Node*> nodes(tree._internalNodes.size() + tree._leaves.size(), NULL);
 
 	_alignment = tree._alignment;
 	_internalNodes.resize(tree._internalNodes.size(), NULL);
-	for (unsigned int i=0; i<tree._internalNodes.size(); i++)
+	for (unsigned int i = 0; i < tree._internalNodes.size(); i++)
 	{
 		Node *node = new Node(tree._internalNodes[i]->getId());
 		_internalNodes[i] = node;
@@ -56,7 +54,7 @@ void Tree::copy(Tree const &tree)
 	}
 
 	_leaves.resize(tree._leaves.size(), NULL);
-	for (unsigned int i=0; i<tree._leaves.size(); i++)
+	for (unsigned int i = 0; i < tree._leaves.size(); i++)
 	{
 		Node *node = new Node(tree._leaves[i]->getId());
 		node->setSequence(tree._leaves[i]->getSequence());
@@ -68,21 +66,18 @@ void Tree::copy(Tree const &tree)
 	_root = nodes[tree._root->getId()];
 
 	_branches.resize(tree._branches.size(), NULL);
-	for (unsigned int i=0; i<tree._branches.size(); i++)
+	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
 		int id = tree._branches[i]->getId();
 		unsigned int numOfNodes = tree._branches[i]->getNumOfNodes();
 		Node *node0 = NULL;
 		Node *node1 = NULL;
-		if (numOfNodes >= 1)
-			node0 = nodes[tree._branches[i]->getNode(0)->getId()];
-		if (numOfNodes >= 2)
-			node1 = nodes[tree._branches[i]->getNode(1)->getId()];
+		if (numOfNodes >= 1) node0 = nodes[tree._branches[i]->getNode(0)->getId()];
+		if (numOfNodes >= 2) node1 = nodes[tree._branches[i]->getNode(1)->getId()];
 		Branch *branch = new Branch(tree._branches[i], node0, node1, _alignment->getNumOfUniqueSites());
 		_branches[id] = branch;
 	}
-	if (verbose >=5)
-		cout << "Tree::copy finish" << endl;
+	if (verbose >= 5) cout << "Tree::copy finish" << endl;
 }
 
 void Tree::readNewick(string &tree)
@@ -117,11 +112,10 @@ void Tree::readNewick(string &tree)
 			if (currentNode)
 			{
 				Node *newNode = new Node(nodeCount++);
-				Branch *branch = new Branch(nodeCount-2, currentNode, newNode);
+				Branch *branch = new Branch(nodeCount - 2, currentNode, newNode);
 				currentNode = newNode;
 				_branches.push_back(branch);
-			}
-			else // there was no current node, so this is the first node, hence no branch leading into it
+			} else // there was no current node, so this is the first node, hence no branch leading into it
 			{
 				currentNode = new Node(nodeCount++);
 			}
@@ -138,7 +132,7 @@ void Tree::readNewick(string &tree)
 				if (currentNode)
 				{
 					leaf = new Node(nodeCount++);
-					Branch *branch = new Branch(nodeCount-2, currentNode, leaf);
+					Branch *branch = new Branch(nodeCount - 2, currentNode, leaf);
 					_branches.push_back(branch);
 				} else // same as above, no node and branch yet
 				{
@@ -168,7 +162,7 @@ void Tree::readNewick(string &tree)
 			i++;
 		} else if (treeString[i] == ':') // distance for last node
 		{
-			int j = treeString.find_first_of(",():;", i + 1);
+			int j = treeString.find_first_of(",():;[", i + 1);
 			stringstream ss(treeString.substr(i + 1, j - i - 1));
 			ss >> distance;
 			i = j;
@@ -176,9 +170,21 @@ void Tree::readNewick(string &tree)
 
 		if (isalpha(treeString[i])) // this is a label
 		{
-			int j = treeString.find_first_of(",():;", i + 1);
+			int j = treeString.find_first_of(",():;[", i + 1);
 			label = treeString.substr(i, j - i);
 			i = j;
+		}
+
+		if (treeString[i] == '[') // this is a comment
+		{
+			size_t j = treeString.find_first_of(']', i + 1);
+			if (j == string::npos)
+				throw("Error paarsing Newick tree: a square bracket opened at position " + str(i) + " but no closing bracket could be found.");
+			else
+			{
+				cout << "Comment: " << treeString.substr(i+1, j-i-1) << endl;
+				i = j+1;
+			}
 		}
 	}
 
@@ -209,7 +215,8 @@ void Tree::readNewick(string &tree)
 	if (_alignment->getNumOfSequences() != _leaves.size())
 	{
 		stringstream ss;
-		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << _alignment->getNumOfSequences() << ") do not match";
+		ss << "The number of leaves (" << _leaves.size() << ") and the number of sequences in the alignment (" << _alignment->getNumOfSequences()
+				<< ") do not match";
 		throw(ss.str());
 	}
 }
@@ -230,11 +237,10 @@ bool Tree::updateModel(double qDelta, double betaDelta)
 	unsigned int updates = 0;
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
-		if (_branches[i]->updateQ(qDelta))
-			updates++;
+		if (_branches[i]->updateQ(qDelta)) updates++;
 
-		if (_branches[i]->updateParameters(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart(), betaDelta))
-			updates++;
+		if (_branches[i]->updateParameters(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart(),
+				betaDelta)) updates++;
 	}
 
 	return (updates > 0);
@@ -245,16 +251,14 @@ void Tree::printNodes()
 	cout << "Internal Nodes: " << endl;
 	for (unsigned int i = 0; i < _internalNodes.size(); i++)
 	{
-		cout << _internalNodes[i]->getIdent()
-				 << " parent=" <<  _internalNodes[i]->getParent()->getIdent()
-				 << " child1=" <<  _internalNodes[i]->getChild(1)->getIdent()
-				 << " child2=" <<  _internalNodes[i]->getChild(2)->getIdent() << endl;
+		cout << _internalNodes[i]->getIdent() << " parent=" << _internalNodes[i]->getParent()->getIdent() << " child1="
+				<< _internalNodes[i]->getChild(1)->getIdent() << " child2=" << _internalNodes[i]->getChild(2)->getIdent() << endl;
 	}
 
 	cout << "Leaves: " << endl;
 	for (unsigned int i = 0; i < _leaves.size(); i++)
 	{
-		cout << _leaves[i]->getIdent() << " parent=" <<  _leaves[i]->getParent()->getIdent() << endl;
+		cout << _leaves[i]->getIdent() << " parent=" << _leaves[i]->getParent()->getIdent() << endl;
 	}
 }
 

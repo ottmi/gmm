@@ -47,6 +47,7 @@ private:
 	double* _pSiX2;
 	unsigned int _pSiX2Version;
 	double* _siteProb;
+	unsigned int _siteProbVersion;
 	int _id;
 
 	double computeValuesIntToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);

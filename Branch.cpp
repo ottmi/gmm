@@ -34,6 +34,7 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_pSiX2 = NULL;
 	_pSiX2Version = 0;
 	_siteProb = NULL;
+	_siteProbVersion = 0;
 
 	if (n1) linkNode(n1);
 	if (n2) linkNode(n2);
@@ -73,6 +74,7 @@ Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
 		memcpy(_siteProb, branch->_siteProb, numOfSites);
 	} else
 		_siteProb = NULL;
+	_siteProbVersion = branch->_siteProbVersion;
 
 	if (n1) linkNode(n1);
 	if (n2) linkNode(n2);
@@ -172,6 +174,8 @@ void Branch::resetVectors()
 {
 	_pRiX1Version = _qVersion;
 	_pSiX2Version = _qVersion;
+	_q->setDiag(1.0 / (2 * charStates));
+	_q->setOffDiag(1.0 / (6 * charStates));
 
 	if (_nodes[0]->getBranch(0) != this) // _nodes[0] is the root then
 		_nodes[0]->getBranch(0)->resetVectors();
@@ -307,7 +311,7 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
 		}
 	}
-
+	_siteProbVersion = _qVersion;
 	return logLikelihood;
 }
 
@@ -316,7 +320,7 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 	unsigned int numOfUniqueSites = patternCount.size();
 	double* pG1 = pSiX2(numOfUniqueSites);
 	double* pG2 = pRiX1(numOfUniqueSites);
-	if (_siteProb == NULL)
+	if (_siteProb == NULL || _qVersion > _siteProbVersion)
 		computeValuesIntToInt(patternCount, invarSites, invarStart);
 
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
@@ -400,7 +404,7 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
 		}
 	}
-
+	_siteProbVersion = _qVersion;
 	return logLikelihood;
 }
 
@@ -409,7 +413,7 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int* leafSeq = _nodes[1]->getSequence();
 	double* pG1 = pSiX2(numOfUniqueSites);
-	if (_siteProb == NULL)
+	if (_siteProb == NULL || _qVersion > _siteProbVersion)
 		computeValuesIntToLeaf(patternCount, invarSites, invarStart);
 
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
@@ -489,7 +493,7 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 			logLikelihood += patternCount[site] * log(_beta * _invar[invarChar] + (1 - _beta) * siteProb);
 		}
 	}
-
+	_siteProbVersion = _qVersion;
 	return logLikelihood;
 }
 
@@ -498,7 +502,7 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int* rootSeq = _nodes[0]->getSequence();
 	double* pG2 = pRiX1(numOfUniqueSites);
-	if (_siteProb == NULL)
+	if (_siteProb == NULL || _qVersion > _siteProbVersion)
 		computeValuesRootToInt(patternCount, invarSites, invarStart);
 
 	double sum[omp_get_max_threads()][charStates][charStates];

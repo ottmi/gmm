@@ -111,19 +111,8 @@ int main(int argc, char **argv)
 
 		Optimizer optimizer;
 		optimizer.rearrange(tree);
-
-		/*
-		unsigned int iteration = 0;
-		do
-		{
-			cout << "Iteration " << iteration << endl;
-			tree.computeLH();
-			iteration++;
-			cout << endl << endl;
-		}
-		while (tree.updateModel(0.0001, 0.0001));
 		tree.computeLH();
-*/
+
 		tree.printNodes();
 
 		tree.print();

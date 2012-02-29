@@ -21,7 +21,7 @@ public:
 
 	void readNewick(string &tree);
 	void computeLH();
-	bool updateModel(double qDelta, double betaDelta);
+	void updateModel(double qDelta, double betaDelta);
 
 	void printBranches();
 	void printNodes();

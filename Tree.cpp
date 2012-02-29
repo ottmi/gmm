@@ -182,8 +182,8 @@ void Tree::readNewick(string &tree)
 				throw("Error paarsing Newick tree: a square bracket opened at position " + str(i) + " but no closing bracket could be found.");
 			else
 			{
-				cout << "Comment: " << treeString.substr(i+1, j-i-1) << endl;
-				i = j+1;
+				cout << "Comment: " << treeString.substr(i + 1, j - i - 1) << endl;
+				i = j + 1;
 			}
 		}
 	}
@@ -229,21 +229,24 @@ void Tree::computeLH()
 	}
 }
 
-bool Tree::updateModel(double qDelta, double betaDelta)
+void Tree::updateModel(double qDelta, double betaDelta)
 {
-	for (unsigned int i = 0; i < _branches.size(); i++)
-		_branches[i]->computeUpdatedQ(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
+	unsigned int updates = 1;
 
-	unsigned int updates = 0;
-	for (unsigned int i = 0; i < _branches.size(); i++)
+	while (updates > 0)
 	{
-		if (_branches[i]->updateQ(qDelta)) updates++;
+		for (unsigned int i = 0; i < _branches.size(); i++)
+			_branches[i]->computeUpdatedQ(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
 
-		if (_branches[i]->updateParameters(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart(),
-				betaDelta)) updates++;
+		updates = 0;
+		for (unsigned int i = 0; i < _branches.size(); i++)
+		{
+			if (_branches[i]->updateQ(qDelta)) updates++;
+
+			if (_branches[i]->updateParameters(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart(),
+					betaDelta)) updates++;
+		}
 	}
-
-	return (updates > 0);
 }
 
 void Tree::printNodes()

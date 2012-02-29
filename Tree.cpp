@@ -32,6 +32,41 @@ Tree::~Tree()
 		delete _branches[i];
 }
 
+bool Tree::operator==(Tree const &tree)
+{
+	if (tree._logLH == 0)
+		throw(string("Tree::operator==() logLH hasn't been computed yet"));
+	return (getLogLH() == tree._logLH);
+}
+
+bool Tree::operator>(Tree const &tree)
+{
+	if (tree._logLH == 0)
+		throw(string("Tree::operator>() logLH hasn't been computed yet"));
+	return (getLogLH() > tree._logLH);
+}
+
+bool Tree::operator<(Tree const &tree)
+{
+	if (tree._logLH == 0)
+		throw(string("Tree::operator<() logLH hasn't been computed yet"));
+	return (getLogLH() < tree._logLH);
+}
+
+bool Tree::operator>=(Tree const &tree)
+{
+	if (tree._logLH == 0)
+		throw(string("Tree::operator>=() logLH hasn't been computed yet"));
+	return (getLogLH() >= tree._logLH);
+}
+
+bool Tree::operator<=(Tree const &tree)
+{
+	if (tree._logLH == 0)
+		throw(string("Tree::operator<=() logLH hasn't been computed yet"));
+	return (getLogLH() <= tree._logLH);
+}
+
 Tree& Tree::operator=(Tree const &tree)
 {
 	if (this != &tree) copy(tree);
@@ -89,7 +124,7 @@ void Tree::copy(Tree const &tree)
 	if (links == _branches.size() * 2)
 		_root->reroot(NULL);
 
-	_logLH = 0;
+	_logLH = tree._logLH;
 
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;
 }

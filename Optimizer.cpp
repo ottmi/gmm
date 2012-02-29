@@ -20,9 +20,9 @@ Optimizer::~Optimizer()
 
 void Optimizer::rearrange(Tree &tree)
 {
-	tree.updateModel(0.01, 0.01);
 	Tree bestTree = tree;
-	double bestLh = tree._branches[0]->computeLH(tree._alignment->getPatternCount(), tree._alignment->getInvarSites(), tree._alignment->getInvarStart());
+	bestTree.updateModel(0.01, 0.01);
+	bestTree.computeLH();
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
 		for (unsigned int j = 0; j < 2; j++)
@@ -51,11 +51,10 @@ void Optimizer::rearrange(Tree &tree)
 								t._branches[m]->reset();
 							t.updateModel(0.01, 0.01);
 							t.computeLH();
-							double lh = t.getLogLH();
-							if (lh > bestLh)
+							if (t > bestTree)
 							{
 								if (verbose >= 1)
-									cout << "Found new best tree: logLH=" << fixed << setprecision(10) << lh << endl;
+									cout << "Found new best tree: logLH=" << fixed << setprecision(10) << t.getLogLH() << endl;
 								if (verbose >= 2)
 								{
 									t.print();
@@ -63,7 +62,6 @@ void Optimizer::rearrange(Tree &tree)
 								}
 
 								bestTree = t;
-								bestLh = lh;
 							}
 						}
 					}
@@ -71,7 +69,7 @@ void Optimizer::rearrange(Tree &tree)
 			}
 		}
 	}
-	cout << "Found best tree: " << bestLh << endl;
+	cout << "Found best tree: " << bestTree.getLogLH() << endl;
 	tree = bestTree;
 
 //	tree.updateModel(0.001, 0.001);

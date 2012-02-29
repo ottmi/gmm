@@ -12,6 +12,7 @@
 Tree::Tree(Alignment* alignment)
 {
 	_alignment = alignment;
+	_logLH = 0;
 }
 
 Tree::Tree(Tree const &tree)
@@ -66,6 +67,7 @@ void Tree::copy(Tree const &tree)
 	_root = nodes[tree._root->getId()];
 
 	_branches.resize(tree._branches.size(), NULL);
+	unsigned int links = 0;
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
 		int id = tree._branches[i]->getId();
@@ -77,6 +79,8 @@ void Tree::copy(Tree const &tree)
 		Branch *branch = new Branch(tree._branches[i], node0, node1, _alignment->getNumOfUniqueSites());
 		_branches[id] = branch;
 	}
+	_logLH = 0;
+
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;
 }
 
@@ -221,12 +225,16 @@ void Tree::readNewick(string &tree)
 	}
 }
 
+double Tree::getLogLH()
+{
+	if (_logLH == 0)
+		computeLH();
+	return _logLH;
+}
+
 void Tree::computeLH()
 {
-	for (unsigned int i = 0; i < _branches.size(); i++)
-	{
-		_branches[i]->computeLH(_alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
-	}
+	_logLH = _branches[0]->computeLH(_alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
 }
 
 void Tree::updateModel(double qDelta, double betaDelta)

@@ -50,7 +50,8 @@ void Optimizer::rearrange(Tree &tree)
 							for (unsigned int m = 0; m < t._branches.size(); m++)
 								t._branches[m]->reset();
 							t.updateModel(0.01, 0.01);
-							double lh = toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
+							t.computeLH();
+							double lh = t.getLogLH();
 							if (lh > bestLh)
 							{
 								if (verbose >= 1)
@@ -72,7 +73,6 @@ void Optimizer::rearrange(Tree &tree)
 	}
 	cout << "Found best tree: " << bestLh << endl;
 	tree = bestTree;
-	tree._root->reroot(NULL);
 
 //	tree.updateModel(0.001, 0.001);
 }

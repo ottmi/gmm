@@ -20,6 +20,7 @@ public:
 	Tree& operator= (Tree const &tree);
 
 	void readNewick(string &tree);
+	double getLogLH();
 	void computeLH();
 	void updateModel(double qDelta, double betaDelta);
 
@@ -39,6 +40,7 @@ private:
 	vector<Node*> _internalNodes;
 	vector<Branch*> _branches;
 	Alignment* _alignment;
+	double _logLH;
 };
 
 #endif /* TREE_H_ */

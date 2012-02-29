@@ -1,6 +1,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <fstream>
+#include <iomanip>
+
 #include "Optimizer.h"
 #include "helper.h"
 #include "globals.h"
@@ -44,13 +46,16 @@ void Optimizer::rearrange(Tree &tree)
 						if (!toBranch->getNode(l)->isLeaf())
 						{
 							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
-							t.print();
 							for (unsigned int m = 0; m < t._branches.size(); m++)
 								t._branches[m]->reset();
 							t.updateModel(0.01, 0.01);
 							double lh = toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
 							if (lh > bestLh)
 							{
+								cout << "Found new best tree: logLH=" << fixed << setprecision(10) << lh << endl;
+								t.print();
+								cout << endl;
+
 								bestTree = t;
 								bestLh = lh;
 							}

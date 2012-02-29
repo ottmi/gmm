@@ -111,9 +111,6 @@ int main(int argc, char **argv)
 
 		Optimizer optimizer;
 		optimizer.rearrange(tree);
-		tree.computeLH();
-
-		tree.printNodes();
 
 		tree.print();
 	}

@@ -187,7 +187,6 @@ double Branch::computeLH(vector<unsigned int> &patternCount, vector<unsigned int
 	else
 		lh = computeValuesIntToInt(patternCount, invarSites, invarStart);
 
-	cout << "logLH=" << fixed << setprecision(10) << lh << endl << endl;
 	return lh;
 }
 

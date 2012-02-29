@@ -19,22 +19,14 @@ Branch::Branch(int id, Node *n1, Node *n2)
 {
 	_id = id;
 
-	_beta = 0.8;
-	for (unsigned int i = 0; i < charStates; i++)
-		_invar.push_back(0.25);
-
 	_q = new Matrix(charStates);
-	_q->setDiag(1.0 / (2 * charStates));
-	_q->setOffDiag(1.0 / (6 * charStates));
-	_updatedQ = NULL;
+	_invar = vector<double>(charStates, 0.25);
 
-	_qVersion = 0;
+	_updatedQ = NULL;
 	_pRiX1 = NULL;
-	_pRiX1Version = 0;
 	_pSiX2 = NULL;
-	_pSiX2Version = 0;
 	_siteProb = NULL;
-	_siteProbVersion = 0;
+	reset();
 
 	if (n1) linkNode(n1);
 	if (n2) linkNode(n2);
@@ -87,6 +79,20 @@ Branch::~Branch()
 	if (_siteProb != NULL) delete[] _siteProb;
 	if (_q != NULL) delete _q;
 	if (_updatedQ != NULL) delete _updatedQ;
+}
+
+void Branch::reset()
+{
+	if (verbose >= 5)
+		cout << "Branch(" << _id << ")::reset" << endl;
+
+	_qVersion = _pRiX1Version =	_pSiX2Version =	_siteProbVersion = 0;
+	_q->setDiag(1.0 / (2 * charStates));
+	_q->setOffDiag(1.0 / (6 * charStates));
+
+	_beta = 0.8;
+	for (unsigned int i = 0; i < charStates; i++)
+		_invar[i] = 0.25;
 }
 
 Node* Branch::getNeighbour(Node *node)
@@ -168,17 +174,6 @@ void Branch::swapNodes()
 	Node* temp = _nodes[0];
 	_nodes[0] = _nodes[1];
 	_nodes[1] = temp;
-}
-
-void Branch::resetVectors()
-{
-	_pRiX1Version = _qVersion;
-	_pSiX2Version = _qVersion;
-	_q->setDiag(1.0 / (2 * charStates));
-	_q->setOffDiag(1.0 / (6 * charStates));
-
-	if (_nodes[0]->getBranch(0) != this) // _nodes[0] is the root then
-		_nodes[0]->getBranch(0)->resetVectors();
 }
 
 double Branch::computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
@@ -320,7 +315,7 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 	unsigned int numOfUniqueSites = patternCount.size();
 	double* pG1 = pSiX2(numOfUniqueSites);
 	double* pG2 = pRiX1(numOfUniqueSites);
-	if (_siteProb == NULL || _qVersion > _siteProbVersion)
+	if (_siteProb == NULL || _qVersion > _siteProbVersion || _pRiX1Version > _siteProbVersion || _pSiX2Version > _siteProbVersion)
 		computeValuesIntToInt(patternCount, invarSites, invarStart);
 
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
@@ -413,7 +408,7 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int* leafSeq = _nodes[1]->getSequence();
 	double* pG1 = pSiX2(numOfUniqueSites);
-	if (_siteProb == NULL || _qVersion > _siteProbVersion)
+	if (_siteProb == NULL || _qVersion > _siteProbVersion || _pSiX2Version > _siteProbVersion)
 		computeValuesIntToLeaf(patternCount, invarSites, invarStart);
 
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
@@ -502,7 +497,7 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int* rootSeq = _nodes[0]->getSequence();
 	double* pG2 = pRiX1(numOfUniqueSites);
-	if (_siteProb == NULL || _qVersion > _siteProbVersion)
+	if (_siteProb == NULL || _qVersion > _siteProbVersion || _pRiX1Version > _siteProbVersion)
 		computeValuesRootToInt(patternCount, invarSites, invarStart);
 
 	double sum[omp_get_max_threads()][charStates][charStates];
@@ -561,7 +556,7 @@ double* Branch::pRiX1(unsigned int numOfSites)
 	Node *child2 = childBranch2->getNeighbour(parent);
 
 	if (verbose >= 5)
-		cout << "Branch::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion
+		cout << "Branch(" << _id << ")::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion
 				<< " ownVer=" << _pRiX1Version << endl;
 
 	if (_pRiX1 == NULL)
@@ -634,7 +629,7 @@ double* Branch::pSiX2(unsigned int numOfSites)
 	}
 
 	if (verbose >= 5)
-		cout << "Branch::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer="
+		cout << "Branch(" << _id << ")::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer="
 				<< _qVersion << " ownVer=" << _pSiX2Version << endl;
 
 	if (_pSiX2 == NULL)

@@ -18,7 +18,8 @@ Optimizer::~Optimizer()
 
 void Optimizer::rearrange(Tree &tree)
 {
-	Tree savedTree = tree;
+	Tree bestTree = tree;
+	double bestLh = tree._branches[0]->computeLH(tree._alignment->getPatternCount(), tree._alignment->getInvarSites(), tree._alignment->getInvarStart());
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
 		for (unsigned int j = 0; j < 2; j++)
@@ -44,13 +45,26 @@ void Optimizer::rearrange(Tree &tree)
 						{
 							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
 							t.print();
-							toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
+							for (unsigned int m = 0; m < t._branches.size(); m++)
+								t._branches[m]->reset();
+							t.updateModel(0.01, 0.01);
+							double lh = toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
+							if (lh > bestLh)
+							{
+								bestTree = t;
+								bestLh = lh;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+	cout << "Found best tree: " << bestLh << endl;
+	tree = bestTree;
+	tree._root->reroot(NULL);
+
+//	tree.updateModel(0.001, 0.001);
 }
 
 void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates)
@@ -115,9 +129,6 @@ void Optimizer::subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toB
 
 	// Make sure that all Node::_branches[0] and Branch::_nodes[0] point towards the root
 	root->reroot(NULL);
-
-	// Reset all _pRiX1 and _pSiX2 vectors towards the root
-	fromParentBranch->resetVectors();
 }
 
 void Optimizer::NNI(Branch* branch, int swap)

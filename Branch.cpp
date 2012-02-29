@@ -266,9 +266,11 @@ bool Branch::updateParameters(unsigned int numOfSites, vector<unsigned int> &pat
 
 double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
-	cout << "computeValuesIntToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
+
+	if (verbose >= 2)
+		cout << "computeValuesIntToInt() " << getIdent() << endl;
 
 	if (verbose >= 3)
 	{
@@ -362,9 +364,11 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 
 double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
-	cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
+
+	if (verbose >= 2)
+		cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 
 	if (verbose >= 3)
 	{
@@ -453,9 +457,11 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 
 double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
 {
-	cout << "computeValuesRootToInt() " << getIdent() << endl;
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
+
+	if (verbose >= 2)
+		cout << "computeValuesRootToInt() " << getIdent() << endl;
 
 	if (verbose >= 3)
 	{

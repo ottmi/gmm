@@ -54,7 +54,7 @@ Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
 	if (branch->_pRiX1 != NULL)
 	{
 		_pRiX1 = new double[charStates * numOfSites];
-		memcpy(_pRiX1, branch->_pRiX1, charStates * numOfSites);
+		memcpy(_pRiX1, branch->_pRiX1, charStates * numOfSites * sizeof(double));
 	} else
 		_pRiX1 = NULL;
 	_pRiX1Version = branch->_pRiX1Version;
@@ -63,7 +63,7 @@ Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
 	{
 		_pSiX2 = new double[charStates * numOfSites];
 		;
-		memcpy(_pSiX2, branch->_pSiX2, charStates * numOfSites);
+		memcpy(_pSiX2, branch->_pSiX2, charStates * numOfSites * sizeof(double));
 	} else
 		_pSiX2 = NULL;
 	_pSiX2Version = branch->_pSiX2Version;
@@ -71,7 +71,7 @@ Branch::Branch(Branch *branch, Node *n1, Node *n2, unsigned int numOfSites)
 	if (branch->_siteProb != NULL)
 	{
 		_siteProb = new double[numOfSites];
-		memcpy(_siteProb, branch->_siteProb, numOfSites);
+		memcpy(_siteProb, branch->_siteProb, numOfSites * sizeof(double));
 	} else
 		_siteProb = NULL;
 	_siteProbVersion = branch->_siteProbVersion;

@@ -64,8 +64,6 @@ void Tree::copy(Tree const &tree)
 		nodes[node->getId()] = node;
 	}
 
-	_root = nodes[tree._root->getId()];
-
 	_branches.resize(tree._branches.size(), NULL);
 	unsigned int links = 0;
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
@@ -74,11 +72,23 @@ void Tree::copy(Tree const &tree)
 		unsigned int numOfNodes = tree._branches[i]->getNumOfNodes();
 		Node *node0 = NULL;
 		Node *node1 = NULL;
-		if (numOfNodes >= 1) node0 = nodes[tree._branches[i]->getNode(0)->getId()];
-		if (numOfNodes >= 2) node1 = nodes[tree._branches[i]->getNode(1)->getId()];
+		if (numOfNodes >= 1)
+		{
+			node0 = nodes[tree._branches[i]->getNode(0)->getId()];
+			links++;
+		}
+		if (numOfNodes >= 2)
+		{
+			node1 = nodes[tree._branches[i]->getNode(1)->getId()];
+			links++;
+		}
 		Branch *branch = new Branch(tree._branches[i], node0, node1, _alignment->getNumOfUniqueSites());
 		_branches[id] = branch;
 	}
+	_root = nodes[tree._root->getId()];
+	if (links == _branches.size() * 2)
+		_root->reroot(NULL);
+
 	_logLH = 0;
 
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;

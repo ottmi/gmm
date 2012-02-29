@@ -20,6 +20,7 @@ Optimizer::~Optimizer()
 
 void Optimizer::rearrange(Tree &tree)
 {
+	tree.updateModel(0.01, 0.01);
 	Tree bestTree = tree;
 	double bestLh = tree._branches[0]->computeLH(tree._alignment->getPatternCount(), tree._alignment->getInvarSites(), tree._alignment->getInvarStart());
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
@@ -52,9 +53,13 @@ void Optimizer::rearrange(Tree &tree)
 							double lh = toBranch->computeLH(t._alignment->getPatternCount(), t._alignment->getInvarSites(), t._alignment->getInvarStart());
 							if (lh > bestLh)
 							{
-								cout << "Found new best tree: logLH=" << fixed << setprecision(10) << lh << endl;
-								t.print();
-								cout << endl;
+								if (verbose >= 1)
+									cout << "Found new best tree: logLH=" << fixed << setprecision(10) << lh << endl;
+								if (verbose >= 2)
+								{
+									t.print();
+									cout << endl;
+								}
 
 								bestTree = t;
 								bestLh = lh;
@@ -94,7 +99,7 @@ void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& 
 
 	Branch *fromParentBranch = fromParent->getNeighbourBranch(fromGrandParent);
 
-	if (verbose >= 2) cout << "subtreePrune: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " fromParentBranch=" << fromParentBranch->getId() << " fromGrandParent=" << fromGrandParent->getIdent() << endl;
+	if (verbose >= 3) cout << "subtreePrune: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " fromParentBranch=" << fromParentBranch->getId() << " fromGrandParent=" << fromGrandParent->getIdent() << endl;
 
 	// Identify the branch that leads to our sibling
 	Branch *fromSiblingBranch = fromParent->getNeighbourBranch(fromChild, fromGrandParent);
@@ -116,7 +121,7 @@ void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& 
 
 void Optimizer::subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent, Node *root)
 {
-	if (verbose >= 2)
+	if (verbose >= 3)
 		cout << "subtreeRegraft: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " toBranch=" << toBranch->getId()
 				<< " toParent=" << toParent->getIdent() << endl;
 	// fromParent is an internal node with only 2 branches. Find the branch that leads away from the parent

@@ -268,10 +268,10 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
 
-	if (verbose >= 2)
+	if (verbose >= 5)
 		cout << "computeValuesIntToInt() " << getIdent() << endl;
 
-	if (verbose >= 3)
+	if (verbose >= 10)
 	{
 		_q->print();
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
@@ -366,10 +366,10 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
 
-	if (verbose >= 2)
+	if (verbose >= 5)
 		cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 
-	if (verbose >= 3)
+	if (verbose >= 10)
 	{
 		_q->print();
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;
@@ -459,10 +459,10 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
 
-	if (verbose >= 2)
+	if (verbose >= 5)
 		cout << "computeValuesRootToInt() " << getIdent() << endl;
 
-	if (verbose >= 3)
+	if (verbose >= 10)
 	{
 		_q->print();
 		cout << "beta=" << _beta << " invar[0]=" << _invar[0] << " invar[1]=" << _invar[1] << " invar[2]=" << _invar[2] << " invar[3]=" << _invar[3] << endl;

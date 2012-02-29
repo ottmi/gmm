@@ -84,13 +84,13 @@ void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& 
 	Node *fromGrandParent = fromParent->getParent();
 	// If fromChild is closer to the root than fromParent, fromParent->getParent() will link to fromChild
 	// We don't want this, so we pick a child node instead
-	// Also, it has to be an internal node
-	if (fromGrandParent->isLeaf() || fromGrandParent == fromChild) fromGrandParent = fromParent->getChild(1);
+	// Also, it has to be an internal node and we need to make sure not to get back to the original parent
+	if (fromGrandParent->isLeaf() || fromGrandParent == fromChild || fromGrandParent == fromParent) fromGrandParent = fromParent->getChild(1);
 	// Make sure it's an internal node, otherwise choose the other link.
 	// If both children are internal nodes, it doesn't matter which one we choose
-	if (fromGrandParent->isLeaf() || fromGrandParent == fromChild) fromGrandParent = fromParent->getChild(2);
+	if (fromGrandParent->isLeaf() || fromGrandParent == fromChild || fromGrandParent == fromParent) fromGrandParent = fromParent->getChild(2);
 	// If both children are leaf nodes, we can't perform an SPR move on that branch
-	if (fromGrandParent->isLeaf()) return;
+	if (fromGrandParent->isLeaf() || fromGrandParent == fromChild || fromGrandParent == fromParent) return;
 
 	Branch *fromParentBranch = fromParent->getNeighbourBranch(fromGrandParent);
 

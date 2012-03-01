@@ -34,9 +34,11 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 	unsigned int round = 0;
 	while (improved)
 	{
+		cout << endl << "Starting round #" << round << endl;
 		improved = false;
 		for (unsigned int i = 0; i < tree._branches.size(); i++)
 		{
+			cout << "\r" << (i*100) / tree._branches.size() << "%   " << flush;
 			for (unsigned int j = 0; j < 2; j++)
 			{
 				if (!tree._branches[i]->getNode(j)->isLeaf())
@@ -68,8 +70,7 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 									bestTrees.insert(t);
 									if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
 									if (verbose >= 1)
-										cout << "Found new good tree: logLH=" << fixed << setprecision(10) << t.getLogLH() << " (min=" << bestTrees.rbegin()->_logLH << " max="
-												<< bestTrees.begin()->_logLH << ")" << endl;
+										cout << "\r  Found new good tree: " << fixed << setprecision(6) << t.getLogLH() << " [" << bestTrees.begin()->_logLH << "," << bestTrees.rbegin()->_logLH << "]" << endl;
 
 									if (verbose >= 2)
 									{
@@ -92,7 +93,7 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 			t.updateModel(options.cutOff, options.cutOff);
 			t.computeLH();
 			if (verbose >= 2)
-				cout << "Tree #" << i++ << ": " << fixed << setprecision(10) << t.getLogLH() << endl;
+				cout << "\rTree #" << i++ << ": " << fixed << setprecision(6) << t.getLogLH() << endl;
 			if (t > bestTree)
 			{
 				if (t.getLogLH() - bestTree.getLogLH() > options.cutOff)
@@ -103,11 +104,12 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 		if (currentCutOff > options.cutOff)
 			currentCutOff/= 2;
 		round++;
-		cout << "Best tree of round " << round << ": " << fixed << setprecision(10) << bestTree.getLogLH() << endl;
+		cout << "\r  Best tree: " << fixed << setprecision(6) << bestTree.getLogLH() << endl;
 	}
 	bestTree.updateModel(options.cutOff/10, options.cutOff/10);
 	bestTree.computeLH();
-	cout << "Found best tree: " << bestTree.getLogLH() << endl;
+
+	cout << endl << "Best tree found: " << fixed << setprecision(10) << bestTree.getLogLH() << endl;
 	tree = bestTree;
 }
 

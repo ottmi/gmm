@@ -35,58 +35,8 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 	{
 		cout << endl << "Starting round #" << round << endl;
 		improved = false;
-		for (unsigned int i = 0; i < tree._branches.size(); i++)
-		{
-			cout << "\r" << (i*100) / tree._branches.size() << "%   " << flush;
-			for (unsigned int j = 0; j < 2; j++)
-			{
-				if (!tree._branches[i]->getNode(j)->isLeaf())
-				{
-					Tree reducedTree = bestTree;
-					Branch *fromCandidate = reducedTree._branches[tree._branches[i]->getId()];
 
-					vector<int> toCandidates;
-					subtreePrune(fromCandidate, fromCandidate->getNode(j), toCandidates);
-					//reducedTree.printBranches();
-
-					for (unsigned int k = 0; k < toCandidates.size(); k++)
-					{
-						for (unsigned int l = 0; l < 2; l++)
-						{
-							Tree t = reducedTree;
-							Branch *fromBranch = t._branches[fromCandidate->getId()];
-							Branch *toBranch = t._branches[toCandidates[k]];
-
-							if (!toBranch->getNode(l)->isLeaf())
-							{
-								subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
-								for (unsigned int m = 0; m < t._branches.size(); m++)
-								{
-									t._branches[m]->resetVectors();
-									t._branches[m]->resetQ();
-								}
-								t.updateModel(currentCutOff, currentCutOff);
-								t.computeLH();
-								if (t > *bestTrees.begin())
-								{
-									bestTrees.insert(t);
-									if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
-									if (verbose >= 1)
-										cout << "\r  Found new good tree: " << fixed << setprecision(6) << t.getLogLH() << " [" << bestTrees.begin()->_logLH << "," << bestTrees.rbegin()->_logLH << "]" << endl;
-
-									if (verbose >= 2)
-									{
-										t.print();
-										cout << endl;
-									}
-
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		optimizeSPR(bestTree, currentCutOff, bestTrees);
 
 		unsigned int i = 0;
 		for (set<Tree>::reverse_iterator it = bestTrees.rbegin(); it != bestTrees.rend(); it++)
@@ -116,6 +66,62 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 
 	cout << endl << "Best tree found: " << fixed << setprecision(10) << bestTree.getLogLH() << endl;
 	tree = bestTree;
+}
+
+void Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees)
+{
+	for (unsigned int i = 0; i < tree._branches.size(); i++)
+	{
+		cout << "\r" << (i*100) / tree._branches.size() << "%   " << flush;
+		for (unsigned int j = 0; j < 2; j++)
+		{
+			if (!tree._branches[i]->getNode(j)->isLeaf())
+			{
+				Tree reducedTree = tree;
+				Branch *fromCandidate = reducedTree._branches[tree._branches[i]->getId()];
+
+				vector<int> toCandidates;
+				subtreePrune(fromCandidate, fromCandidate->getNode(j), toCandidates);
+				//reducedTree.printBranches();
+
+				for (unsigned int k = 0; k < toCandidates.size(); k++)
+				{
+					for (unsigned int l = 0; l < 2; l++)
+					{
+						Tree t = reducedTree;
+						Branch *fromBranch = t._branches[fromCandidate->getId()];
+						Branch *toBranch = t._branches[toCandidates[k]];
+
+						if (!toBranch->getNode(l)->isLeaf())
+						{
+							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
+							for (unsigned int m = 0; m < t._branches.size(); m++)
+							{
+								t._branches[m]->resetVectors();
+								t._branches[m]->resetQ();
+							}
+							t.updateModel(cutOff, cutOff);
+							t.computeLH();
+							if (t > *bestTrees.begin())
+							{
+								bestTrees.insert(t);
+								if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
+								if (verbose >= 1)
+									cout << "\r  Found new good tree: " << fixed << setprecision(6) << t.getLogLH() << " [" << bestTrees.begin()->_logLH << "," << bestTrees.rbegin()->_logLH << "]" << endl;
+
+								if (verbose >= 2)
+								{
+									t.print();
+									cout << endl;
+								}
+
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates)

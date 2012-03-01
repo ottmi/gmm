@@ -5,7 +5,7 @@
 #include "Tree.h"
 #include "Node.h"
 #include "Branch.h"
-#include <vector>
+#include <set>
 using namespace std;
 
 class Optimizer
@@ -15,6 +15,8 @@ class Optimizer
 		virtual ~Optimizer();
 
 		void rearrange(Tree &tree, Options &options);
+
+		void optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees);
 
 		void NNI(Branch* branch, int swap);
 		void subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates);

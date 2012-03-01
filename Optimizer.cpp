@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <set>
+#include <ctime>
 #include "Optimizer.h"
 #include "helper.h"
 #include "globals.h"
@@ -41,13 +42,11 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 		else
 			optimizeSPR(bestTree, currentCutOff, bestTrees);
 
-		unsigned int i = 0;
 		for (set<Tree>::reverse_iterator it = bestTrees.rbegin(); it != bestTrees.rend(); it++)
 		{
 			Tree t = *it;
 			t.updateModel(options.cutOff, options.cutOff);
 			t.computeLH();
-			if (verbose >= 2) cout << "\rTree #" << i++ << ": " << fixed << setprecision(6) << t.getLogLH() << endl;
 			if (t > bestTree)
 			{
 				if (t.getLogLH() - bestTree.getLogLH() > options.cutOff) improved = true;
@@ -58,7 +57,7 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 		if (currentCutOff < options.cutOff) currentCutOff = options.cutOff;
 
 		round++;
-		cout << "\r  Best tree: " << fixed << setprecision(6) << bestTree.getLogLH() << endl;
+		cout << "\r  Best tree: " << fixed << setprecision(6) << bestTree.getLogLH() << "                                                       " << endl;
 	}
 	bestTree.updateModel(options.cutOff, options.cutOff);
 	bestTree.computeLH();
@@ -70,9 +69,9 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 void Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees)
 {
 	cout << "Performing SPR moves" << endl;
+	time_t t = time(NULL);
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
-		cout << "\r" << (i * 100) / tree._branches.size() << "%   " << flush;
 		for (unsigned int j = 0; j < 2; j++)
 		{
 			if (!tree._branches[i]->getNode(j)->isLeaf())
@@ -100,6 +99,13 @@ void Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees)
 					}
 				}
 			}
+			time_t elapsed = time(NULL) -t ;
+			cout << "\r" << (i * 100) / tree._branches.size() << "%  " << "\tTime elapsed: " << printTime(elapsed) << flush;
+			if (i - elapsed > 0)
+			{
+				time_t eta = (elapsed * tree._branches.size()) / i - elapsed;
+				cout << "\tETA: " << printTime(eta) << "  " << "\t[" << fixed << setprecision(4) << bestTrees.begin()->_logLH << ","	<< bestTrees.rbegin()->_logLH << "]" << flush;
+			}
 		}
 	}
 }
@@ -107,6 +113,7 @@ void Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees)
 void Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees)
 {
 	cout << "Performing NNI moves" << endl;
+	time_t t = time(NULL);
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
 		cout << "\r" << (i * 100) / tree._branches.size() << "%   " << flush;
@@ -120,6 +127,13 @@ void Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees)
 				t._root->reroot(NULL);
 				assessTree(t, cutOff, bestTrees);
 			}
+		}
+		time_t elapsed = time(NULL) -t ;
+		cout << "\r" << (i * 100) / tree._branches.size() << "%  " << "\tTime elapsed: " << printTime(elapsed) << flush;
+		if (i - elapsed > 0)
+		{
+			time_t eta = (elapsed * tree._branches.size()) / i - elapsed;
+			cout << "\tETA: " << printTime(eta) << "  " << "\t[" << fixed << setprecision(4) << bestTrees.begin()->_logLH << ","	<< bestTrees.rbegin()->_logLH << "]" << flush;
 		}
 	}
 }
@@ -138,12 +152,9 @@ void Optimizer::assessTree(Tree &tree, double cutOff, set<Tree> &bestTrees)
 	{
 		bestTrees.insert(tree);
 		if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
-		if (verbose >= 1)
-			cout << "\r  Found new good tree: " << fixed << setprecision(6) << tree.getLogLH() << " [" << bestTrees.begin()->_logLH << ","
-					<< bestTrees.rbegin()->_logLH << "]" << endl;
-
 		if (verbose >= 2)
 		{
+			cout << "\rlogLH: " << tree.getLogLH() << "                                                       " << endl;
 			tree.print();
 			cout << endl;
 		}

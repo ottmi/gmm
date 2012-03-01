@@ -12,6 +12,7 @@ istream& safeGetline(istream& is, string& t);
 unsigned int mapDNAToNum(string s);
 string mapNumToDNA(unsigned int val, unsigned int len);
 unsigned int mapAAToNum(char c);
+string printTime(time_t t);
 
 template<class T> string str(const T& t)
 {

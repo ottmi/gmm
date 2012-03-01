@@ -1,7 +1,8 @@
 #include "helper.h"
 #include "globals.h"
 #include <fstream>
-
+#include <ctime>
+#include <iomanip>
 
 string adjustString(string s, bool upercase)
 {
@@ -208,4 +209,17 @@ unsigned int mapAAToNum(char c)
 			break;
 	}
 	return d;
+}
+
+string printTime(time_t t)
+{
+	stringstream s;
+	if (t > 3600)
+	{
+		s << t / 3600 << ":" << setfill('0') << setw(2);
+		t = t % 3600;
+	}
+	s << t / 60 << ":" << setfill('0') << setw(2) << t % 60;
+
+	return s.str();
 }

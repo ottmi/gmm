@@ -15,6 +15,7 @@ typedef struct opt_struct
 	string alignment;
 	unsigned int alignmentGrouping;
 	string inputTree;
+	bool evaluateOnly;
 	double cutOff;
 	bool help;
 } Options;

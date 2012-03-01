@@ -6,6 +6,8 @@
 #include <sstream>
 #include <stdlib.h>
 #include <iostream>
+#include <iomanip>
+
 using namespace std;
 
 int verbose = 0;
@@ -14,7 +16,7 @@ unsigned int charStates = 4;
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  gmm -s <FILE> [-d|-c] -t<FILE> [-x<NUM>] [-v[NUM]]" << endl;
+	cout << "  gmm -s <FILE> [-d|-c] -t<FILE> [-e] [-x<NUM>] [-v[NUM]]" << endl;
 	cout << "  gmm -h" << endl;
 	cout << endl;
 
@@ -23,6 +25,7 @@ void printSyntax()
 	cout << "  -d\tTreat alignment sequences as dicodons" << endl;
 	cout << "  -c\tTreat alignment sequences as codons" << endl;
 	cout << "  -t\tInput tree" << endl;
+	cout << "  -e\tOnly evaluate given tree topology" << endl;
 	cout << "  -x\tOptimization cutoff [default: 0.0001]" << endl;
 	cout << "  -v\tBe increasingly verbose" << endl;
 	cout << "  -h\tThis help page" << endl;
@@ -36,9 +39,10 @@ int parseArguments(int argc, char** argv, Options *options)
 
 	options->help = false;
 	options->alignmentGrouping = 1;
+	options->evaluateOnly = false;
 	options->cutOff = 0.0001;
 
-	while ( (c = getopt(argc, argv, "s:dct:x:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "s:dct:ex:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -53,6 +57,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				break;
 			case 't':
 				options->inputTree = optarg;
+				break;
+			case 'e':
+				options->evaluateOnly = true;
 				break;
 			case 'x':
 			{
@@ -118,8 +125,17 @@ int main(int argc, char **argv)
 			tree.printBranches();
 		}
 
-		Optimizer optimizer;
-		optimizer.rearrange(tree, options);
+		if (options.evaluateOnly)
+		{
+			tree.updateModel(options.cutOff, options.cutOff);
+			tree.computeLH();
+			cout << "logLH: " << fixed << setprecision(10) << tree.getLogLH() << endl;
+		}
+		else
+		{
+			Optimizer optimizer;
+			optimizer.rearrange(tree, options);
+		}
 
 		tree.print();
 	}

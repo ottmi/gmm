@@ -17,11 +17,11 @@ public:
 	virtual
 	~Tree();
 
-	bool operator==(Tree const &tree);
-	bool operator>(Tree const &tree);
-	bool operator<(Tree const &tree);
-	bool operator>=(Tree const &tree);
-	bool operator<=(Tree const &tree);
+	bool operator==(Tree const &tree) const;
+	bool operator>(Tree const &tree) const;
+	bool operator<(Tree const &tree) const;
+	bool operator>=(Tree const &tree) const;
+	bool operator<=(Tree const &tree) const;
 	Tree& operator= (Tree const &tree);
 
 	void readNewick(string &tree);

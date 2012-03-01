@@ -13,6 +13,16 @@ using namespace std;
 
 int verbose = 0;
 unsigned int charStates = 4;
+Tree bestTree;
+
+void cancellationHandler(int parameter)
+{
+	cout << endl << endl;
+	cout << "Program has been canceled. Current best tree:" << endl;
+	cout << "logLH: " << fixed << setprecision(10) << bestTree.getLogLH() << endl;
+	bestTree.print();
+	exit(1);
+}
 
 void printSyntax()
 {
@@ -109,6 +119,9 @@ int main(int argc, char **argv)
 
 	int ret = parseArguments(argc, argv, &options);
 	if (ret) return ret;
+
+	signal(SIGINT, cancellationHandler);
+	signal(SIGTERM, cancellationHandler);
 
 	Alignment alignment;
 	try

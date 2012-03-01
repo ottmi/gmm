@@ -1,6 +1,7 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 #include <string>
+#include "Tree.h"
 using namespace std;
 
 #define _DNA_DATA				0
@@ -22,5 +23,6 @@ typedef struct opt_struct
 
 extern int verbose;
 extern unsigned int charStates;
+extern Tree bestTree;
 
 #endif /* GLOBALS_H_ */

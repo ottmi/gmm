@@ -26,7 +26,7 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 
 	tree.updateModel(currentCutOff, currentCutOff);
 	tree.computeLH();
-	Tree bestTree = tree;
+	bestTree = tree;
 	set<Tree> bestTrees;
 	bestTrees.insert(tree);
 

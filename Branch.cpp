@@ -26,7 +26,8 @@ Branch::Branch(int id, Node *n1, Node *n2)
 	_pRiX1 = NULL;
 	_pSiX2 = NULL;
 	_siteProb = NULL;
-	reset();
+	resetVectors();
+	resetQ();
 
 	if (n1) linkNode(n1);
 	if (n2) linkNode(n2);
@@ -81,18 +82,26 @@ Branch::~Branch()
 	if (_updatedQ != NULL) delete _updatedQ;
 }
 
-void Branch::reset()
+void Branch::resetVectors()
 {
-	if (verbose >= 5)
-		cout << "Branch(" << _id << ")::reset" << endl;
+	_qVersion = _pRiX1Version = _pSiX2Version = _siteProbVersion = 0;
+}
 
-	_qVersion = _pRiX1Version =	_pSiX2Version =	_siteProbVersion = 0;
+void Branch::resetQ()
+{
 	_q->setDiag(1.0 / (2 * charStates));
 	_q->setOffDiag(1.0 / (6 * charStates));
 
 	_beta = 0.8;
 	for (unsigned int i = 0; i < charStates; i++)
 		_invar[i] = 0.25;
+}
+
+void Branch::getPathToRoot(vector<Branch*> &path)
+{
+	path.push_back(this);
+	if (_nodes[0]->getBranch(0) != this) // _nodes[0] is the root then
+		_nodes[0]->getBranch(0)->getPathToRoot(path);
 }
 
 Node* Branch::getNeighbour(Node *node)
@@ -125,10 +134,8 @@ void Branch::print()
 string Branch::getIdent()
 {
 	stringstream ss;
-	if (_nodes.size() > 0)
-		ss << _nodes[0]->getIdent() << "<---(" << _id << ")---";
-	if (_nodes.size() > 1)
-		ss << _nodes[1]->getIdent();
+	if (_nodes.size() > 0) ss << _nodes[0]->getIdent() << "<---(" << _id << ")---";
+	if (_nodes.size() > 1) ss << _nodes[1]->getIdent();
 	return ss.str();
 }
 
@@ -268,8 +275,7 @@ double Branch::computeValuesIntToInt(vector<unsigned int> &patternCount, vector<
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
 
-	if (verbose >= 5)
-		cout << "computeValuesIntToInt() " << getIdent() << endl;
+	if (verbose >= 5) cout << "computeValuesIntToInt() " << getIdent() << endl;
 
 	if (verbose >= 10)
 	{
@@ -350,9 +356,9 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 
 #ifdef _OPENMP
 	for (int i = 1; i < omp_get_max_threads(); i++)
-		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
-			for (unsigned int childBase = 0; childBase < charStates; childBase++)
-				sum[0][parentBase][childBase] += sum[i][parentBase][childBase];
+	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+	for (unsigned int childBase = 0; childBase < charStates; childBase++)
+	sum[0][parentBase][childBase] += sum[i][parentBase][childBase];
 #endif
 
 	_updatedQ = new Matrix(charStates);
@@ -366,8 +372,7 @@ double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
 
-	if (verbose >= 5)
-		cout << "computeValuesIntToLeaf() " << getIdent() << endl;
+	if (verbose >= 5) cout << "computeValuesIntToLeaf() " << getIdent() << endl;
 
 	if (verbose >= 10)
 	{
@@ -411,8 +416,7 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int* leafSeq = _nodes[1]->getSequence();
 	double* pG1 = pSiX2(numOfUniqueSites);
-	if (_siteProb == NULL || _qVersion > _siteProbVersion || _pSiX2Version > _siteProbVersion)
-		computeValuesIntToLeaf(patternCount, invarSites, invarStart);
+	if (_siteProb == NULL || _qVersion > _siteProbVersion || _pSiX2Version > _siteProbVersion) computeValuesIntToLeaf(patternCount, invarSites, invarStart);
 
 	Branch *grandParentBranch = _nodes[0]->getBranch(0);
 	double sum[omp_get_max_threads()][charStates][charStates];
@@ -443,9 +447,9 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 
 #ifdef _OPENMP
 	for (int i = 1; i < omp_get_max_threads(); i++)
-		for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
-			for (unsigned int childBase = 0; childBase < charStates; childBase++)
-				sum[0][parentBase][childBase] += sum[i][parentBase][childBase];
+	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
+	for (unsigned int childBase = 0; childBase < charStates; childBase++)
+	sum[0][parentBase][childBase] += sum[i][parentBase][childBase];
 #endif
 
 	_updatedQ = new Matrix(charStates);
@@ -459,8 +463,7 @@ double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector
 	double logLikelihood = 0;
 	unsigned int numOfUniqueSites = patternCount.size();
 
-	if (verbose >= 5)
-		cout << "computeValuesRootToInt() " << getIdent() << endl;
+	if (verbose >= 5) cout << "computeValuesRootToInt() " << getIdent() << endl;
 
 	if (verbose >= 10)
 	{
@@ -502,8 +505,7 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	unsigned int numOfUniqueSites = patternCount.size();
 	unsigned int* rootSeq = _nodes[0]->getSequence();
 	double* pG2 = pRiX1(numOfUniqueSites);
-	if (_siteProb == NULL || _qVersion > _siteProbVersion || _pRiX1Version > _siteProbVersion)
-		computeValuesRootToInt(patternCount, invarSites, invarStart);
+	if (_siteProb == NULL || _qVersion > _siteProbVersion || _pRiX1Version > _siteProbVersion) computeValuesRootToInt(patternCount, invarSites, invarStart);
 
 	double sum[omp_get_max_threads()][charStates][charStates];
 	memset(sum, 0.0, sizeof(sum));
@@ -531,9 +533,9 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 
 #ifdef _OPENMP
 	for (int i = 1; i < omp_get_max_threads(); i++)
-		for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
-			for (unsigned int childBase = 0; childBase < charStates; childBase++)
-				sum[0][rootBase][childBase] += sum[i][rootBase][childBase];
+	for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
+	for (unsigned int childBase = 0; childBase < charStates; childBase++)
+	sum[0][rootBase][childBase] += sum[i][rootBase][childBase];
 #endif
 
 	_updatedQ = new Matrix(charStates);
@@ -561,8 +563,8 @@ double* Branch::pRiX1(unsigned int numOfSites)
 	Node *child2 = childBranch2->getNeighbour(parent);
 
 	if (verbose >= 5)
-		cout << "Branch(" << _id << ")::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer=" << _qVersion
-				<< " ownVer=" << _pRiX1Version << endl;
+		cout << "Branch(" << _id << ")::pRiX1 parent=" << parent->getIdent() << " child1=" << child1->getIdent() << " child2=" << child2->getIdent() << " qVer="
+				<< _qVersion << " ownVer=" << _pRiX1Version << endl;
 
 	if (_pRiX1 == NULL)
 		_pRiX1 = new double[charStates * numOfSites];
@@ -634,8 +636,8 @@ double* Branch::pSiX2(unsigned int numOfSites)
 	}
 
 	if (verbose >= 5)
-		cout << "Branch(" << _id << ")::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent() << " qVer="
-				<< _qVersion << " ownVer=" << _pSiX2Version << endl;
+		cout << "Branch(" << _id << ")::pSiX2 parent=" << parent->getIdent() << " grandParent=" << grandParent->getIdent() << " sibling=" << sibling->getIdent()
+				<< " qVer=" << _qVersion << " ownVer=" << _pSiX2Version << endl;
 
 	if (_pSiX2 == NULL)
 		_pSiX2 = new double[charStates * numOfSites];

@@ -52,7 +52,7 @@ void Optimizer::rearrange(Tree &tree)
 						{
 							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
 							for (unsigned int m = 0; m < t._branches.size(); m++)
-								t._branches[m]->reset();
+								t._branches[m]->resetVectors();
 							t.updateModel(0.01, 0.01);
 							t.computeLH();
 							if (t > *bestTrees.begin())

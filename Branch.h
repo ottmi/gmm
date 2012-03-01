@@ -22,7 +22,9 @@ public:
 	void unlinkNode(Node *node);
 	void linkNode(Node *node);
 	void swapNodes();
-	void reset();
+	void resetVectors();
+	void resetQ();
+	void getPathToRoot(vector<Branch*> &path);
 
 	double computeLH(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);
 	void computeUpdatedQ(unsigned int numOfSites, vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart);

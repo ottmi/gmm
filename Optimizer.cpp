@@ -36,7 +36,10 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 		cout << endl << "Starting round #" << round << endl;
 		improved = false;
 
-		optimizeSPR(bestTree, currentCutOff, bestTrees);
+		if (round % 2 == 0)
+			optimizeNNI(bestTree, currentCutOff, bestTrees);
+		else
+			optimizeSPR(bestTree, currentCutOff, bestTrees);
 
 		unsigned int i = 0;
 		for (set<Tree>::reverse_iterator it = bestTrees.rbegin(); it != bestTrees.rend(); it++)
@@ -44,19 +47,15 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 			Tree t = *it;
 			t.updateModel(options.cutOff, options.cutOff);
 			t.computeLH();
-			if (verbose >= 2)
-				cout << "\rTree #" << i++ << ": " << fixed << setprecision(6) << t.getLogLH() << endl;
+			if (verbose >= 2) cout << "\rTree #" << i++ << ": " << fixed << setprecision(6) << t.getLogLH() << endl;
 			if (t > bestTree)
 			{
-				if (t.getLogLH() - bestTree.getLogLH() > options.cutOff)
-					improved = true;
+				if (t.getLogLH() - bestTree.getLogLH() > options.cutOff) improved = true;
 				bestTree = t;
 			}
 		}
-		if (currentCutOff > options.cutOff)
-			currentCutOff/= 2;
-		if (currentCutOff < options.cutOff)
-			currentCutOff = options.cutOff;
+		if (currentCutOff > options.cutOff) currentCutOff /= 2;
+		if (currentCutOff < options.cutOff) currentCutOff = options.cutOff;
 
 		round++;
 		cout << "\r  Best tree: " << fixed << setprecision(6) << bestTree.getLogLH() << endl;
@@ -70,9 +69,10 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 
 void Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees)
 {
+	cout << "Performing SPR moves" << endl;
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
-		cout << "\r" << (i*100) / tree._branches.size() << "%   " << flush;
+		cout << "\r" << (i * 100) / tree._branches.size() << "%   " << flush;
 		for (unsigned int j = 0; j < 2; j++)
 		{
 			if (!tree._branches[i]->getNode(j)->isLeaf())
@@ -95,31 +95,57 @@ void Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees)
 						if (!toBranch->getNode(l)->isLeaf())
 						{
 							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
-							for (unsigned int m = 0; m < t._branches.size(); m++)
-							{
-								t._branches[m]->resetVectors();
-								t._branches[m]->resetQ();
-							}
-							t.updateModel(cutOff, cutOff);
-							t.computeLH();
-							if (t > *bestTrees.begin())
-							{
-								bestTrees.insert(t);
-								if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
-								if (verbose >= 1)
-									cout << "\r  Found new good tree: " << fixed << setprecision(6) << t.getLogLH() << " [" << bestTrees.begin()->_logLH << "," << bestTrees.rbegin()->_logLH << "]" << endl;
-
-								if (verbose >= 2)
-								{
-									t.print();
-									cout << endl;
-								}
-
-							}
+							assessTree(t, cutOff, bestTrees);
 						}
 					}
 				}
 			}
+		}
+	}
+}
+
+void Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees)
+{
+	cout << "Performing NNI moves" << endl;
+	for (unsigned int i = 0; i < tree._branches.size(); i++)
+	{
+		cout << "\r" << (i * 100) / tree._branches.size() << "%   " << flush;
+		if (!tree._branches[i]->getNode(0)->isLeaf() && !tree._branches[i]->getNode(1)->isLeaf())
+		{
+			for (unsigned int j = 0; j < 2; j++)
+			{
+				Tree t = tree;
+				Branch *b = t._branches[tree._branches[i]->getId()];
+				NNI(b, j);
+				t._root->reroot(NULL);
+				assessTree(t, cutOff, bestTrees);
+			}
+		}
+	}
+}
+
+void Optimizer::assessTree(Tree &tree, double cutOff, set<Tree> &bestTrees)
+{
+	for (unsigned int m = 0; m < tree._branches.size(); m++)
+	{
+		tree._branches[m]->resetVectors();
+		tree._branches[m]->resetQ();
+	}
+
+	tree.updateModel(cutOff, cutOff);
+	tree.computeLH();
+	if (tree > *bestTrees.begin())
+	{
+		bestTrees.insert(tree);
+		if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
+		if (verbose >= 1)
+			cout << "\r  Found new good tree: " << fixed << setprecision(6) << tree.getLogLH() << " [" << bestTrees.begin()->_logLH << ","
+					<< bestTrees.rbegin()->_logLH << "]" << endl;
+
+		if (verbose >= 2)
+		{
+			tree.print();
+			cout << endl;
 		}
 	}
 }

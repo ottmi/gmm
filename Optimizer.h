@@ -17,6 +17,9 @@ class Optimizer
 		void rearrange(Tree &tree, Options &options);
 
 		void optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees);
+		void optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees);
+
+		void assessTree(Tree &tree, double cutOff, set<Tree> &bestTrees);
 
 		void NNI(Branch* branch, int swap);
 		void subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates);

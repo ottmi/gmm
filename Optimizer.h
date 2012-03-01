@@ -1,6 +1,7 @@
 #ifndef OPTIMIZER_H_
 #define OPTIMIZER_H_
 
+#include "globals.h"
 #include "Tree.h"
 #include "Node.h"
 #include "Branch.h"
@@ -13,7 +14,7 @@ class Optimizer
 		Optimizer();
 		virtual ~Optimizer();
 
-		void rearrange(Tree &tree);
+		void rearrange(Tree &tree, Options &options);
 
 		void NNI(Branch* branch, int swap);
 		void subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates);

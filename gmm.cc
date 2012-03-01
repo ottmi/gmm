@@ -3,6 +3,7 @@
 #include "Alignment.h"
 #include "Optimizer.h"
 #include <string>
+#include <sstream>
 #include <stdlib.h>
 #include <iostream>
 using namespace std;
@@ -13,7 +14,7 @@ unsigned int charStates = 4;
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  gmm -s <FILE> [-d|-c] -t<FILE> [-v[NUM]]" << endl;
+	cout << "  gmm -s <FILE> [-d|-c] -t<FILE> [-x<NUM>] [-v[NUM]]" << endl;
 	cout << "  gmm -h" << endl;
 	cout << endl;
 
@@ -22,6 +23,7 @@ void printSyntax()
 	cout << "  -d\tTreat alignment sequences as dicodons" << endl;
 	cout << "  -c\tTreat alignment sequences as codons" << endl;
 	cout << "  -t\tInput tree" << endl;
+	cout << "  -x\tOptimization cutoff [default: 0.0001]" << endl;
 	cout << "  -v\tBe increasingly verbose" << endl;
 	cout << "  -h\tThis help page" << endl;
 	cout << endl;
@@ -34,8 +36,9 @@ int parseArguments(int argc, char** argv, Options *options)
 
 	options->help = false;
 	options->alignmentGrouping = 1;
+	options->cutOff = 0.0001;
 
-	while ( (c = getopt(argc, argv, "s:dct:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "s:dct:x:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -51,6 +54,12 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 't':
 				options->inputTree = optarg;
 				break;
+			case 'x':
+			{
+				stringstream ss(optarg);
+				ss >> options->cutOff;
+				break;
+			}
 			case 'v':
 				if (optarg)
 					verbose = atoi(optarg);
@@ -110,7 +119,7 @@ int main(int argc, char **argv)
 		}
 
 		Optimizer optimizer;
-		optimizer.rearrange(tree);
+		optimizer.rearrange(tree, options);
 
 		tree.print();
 	}

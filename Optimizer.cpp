@@ -20,77 +20,95 @@ Optimizer::~Optimizer()
 }
 
 #define MAX_BEST_TREES 5
-void Optimizer::rearrange(Tree &tree)
+void Optimizer::rearrange(Tree &tree, Options &options)
 {
-	set<Tree> bestTrees;
+	double currentCutOff = 0.01;
+	bool improved = true;
+
 	tree.updateModel(0.01, 0.01);
 	tree.computeLH();
+	Tree bestTree = tree;
+	set<Tree> bestTrees;
 	bestTrees.insert(tree);
 
-	for (unsigned int i = 0; i < tree._branches.size(); i++)
+	unsigned int round = 0;
+	while (improved)
 	{
-		for (unsigned int j = 0; j < 2; j++)
+		improved = false;
+		for (unsigned int i = 0; i < tree._branches.size(); i++)
 		{
-			if (!tree._branches[i]->getNode(j)->isLeaf())
+			for (unsigned int j = 0; j < 2; j++)
 			{
-				Tree reducedTree = tree;
-				Branch *fromCandidate = reducedTree._branches[tree._branches[i]->getId()];
-
-				vector<int> toCandidates;
-				subtreePrune(fromCandidate, fromCandidate->getNode(j), toCandidates);
-				//reducedTree.printBranches();
-
-				for (unsigned int k = 0; k < toCandidates.size(); k++)
+				if (!tree._branches[i]->getNode(j)->isLeaf())
 				{
-					for (unsigned int l = 0; l < 2; l++)
+					Tree reducedTree = bestTree;
+					Branch *fromCandidate = reducedTree._branches[tree._branches[i]->getId()];
+
+					vector<int> toCandidates;
+					subtreePrune(fromCandidate, fromCandidate->getNode(j), toCandidates);
+					//reducedTree.printBranches();
+
+					for (unsigned int k = 0; k < toCandidates.size(); k++)
 					{
-						Tree t = reducedTree;
-						Branch *fromBranch = t._branches[fromCandidate->getId()];
-						Branch *toBranch = t._branches[toCandidates[k]];
-
-						if (!toBranch->getNode(l)->isLeaf())
+						for (unsigned int l = 0; l < 2; l++)
 						{
-							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
-							for (unsigned int m = 0; m < t._branches.size(); m++)
-								t._branches[m]->resetVectors();
-							t.updateModel(0.01, 0.01);
-							t.computeLH();
-							if (t > *bestTrees.begin())
+							Tree t = reducedTree;
+							Branch *fromBranch = t._branches[fromCandidate->getId()];
+							Branch *toBranch = t._branches[toCandidates[k]];
+
+							if (!toBranch->getNode(l)->isLeaf())
 							{
-								bestTrees.insert(t);
-								if (bestTrees.size() > MAX_BEST_TREES)
-									bestTrees.erase(bestTrees.begin());
-								if (verbose >= 1)
-									cout << "Found new good tree: logLH=" << fixed << setprecision(10) << t.getLogLH() << " (min=" << bestTrees.rbegin()->_logLH << " max=" << bestTrees.begin()->_logLH << ")" << endl;
-
-								if (verbose >= 2)
+								subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
+								for (unsigned int m = 0; m < t._branches.size(); m++)
+									t._branches[m]->resetVectors();
+								t.updateModel(0.01, 0.01);
+								t.computeLH();
+								if (t > *bestTrees.begin())
 								{
-									t.print();
-									cout << endl;
-								}
+									bestTrees.insert(t);
+									if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
+									if (verbose >= 1)
+										cout << "Found new good tree: logLH=" << fixed << setprecision(10) << t.getLogLH() << " (min=" << bestTrees.rbegin()->_logLH << " max="
+												<< bestTrees.begin()->_logLH << ")" << endl;
 
+									if (verbose >= 2)
+									{
+										t.print();
+										cout << endl;
+									}
+
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-	}
 
-	Tree bestTree = tree;
-	unsigned int i = 0;
-	for (set<Tree>::reverse_iterator it = bestTrees.rbegin(); it != bestTrees.rend(); it++)
-	{
-		Tree t = *it;
-		t.updateModel(0.00001, 0.00001);
-		t.computeLH();
-		cout << "Tree #" << i++ << ": "<< t.getLogLH() << endl;
-		if (t > bestTree)
-			bestTree = t;
+		unsigned int i = 0;
+		for (set<Tree>::reverse_iterator it = bestTrees.rbegin(); it != bestTrees.rend(); it++)
+		{
+			Tree t = *it;
+			t.updateModel(options.cutOff, options.cutOff);
+			t.computeLH();
+			if (verbose >= 2)
+				cout << "Tree #" << i++ << ": " << fixed << setprecision(10) << t.getLogLH() << endl;
+			if (t > bestTree)
+			{
+				if (t.getLogLH() - bestTree.getLogLH() > options.cutOff)
+					improved = true;
+				bestTree = t;
+			}
+		}
+		if (currentCutOff > options.cutOff)
+			currentCutOff/= 2;
+		round++;
+		cout << "Best tree of round " << round << ": " << fixed << setprecision(10) << bestTree.getLogLH() << endl;
 	}
+	bestTree.updateModel(options.cutOff/10, options.cutOff/10);
+	bestTree.computeLH();
 	cout << "Found best tree: " << bestTree.getLogLH() << endl;
-
-//	tree.updateModel(0.001, 0.001);
+	tree = bestTree;
 }
 
 void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates)
@@ -115,7 +133,9 @@ void Optimizer::subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& 
 
 	Branch *fromParentBranch = fromParent->getNeighbourBranch(fromGrandParent);
 
-	if (verbose >= 3) cout << "subtreePrune: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " fromParentBranch=" << fromParentBranch->getId() << " fromGrandParent=" << fromGrandParent->getIdent() << endl;
+	if (verbose >= 3)
+		cout << "subtreePrune: fromBranch=" << fromBranch->getId() << " fromParent=" << fromParent->getIdent() << " fromParentBranch=" << fromParentBranch->getId()
+				<< " fromGrandParent=" << fromGrandParent->getIdent() << endl;
 
 	// Identify the branch that leads to our sibling
 	Branch *fromSiblingBranch = fromParent->getNeighbourBranch(fromChild, fromGrandParent);

@@ -25,7 +25,7 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 	double currentCutOff = 0.01;
 	bool improved = true;
 
-	tree.updateModel(0.01, 0.01);
+	tree.updateModel(currentCutOff, currentCutOff);
 	tree.computeLH();
 	Tree bestTree = tree;
 	set<Tree> bestTrees;
@@ -62,8 +62,11 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 							{
 								subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
 								for (unsigned int m = 0; m < t._branches.size(); m++)
+								{
 									t._branches[m]->resetVectors();
-								t.updateModel(0.01, 0.01);
+									t._branches[m]->resetQ();
+								}
+								t.updateModel(currentCutOff, currentCutOff);
 								t.computeLH();
 								if (t > *bestTrees.begin())
 								{
@@ -103,10 +106,13 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 		}
 		if (currentCutOff > options.cutOff)
 			currentCutOff/= 2;
+		if (currentCutOff < options.cutOff)
+			currentCutOff = options.cutOff;
+
 		round++;
 		cout << "\r  Best tree: " << fixed << setprecision(6) << bestTree.getLogLH() << endl;
 	}
-	bestTree.updateModel(options.cutOff/10, options.cutOff/10);
+	bestTree.updateModel(options.cutOff, options.cutOff);
 	bestTree.computeLH();
 
 	cout << endl << "Best tree found: " << fixed << setprecision(10) << bestTree.getLogLH() << endl;

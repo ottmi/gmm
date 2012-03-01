@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iomanip>
 #include <set>
-
 #include "Optimizer.h"
 #include "helper.h"
 #include "globals.h"

@@ -12,8 +12,8 @@ class Tree
 	friend class Optimizer;
 
 public:
-	Tree(Alignment* alignment);
-	Tree (Tree const &tree);
+	Tree();
+	Tree(Tree const &tree);
 	virtual
 	~Tree();
 
@@ -24,7 +24,7 @@ public:
 	bool operator<=(Tree const &tree) const;
 	Tree& operator= (Tree const &tree);
 
-	void readNewick(string &tree);
+	void readNewick(Alignment *alignment, string &tree);
 	double getLogLH();
 	void computeLH();
 	void updateModel(double qDelta, double betaDelta);

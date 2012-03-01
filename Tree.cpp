@@ -9,9 +9,10 @@
 #include <sstream>
 #include <map>
 
-Tree::Tree(Alignment* alignment)
+Tree::Tree()
 {
-	_alignment = alignment;
+	_alignment = NULL;
+	_root = NULL;
 	_logLH = 0;
 }
 
@@ -139,8 +140,10 @@ void Tree::copy(Tree const &tree)
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;
 }
 
-void Tree::readNewick(string &tree)
+void Tree::readNewick(Alignment *alignment, string &tree)
 {
+	_alignment = alignment;
+
 	string treeString;
 	if (tree.find(';') == string::npos)
 	{

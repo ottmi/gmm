@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <iomanip>
+#include <csignal>
 
 using namespace std;
 
@@ -32,7 +33,6 @@ void printSyntax()
 	cout << endl;
 }
 
-
 int parseArguments(int argc, char** argv, Options *options)
 {
 	char c;
@@ -42,7 +42,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->evaluateOnly = false;
 	options->cutOff = 0.0001;
 
-	while ( (c = getopt(argc, argv, "s:dct:ex:v::h")) != -1)
+	while ((c = getopt(argc, argv, "s:dct:ex:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -77,8 +77,7 @@ int parseArguments(int argc, char** argv, Options *options)
 				options->help = true;
 				break;
 			default:
-				if (c != '?')
-					cerr << "Unknown parameter: " << c << endl;
+				if (c != '?') cerr << "Unknown parameter: " << c << endl;
 				return 1;
 		}
 	}
@@ -104,21 +103,20 @@ int parseArguments(int argc, char** argv, Options *options)
 	return 0;
 }
 
-
 int main(int argc, char **argv)
 {
 	Options options;
 
 	int ret = parseArguments(argc, argv, &options);
-	if (ret)
-		return ret;
+	if (ret) return ret;
 
 	Alignment alignment;
-	try {
+	try
+	{
 		alignment.read(options.alignment, options.alignmentGrouping);
 
-		Tree tree(&alignment);
-		tree.readNewick(options.inputTree);
+		Tree tree;
+		tree.readNewick(&alignment, options.inputTree);
 		if (verbose >= 2)
 		{
 			tree.printNodes();
@@ -130,19 +128,17 @@ int main(int argc, char **argv)
 			tree.updateModel(options.cutOff, options.cutOff);
 			tree.computeLH();
 			cout << "logLH: " << fixed << setprecision(10) << tree.getLogLH() << endl;
-		}
-		else
+		} else
 		{
 			Optimizer optimizer;
 			optimizer.rearrange(tree, options);
 		}
 
 		tree.print();
-	}
-	catch (string& s)
+	} catch (string& s)
 	{
 		cerr << s << endl;
-		return(255);
+		return (255);
 	}
 
 	return 0;

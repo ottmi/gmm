@@ -119,6 +119,16 @@ int parseArguments(int argc, char** argv, Options *options)
 
 int main(int argc, char **argv)
 {
+	cout << PROGNAME << " " << VERSION << "|";
+#ifdef _OPENMP
+	cout << "OpenMP|";
+#endif
+#ifdef _DEBUG
+	cout << "DEBUG|";
+#endif
+
+	cout << PROGDATE << endl << endl;;
+
 	Options options;
 
 	int ret = parseArguments(argc, argv, &options);

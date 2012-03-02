@@ -41,6 +41,7 @@ private:
 	void copy(Tree const &tree);
 
 	Node *_root;
+	bool _unrooted;
 	vector<Node*> _leaves;
 	vector<Node*> _internalNodes;
 	vector<Branch*> _branches;

@@ -248,6 +248,7 @@ void Tree::readNewick(Alignment *alignment, string &tree)
 		cout << "This Newick representation appears to be a rooted tree, rooted at the leaf node " << _root->getLabel() << ". Perfect." << endl;
 		_leaves.push_back(_root);
 		if (_internalNodes.front() == _root) _internalNodes.erase(_internalNodes.begin());
+		_unrooted = false;
 	} else
 	{
 		cout << "This Newick representation appears to be an unrooted tree, rooted at the internal node " << prevInternalNode->getIdent() << "." << endl;
@@ -263,6 +264,7 @@ void Tree::readNewick(Alignment *alignment, string &tree)
 			cout << "The BH+I model requires the root to be placed at a leaf node, picking " << _root->getIdent() << " as root." << endl;
 		} else
 			throw(string("The BH+I model requires the root to placed at a leaf node, but this node has no leaves as children."));
+		_unrooted = true;
 	}
 
 	for (unsigned int i = 0; i < _leaves.size(); i++)
@@ -345,5 +347,8 @@ void Tree::printBranches()
 
 void Tree::print()
 {
-	cout << _root->toString() << ";" << endl;
+	if (_unrooted)
+		cout << _root->getBranch(0)->getNeighbour(_root)->toString() << ";" << endl;
+	else
+		cout << _root->toString() << ";" << endl;
 }

@@ -1,7 +1,6 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 #include <string>
-#include "Tree.h"
 using namespace std;
 
 #define _DNA_DATA				0
@@ -16,6 +15,7 @@ typedef struct opt_struct
 	string alignment;
 	unsigned int alignmentGrouping;
 	string inputTree;
+	string rootNode;
 	bool evaluateOnly;
 	double cutOff;
 	bool help;
@@ -23,6 +23,6 @@ typedef struct opt_struct
 
 extern int verbose;
 extern unsigned int charStates;
-extern Tree bestTree;
+extern class Tree bestTree;
 
 #endif /* GLOBALS_H_ */

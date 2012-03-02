@@ -27,7 +27,7 @@ void cancellationHandler(int parameter)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  gmm -s <FILE> [-d|-c] -t<FILE> [-e] [-x<NUM>] [-v[NUM]]" << endl;
+	cout << "  gmm -s<FILE> [-d|-c] -t<FILE> [-r<STRING>] [-e] [-x<NUM>] [-v[NUM]]" << endl;
 	cout << "  gmm -h" << endl;
 	cout << endl;
 
@@ -36,6 +36,7 @@ void printSyntax()
 	cout << "  -d\tTreat alignment sequences as dicodons" << endl;
 	cout << "  -c\tTreat alignment sequences as codons" << endl;
 	cout << "  -t\tInput tree" << endl;
+	cout << "  -r\tRoot the tree at this node (has to be a leaf)" << endl;
 	cout << "  -e\tOnly evaluate given tree topology" << endl;
 	cout << "  -x\tOptimization cutoff [default: 0.0001]" << endl;
 	cout << "  -v\tBe increasingly verbose" << endl;
@@ -52,7 +53,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->evaluateOnly = false;
 	options->cutOff = 0.0001;
 
-	while ((c = getopt(argc, argv, "s:dct:ex:v::h")) != -1)
+	while ((c = getopt(argc, argv, "s:dct:r:ex:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -67,6 +68,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				break;
 			case 't':
 				options->inputTree = optarg;
+				break;
+			case 'r':
+				options->rootNode = optarg;
 				break;
 			case 'e':
 				options->evaluateOnly = true;
@@ -129,7 +133,7 @@ int main(int argc, char **argv)
 		alignment.read(options.alignment, options.alignmentGrouping);
 
 		Tree tree;
-		tree.readNewick(&alignment, options.inputTree);
+		tree.readNewick(&alignment, options);
 		if (verbose >= 2)
 		{
 			tree.printNodes();

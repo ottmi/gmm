@@ -2,6 +2,7 @@
 #define TREE_H_
 #include <string>
 #include <vector>
+#include "globals.h"
 #include "Node.h"
 #include "Alignment.h"
 
@@ -24,7 +25,7 @@ public:
 	bool operator<=(Tree const &tree) const;
 	Tree& operator= (Tree const &tree);
 
-	void readNewick(Alignment *alignment, string &tree);
+	void readNewick(Alignment *alignment, Options &options);
 	double getLogLH();
 	void computeLH();
 	void updateModel(double qDelta, double betaDelta);

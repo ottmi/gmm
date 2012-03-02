@@ -129,21 +129,21 @@ void Tree::copy(Tree const &tree)
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;
 }
 
-void Tree::readNewick(Alignment *alignment, string &tree)
+void Tree::readNewick(Alignment *alignment, Options &options)
 {
 	_alignment = alignment;
 
 	string treeString;
-	if (tree.find(';') == string::npos)
+	if (options.inputTree.find(';') == string::npos)
 	{
 		ifstream fileReader;
-		fileReader.open(tree.c_str());
-		if (!fileReader.is_open()) throw("Cannot open file " + tree);
+		fileReader.open(options.inputTree.c_str());
+		if (!fileReader.is_open()) throw("Cannot open file " + options.inputTree);
 
 		safeGetline(fileReader, treeString);
 		fileReader.close();
 	} else
-		treeString = tree;
+		treeString = options.inputTree;
 
 	cout << "Tree: " << treeString << endl;
 
@@ -249,22 +249,45 @@ void Tree::readNewick(Alignment *alignment, string &tree)
 		_leaves.push_back(_root);
 		if (_internalNodes.front() == _root) _internalNodes.erase(_internalNodes.begin());
 		_unrooted = false;
-	} else
+	} else if (prevInternalNode->getBranches().size() == 2)
+	{
+		cout << "This Newick representation appears to be rooted tree, rooted at the internal node " << prevInternalNode->getIdent() << "." << endl;
+		throw(string("The tree has to be either an unrooted tree or a rooted tree that is rooted at a leaf node."));
+	} else if (prevInternalNode->getBranches().size() == 3)
 	{
 		cout << "This Newick representation appears to be an unrooted tree, rooted at the internal node " << prevInternalNode->getIdent() << "." << endl;
-		vector<Branch*> branches = prevInternalNode->getBranches();
-		for (unsigned int i = 0; i < branches.size(); i++)
+		if (!options.rootNode.length())
 		{
-			_root = branches[i]->getNeighbour(prevInternalNode);
-			if (_root->getBranches().size() == 1) break;
+			vector<Branch*> branches = prevInternalNode->getBranches();
+			for (unsigned int i = 0; i < branches.size(); i++)
+			{
+				_root = branches[i]->getNeighbour(prevInternalNode);
+				if (_root->getBranches().size() == 1) break;
+			}
+			if (_root->getBranches().size() == 1)
+			{
+				cout << "The BH+I model requires the root to be placed at a leaf node, picking " << _root->getIdent() << " as root." << endl;
+				_root->reroot(NULL);
+			} else
+				throw(string("The BH+I model requires the root to placed at a leaf node, but this node has no leaves as children."));
 		}
-		if (_root->getBranches().size() == 1)
-		{
-			cout << "The BH+I model requires the root to be placed at a leaf node, picking " << _root->getIdent() << " as root." << endl;
-			_root->reroot(NULL);
-		} else
-			throw(string("The BH+I model requires the root to placed at a leaf node, but this node has no leaves as children."));
 		_unrooted = true;
+	}
+
+	if (options.rootNode.length())
+	{
+		_root = NULL;
+		for (unsigned int i = 0; i < _leaves.size(); i++)
+			if (_leaves[i]->getLabel() == options.rootNode)
+			{
+				_root = _leaves[i];
+				_root->reroot(NULL);
+				break;
+			}
+		if (_root != NULL)
+			cout << "Placing root at the user-specified leaf node " << _root->getIdent() << endl;
+		else
+			throw("The user-specified root \"" + options.rootNode + "\" does not exist in the tree or is not a leaf node");
 	}
 
 	for (unsigned int i = 0; i < _leaves.size(); i++)

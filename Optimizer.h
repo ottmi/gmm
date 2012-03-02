@@ -16,8 +16,8 @@ class Optimizer
 
 		void rearrange(Tree &tree, Options &options);
 
-		void optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees);
-		void optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees);
+		unsigned int optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees);
+		unsigned int optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees);
 
 		void assessTree(Tree &tree, double cutOff, set<Tree> &bestTrees);
 

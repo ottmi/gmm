@@ -214,11 +214,8 @@ unsigned int mapAAToNum(char c)
 string printTime(time_t t)
 {
 	stringstream s;
-	if (t > 3600)
-	{
-		s << t / 3600 << ":" << setfill('0') << setw(2);
-		t = t % 3600;
-	}
+	s << t / 3600 << ":" << setfill('0') << setw(2);
+	t = t % 3600;
 	s << t / 60 << ":" << setfill('0') << setw(2) << t % 60;
 
 	return s.str();

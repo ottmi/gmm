@@ -123,8 +123,7 @@ void Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees)
 			{
 				Tree t = tree;
 				Branch *b = t._branches[tree._branches[i]->getId()];
-				NNI(b, j);
-				t._root->reroot(NULL);
+				NNI(b, j, t._root);
 				assessTree(t, cutOff, bestTrees);
 			}
 		}
@@ -227,7 +226,7 @@ void Optimizer::subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toB
 	root->reroot(NULL);
 }
 
-void Optimizer::NNI(Branch* branch, int swap)
+void Optimizer::NNI(Branch* branch, int swap, Node* root)
 {
 	// swap indicates which branch of the left node will be swapped, i.e. 0 for the 1st branch, 1 for the 2nd
 
@@ -262,4 +261,6 @@ void Optimizer::NNI(Branch* branch, int swap)
 
 	//link the left node's branch to the right node
 	leftBranch->linkNode(rightNode);
+
+	root->reroot(NULL);
 }

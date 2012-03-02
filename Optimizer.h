@@ -21,7 +21,7 @@ class Optimizer
 
 		void assessTree(Tree &tree, double cutOff, set<Tree> &bestTrees);
 
-		void NNI(Branch* branch, int swap);
+		void NNI(Branch* branch, int swap, Node* root);
 		void subtreePrune(Branch *fromBranch, Node *fromParent, vector<int>& insertCandidates);
 		void subtreeRegraft(Branch *fromBranch, Node *fromParent, Branch *toBranch, Node *toParent, Node *root);
 };

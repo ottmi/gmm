@@ -1,17 +1,20 @@
 CXX = g++
 CXXFLAGS  = -Wall -g -gdwarf-2 -O0
-LFLAGS = -lm -fopenmp
+LDFLAGS = -lm -fopenmp
 
-OBJ = Alignment.o Branch.o Matrix.o Node.o Optimizer.o Tree.o helper.o gmm.o
+MODULES := Alignment.o Branch.o Matrix.o Node.o Optimizer.o Tree.o helper.o gmm.o
+SRC := $(addprefix src/,$(MODULES))
+OBJ := $(patsubst src/%.cpp,src/%.o,$(SRC))
+
 BIN = gmm
 
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS)
+	$(CXX) $(LDFLAGS) $(LIBS) -o $(BIN) $(OBJ)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+src/%.o: src/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
 	$(RM) $(BIN) $(OBJ)

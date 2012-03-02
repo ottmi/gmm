@@ -35,46 +35,36 @@ Tree::~Tree()
 
 bool Tree::operator==(Tree const &tree) const
 {
-	if (_logLH == 0)
-		throw(string("Tree::operator==() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-		throw(string("Tree::operator==() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0) throw(string("Tree::operator==() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0) throw(string("Tree::operator==() RHS logLH hasn't been computed yet"));
 	return (_logLH == tree._logLH);
 }
 
 bool Tree::operator>(Tree const &tree) const
 {
-	if (_logLH == 0)
-		throw(string("Tree::operator>() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-		throw(string("Tree::operator>() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0) throw(string("Tree::operator>() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0) throw(string("Tree::operator>() RHS logLH hasn't been computed yet"));
 	return (_logLH > tree._logLH);
 }
 
 bool Tree::operator<(Tree const &tree) const
 {
-	if (_logLH == 0)
-		throw(string("Tree::operator<() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-		throw(string("Tree::operator<() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0) throw(string("Tree::operator<() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0) throw(string("Tree::operator<() RHS logLH hasn't been computed yet"));
 	return (_logLH < tree._logLH);
 }
 
 bool Tree::operator>=(Tree const &tree) const
 {
-	if (_logLH == 0)
-		throw(string("Tree::operator>=() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-		throw(string("Tree::operator>=() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0) throw(string("Tree::operator>=() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0) throw(string("Tree::operator>=() RHS logLH hasn't been computed yet"));
 	return (_logLH >= tree._logLH);
 }
 
 bool Tree::operator<=(Tree const &tree) const
 {
-	if (_logLH == 0)
-		throw(string("Tree::operator<=() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-		throw(string("Tree::operator<=() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0) throw(string("Tree::operator<=() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0) throw(string("Tree::operator<=() RHS logLH hasn't been computed yet"));
 	return (_logLH <= tree._logLH);
 }
 
@@ -132,8 +122,7 @@ void Tree::copy(Tree const &tree)
 		_branches[id] = branch;
 	}
 	_root = nodes[tree._root->getId()];
-	if (links == _branches.size() * 2)
-		_root->reroot(NULL);
+	if (links == _branches.size() * 2) _root->reroot(NULL);
 
 	_logLH = tree._logLH;
 
@@ -241,7 +230,7 @@ void Tree::readNewick(Alignment *alignment, string &tree)
 		{
 			size_t j = treeString.find_first_of(']', i + 1);
 			if (j == string::npos)
-				throw("Error paarsing Newick tree: a square bracket opened at position " + str(i) + " but no closing bracket could be found.");
+				throw("Error parsing Newick tree: a square bracket opened at position " + str(i) + " but no closing bracket could be found.");
 			else
 			{
 				cout << "Comment: " << treeString.substr(i + 1, j - i - 1) << endl;
@@ -250,14 +239,30 @@ void Tree::readNewick(Alignment *alignment, string &tree)
 		}
 	}
 
-	_root = prevInternalNode;
-	_root->setLabel(label);
+	prevInternalNode->setLabel(label);
 	label.clear();
-	if (_root->getBranches().size() == 1)
+
+	if (prevInternalNode->getBranches().size() == 1)
 	{
-		cout << "The root at " << _root->getLabel() << " is a leaf" << endl;
+		_root = prevInternalNode;
+		cout << "This Newick representation appears to be a rooted tree, rooted at the leaf node " << _root->getLabel() << ". Perfect." << endl;
 		_leaves.push_back(_root);
 		if (_internalNodes.front() == _root) _internalNodes.erase(_internalNodes.begin());
+	} else
+	{
+		cout << "This Newick representation appears to be an unrooted tree, rooted at the internal node " << prevInternalNode->getIdent() << "." << endl;
+		vector<Branch*> branches = prevInternalNode->getBranches();
+		for (unsigned int i = 0; i < branches.size(); i++)
+		{
+			_root = branches[i]->getNeighbour(prevInternalNode);
+			if (_root->getBranches().size() == 1) break;
+		}
+		if (_root->getBranches().size() == 1)
+		{
+			if (_root->getBranch(0)->getNode(0) != _root) _root->getBranch(0)->swapNodes();
+			cout << "The BH+I model requires the root to be placed at a leaf node, picking " << _root->getIdent() << " as root." << endl;
+		} else
+			throw(string("The BH+I model requires the root to placed at a leaf node, but this node has no leaves as children."));
 	}
 
 	for (unsigned int i = 0; i < _leaves.size(); i++)
@@ -285,8 +290,7 @@ void Tree::readNewick(Alignment *alignment, string &tree)
 
 double Tree::getLogLH()
 {
-	if (_logLH == 0)
-		computeLH();
+	if (_logLH == 0) computeLH();
 	return _logLH;
 }
 

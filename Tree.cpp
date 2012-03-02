@@ -348,7 +348,7 @@ void Tree::printBranches()
 void Tree::print()
 {
 	if (_unrooted)
-		cout << _root->getBranch(0)->getNeighbour(_root)->toString() << ";" << endl;
+		cout << _root->getBranch(0)->getNeighbour(_root)->toString() << "[" << getLogLH() << "];" << endl;
 	else
-		cout << _root->toString() << ";" << endl;
+		cout << _root->toString() << "[" << getLogLH() << "];" << endl;
 }

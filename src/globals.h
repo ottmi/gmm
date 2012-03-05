@@ -4,8 +4,8 @@
 using namespace std;
 
 #define PROGNAME "gmm"
-#define VERSION "0.1.0"
-#define PROGDATE "2012-03-02"
+#define VERSION "0.1.1"
+#define PROGDATE "2012-03-05"
 
 #define _DNA_DATA				0
 #define	_AA_DATA				1

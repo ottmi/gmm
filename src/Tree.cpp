@@ -298,7 +298,7 @@ void Tree::readNewick(Alignment *alignment, Options &options)
 			throw("The alignment contains no sequence \"" + label + "\"");
 		else
 		{
-			unsigned int* seq = _alignment->getNumericalSeq(a);
+			unsigned int* seq = _alignment->getCompressedSeq(a);
 			_leaves[i]->setSequence(seq);
 		}
 	}

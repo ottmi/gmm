@@ -56,7 +56,7 @@ int Alignment::find(string name)
 	return -1;
 }
 
-unsigned int* Alignment::getNumericalSeq(unsigned int row)
+unsigned int* Alignment::getCompressedSeq(unsigned int row)
 {
 	if (row < getNumOfSequences())
 		return _compressedSequences[row];

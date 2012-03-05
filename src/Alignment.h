@@ -20,7 +20,7 @@ public:
 	unsigned int getNumOfSequences() { return _sequences.size(); };
 	int getDataType() { return _dataType; };
 
-	unsigned int* getNumericalSeq(unsigned int row);
+	unsigned int* getCompressedSeq(unsigned int row);
 	vector <unsigned int>& getPatternCount() { return _patternCount; };
 	unsigned int getInvarStart() {return _invarStart; };
 	vector <unsigned int>& getInvarSites() {return _invarSites; };

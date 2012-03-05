@@ -29,7 +29,7 @@ private:
 	int _dataType;
 	vector <string> _names;
 	vector <string> _sequences;
-	vector <unsigned int*> _numericalSequences;
+	//vector <unsigned int*> _numericalSequences;
 	vector <unsigned int*> _compressedSequences;
 	vector <unsigned int> _patternCount;
 	vector <unsigned int> _invarSites;
@@ -40,7 +40,7 @@ private:
 	void readFasta(string fileName);
 	void identifyDataTpe(unsigned int grouping);
 	void translateToNumerical(unsigned int grouping);
-	void compress();
+	void compress(unsigned int grouping);
 };
 
 #endif /* ALIGNMENT_H_ */

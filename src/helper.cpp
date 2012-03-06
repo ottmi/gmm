@@ -51,6 +51,7 @@ istream& safeGetline(istream& is, string& t)
 unsigned int mapDNAToNum(string s)
 {
 	unsigned int d = 0;
+	bool ambiguous = false;
 	for (unsigned int i = 0; i < s.size(); i++)
 	{
 		d = d << 2;
@@ -77,12 +78,15 @@ unsigned int mapDNAToNum(string s)
 				break;
 
 			default:
-				throw("Unsupported character: " + s[i]);
+				ambiguous = true;
 				break;
 		}
 	}
 
-	return d;
+	if (ambiguous)
+		return 0xffffffff;
+	else
+		return d;
 }
 
 string mapNumToDNA(unsigned int val, unsigned int len)
@@ -101,6 +105,7 @@ string mapNumToDNA(unsigned int val, unsigned int len)
 unsigned int mapAAToNum(char c)
 {
 	unsigned int d = 0;
+	bool ambiguous = false;
 	switch (c)
 	{
 		case 'A':
@@ -204,11 +209,14 @@ unsigned int mapAAToNum(char c)
 			break;
 
 		default:
-			string s = "Unsupported character: " + c;
-			throw(s);
+			ambiguous = true;
 			break;
 	}
-	return d;
+
+	if (ambiguous)
+		return 0xffffffff;
+	else
+		return d;
 }
 
 string printTime(time_t t)

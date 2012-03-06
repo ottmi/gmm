@@ -35,6 +35,7 @@ private:
 	vector <unsigned int> _invarSites;
 	unsigned int _invarStart;
 	unsigned int _numOfSites;
+	unsigned int _ambiguousSites;
 
 	void readPhylip(string fileName);
 	void readFasta(string fileName);

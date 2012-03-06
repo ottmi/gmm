@@ -13,7 +13,7 @@ Alignment::Alignment()
 
 Alignment::~Alignment()
 {
-	for (unsigned int i = 0; i<_compressedSequences.size(); i++)
+	for (unsigned int i = 0; i < _compressedSequences.size(); i++)
 		delete[] _compressedSequences[i];
 }
 
@@ -32,7 +32,8 @@ void Alignment::read(string fileName, unsigned int grouping)
 	}
 	cout << "The alignment contains " << _sequences.size() << " sequences with " << _sequences[0].size() << " characters each." << endl;
 	if (_sequences[0].size() % grouping != 0)
-		throw("The alignment is supposed to be grouped into sites of " + str(grouping) + " columns each, but " + str(_sequences[0].size()) + " is not divisible by " + str(grouping));
+		throw("The alignment is supposed to be grouped into sites of " + str(grouping) + " columns each, but " + str(_sequences[0].size()) + " is not divisible by "
+				+ str(grouping));
 	_numOfSites = _sequences[0].size() / grouping;
 
 	identifyDataTpe(grouping);
@@ -40,7 +41,9 @@ void Alignment::read(string fileName, unsigned int grouping)
 	cout << "The data appears to be " << dataTypeDesc[_dataType] << ", using " << charStates << "-state system." << endl;
 
 	compress(grouping);
-	cout << "There are " << getNumOfUniqueSites() << " unique sites, " << _invarSites.size() << " of which are invariant." << endl << endl;
+	cout << "There are " << getNumOfUniqueSites() << " unique sites, " << _invarSites.size() << " of which are invariant." << endl;
+	if (_ambiguousSites) cout << _ambiguousSites << " sites contain invalid or ambiguous characters and have therefore been ignored." << endl;
+	cout << endl;
 }
 
 int Alignment::find(string name)
@@ -104,7 +107,7 @@ void Alignment::readPhylip(string fileName)
 			}
 		}
 	}
-	if ( _sequences.size() < rows) cerr << "The alignment consists only of " << _sequences.size() << " rows." << endl;
+	if (_sequences.size() < rows) cerr << "The alignment consists only of " << _sequences.size() << " rows." << endl;
 }
 
 void Alignment::readFasta(string fileName)
@@ -167,8 +170,7 @@ void Alignment::identifyDataTpe(unsigned int grouping)
 			charStates = 4;
 		else if (grouping == 2)
 			charStates = 16;
-		else if (grouping == 3)
-			charStates = 64;
+		else if (grouping == 3) charStates = 64;
 	} else
 	{
 		_dataType = _AA_DATA;
@@ -178,18 +180,39 @@ void Alignment::identifyDataTpe(unsigned int grouping)
 
 void Alignment::compress(unsigned int grouping)
 {
+	_ambiguousSites = 0;
 	map<vector<unsigned int>, unsigned int> patterns;
-	for (unsigned int col = 0; col < _numOfSites*grouping; col+= grouping)
+	for (unsigned int col = 0; col < _numOfSites * grouping; col += grouping)
 	{
 		vector<unsigned int> site;
+		bool ambiguous = false;
 		for (unsigned int row = 0; row < getNumOfSequences(); row++)
 		{
+			unsigned int val;
 			if (_dataType == _DNA_DATA)
-				site.push_back(mapDNAToNum(_sequences[row].substr(col, grouping)));
+				val = mapDNAToNum(_sequences[row].substr(col, grouping));
 			else
-				site.push_back(mapAAToNum(_sequences[row][col]));
+				val = mapAAToNum(_sequences[row][col]);
+			if (val != 0xffffffff)
+				site.push_back(val);
+			else
+			{
+				ambiguous = true;
+				break;
+			}
 		}
-		patterns[site]++;
+		if (!ambiguous)
+			patterns[site]++;
+		else
+		{
+			if (verbose >= 3)
+			{
+				cout << "Site " << col + 1;
+				if (grouping > 1) cout << " (columns " << col * grouping + 1 << "-" << col * grouping + grouping << ")";
+				cout << " contains invalid or ambiguous characters and will therefore be ignored." << endl;
+			}
+			_ambiguousSites++;
+		}
 	}
 
 	_compressedSequences = vector<unsigned int*>(getNumOfSequences());
@@ -205,7 +228,7 @@ void Alignment::compress(unsigned int grouping)
 		while (row < getNumOfSequences() && it->first[0] == it->first[row])
 			row++;
 
-		if (row == getNumOfSequences())	// this site contains only identical characters
+		if (row == getNumOfSequences()) // this site contains only identical characters
 		{
 			_patternCount[--l] = it->second;
 			_invarSites.push_back(it->first[0]);
@@ -235,8 +258,8 @@ void Alignment::compress(unsigned int grouping)
 		{
 			cout.flags(ios::left);
 			cout << setw(10) << _names[row] << " ";
-			for (unsigned int col= 0; col < getNumOfUniqueSites(); col++)
-				 cout << mapNumToDNA(_compressedSequences[row][col], grouping) << " ";
+			for (unsigned int col = 0; col < getNumOfUniqueSites(); col++)
+				cout << mapNumToDNA(_compressedSequences[row][col], grouping) << " ";
 			cout << endl;
 
 		}

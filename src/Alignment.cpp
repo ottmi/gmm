@@ -26,10 +26,7 @@ void Alignment::read(string fileName, unsigned int grouping)
 	else if (!ext.compare("fsa") || !ext.compare("fasta"))
 		readFasta(fileName);
 	else
-	{
-		cerr << "Unknown input alignment format" << endl;
-		exit(255);
-	}
+		throw(string("Unknown input alignment format"));
 	cout << "The alignment contains " << _sequences.size() << " sequences with " << _sequences[0].size() << " characters each." << endl;
 	if (_sequences[0].size() % grouping != 0)
 		throw("The alignment is supposed to be grouped into sites of " + str(grouping) + " columns each, but " + str(_sequences[0].size()) + " is not divisible by "
@@ -74,31 +71,30 @@ void Alignment::readPhylip(string fileName)
 	fileReader.open(fileName.c_str());
 	if (!fileReader.is_open()) throw("\n\nError, cannot open file " + fileName);
 
-	string str;
-	safeGetline(fileReader, str);
+	string s;
+	safeGetline(fileReader, s);
 
 	string whiteSpace = " \t";
-	str = str.substr(str.find_first_not_of(whiteSpace));
-	string rowsStr = str.substr(0, str.find_first_of(whiteSpace));
+	s = s.substr(s.find_first_not_of(whiteSpace));
+	string rowsStr = s.substr(0, s.find_first_of(whiteSpace));
 
-	str = str.substr(str.find_first_of(whiteSpace));
-	str = str.substr(str.find_first_not_of(whiteSpace));
-	string colsStr = str.substr(0, str.find_first_of(whiteSpace));
+	s = s.substr(s.find_first_of(whiteSpace));
+	s = s.substr(s.find_first_not_of(whiteSpace));
+	string colsStr = s.substr(0, s.find_first_of(whiteSpace));
 
 	unsigned int cols = atoi(colsStr.c_str());
 	unsigned int rows = atoi(rowsStr.c_str());
 
 	while (!fileReader.eof())
 	{
-		safeGetline(fileReader, str);
-		if (str.length())
+		safeGetline(fileReader, s);
+		if (s.length())
 		{
-			str = str.substr(str.find_first_not_of(whiteSpace));
-			string name = str.substr(0, str.find_first_of(whiteSpace));
-			str = str.substr(str.find_first_of(whiteSpace));
-			string seq = str.substr(str.find_first_not_of(whiteSpace));
-
-			if (seq.length() < cols) cerr << "Sequence #" << _sequences.size() + 1 << " (" << name << ") consists only of" << seq.length() << " characters." << endl;
+			s = s.substr(s.find_first_not_of(whiteSpace));
+			string name = s.substr(0, s.find_first_of(whiteSpace));
+			s = s.substr(s.find_first_of(whiteSpace));
+			string seq = s.substr(s.find_first_not_of(whiteSpace));
+			if (seq.length() < cols) throw("Sequence #" + str(_sequences.size() + 1) + " (" + name + ") consists only of " + str(seq.length()) + " characters.");
 			seq = adjustString(seq);
 			if (!name.empty() && !seq.empty())
 			{
@@ -107,7 +103,7 @@ void Alignment::readPhylip(string fileName)
 			}
 		}
 	}
-	if (_sequences.size() < rows) cerr << "The alignment consists only of " << _sequences.size() << " rows." << endl;
+	if (_sequences.size() < rows) throw("The alignment consists only of " + str(_sequences.size()) + " rows.");
 }
 
 void Alignment::readFasta(string fileName)

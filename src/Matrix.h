@@ -22,7 +22,6 @@ public:
 	void setOffDiag(double const x);
 	void setRow(unsigned int const row, vector<double> const &m);
 	void setCol(unsigned int const col, vector<double> const &m);
-	void update(Matrix& x);
 
 	double getRowSum(unsigned int const row) const;
 	vector<double> getRowSums() const;

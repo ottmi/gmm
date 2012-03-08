@@ -88,18 +88,6 @@ void Matrix::setCol(unsigned int const col, vector<double> const &x)
 		_m[i][col] = x[i];
 }
 
-void Matrix::update(Matrix& x)
-{
-	double sum = 0;
-	for (unsigned int i = 0; i < _dim; i++)
-		for (unsigned int j = 0; j < _dim; j++)
-			sum += _m[i][j];
-
-	for (unsigned int i = 0; i < _dim; i++)
-		for (unsigned int j = 0; j < _dim; j++)
-			_m[i][j] = _m[i][j] / sum;
-}
-
 double Matrix::getRowSum(unsigned int const row) const
 {
 	double sum = .0;

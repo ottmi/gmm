@@ -163,6 +163,38 @@ void Matrix::luDecomposition()
 	_m = lu;
 }
 
+
+Matrix Matrix::luEvaluate(Matrix &b)
+{
+	Matrix x(_dim);
+	Matrix y(_dim);
+
+	for (unsigned int i = 0; i < _dim; i++)
+		if (_m[i][i] == .0)
+			throw("The Matrix appears to be singular");
+
+	// Forward solve LY = B
+  for (unsigned int i = 0; i < _dim; i++)
+    for (unsigned int j = 0; j < _dim; j++)
+    {
+    	y(i, j) = b(i, j);
+    	for (unsigned k = 0; k < i; k++)
+    		y(i, j) -= _m[i][k] * y(k, j);
+    	y(i, j) /= _m[i][i];
+    }
+
+  // Backward solve UX = Y
+  for (int i = _dim - 1; i >= 0; i--)
+    for (int j = _dim - 1; j >= 0; j--)
+    {
+    	x(i, j) = y(i, j);
+    	for (unsigned k = i + 1; k < _dim; k++)
+    		x(i, j) -= _m[i][k] * x(k, j);
+    }
+
+  return x;
+}
+
 void Matrix::print()
 {
 	cout.precision(8);

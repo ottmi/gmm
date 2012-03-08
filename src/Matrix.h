@@ -26,6 +26,7 @@ public:
 	double determinant();
 
 	void luDecomposition();
+	Matrix luEvaluate(Matrix &a);
 	void print();
 
 

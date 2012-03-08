@@ -15,26 +15,26 @@ public:
 	void zero();
 	void identity();
 
-	void set(vector< vector<double> > m);
-	void set(vector<double> m);
-	void setDiag(double x);
-	void setDiag(vector<double> &x);
-	void setOffDiag(double x);
-	void setRow(unsigned int row, vector<double> m);
-	void setCol(unsigned int col, vector<double> m);
+	void set(vector< vector<double> > const &m);
+	void set(vector<double> const &m);
+	void setDiag(double const x);
+	void setDiag(vector<double> const &x);
+	void setOffDiag(double const x);
+	void setRow(unsigned int const row, vector<double> const &m);
+	void setCol(unsigned int const col, vector<double> const &m);
 	void update(Matrix& x);
 
-	double getRowSum(unsigned int row);
-	vector<double> getRowSums();
-	double getColSum(unsigned int col);
-	vector<double> getColSums();
+	double getRowSum(unsigned int const row) const;
+	vector<double> getRowSums() const;
+	double getColSum(unsigned int const col) const;
+	vector<double> getColSums() const;
 
 	void inverse();
-	double determinant();
+	double determinant() const;
 
 	void luDecomposition();
 	Matrix luEvaluate(Matrix &a);
-	void print();
+	void print() const;
 
 
 private:

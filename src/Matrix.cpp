@@ -39,27 +39,27 @@ void Matrix::identity()
 	setDiag(1.0);
 }
 
-void Matrix::set(vector<vector<double> > x)
+void Matrix::set(vector<vector<double> > const &x)
 {
 	for (unsigned int i = 0; i < _dim; i++)
 		for (unsigned int j = 0; j < _dim; j++)
 			_m[i][j] = x[i][j];
 }
 
-void Matrix::set(vector<double> x)
+void Matrix::set(vector<double> const &x)
 {
 	for (unsigned int i = 0; i < _dim; i++)
 		for (unsigned int j = 0; j < _dim; j++)
 			_m[i][j] = x[i * _dim + j];
 }
 
-void Matrix::setDiag(double x)
+void Matrix::setDiag(double const x)
 {
 	for (unsigned int i = 0; i < _dim; i++)
 		_m[i][i] = x;
 }
 
-void Matrix::setDiag(vector<double> &x)
+void Matrix::setDiag(vector<double> const &x)
 {
 	if (x.size() != _dim)
 		throw("Matrix::setDiag() vector length does not correspond to matrix dimension");
@@ -69,20 +69,20 @@ void Matrix::setDiag(vector<double> &x)
 }
 
 
-void Matrix::setOffDiag(double x)
+void Matrix::setOffDiag(double const x)
 {
 	for (unsigned int i = 0; i < _dim; i++)
 		for (unsigned int j = 0; j < _dim; j++)
 			if (i != j) _m[i][j] = x;
 }
 
-void Matrix::setRow(unsigned int row, vector<double> x)
+void Matrix::setRow(unsigned int const row, vector<double> const &x)
 {
 	for (unsigned int j = 0; j < _dim; j++)
 		_m[row][j] = x[j];
 }
 
-void Matrix::setCol(unsigned int col, vector<double> x)
+void Matrix::setCol(unsigned int const col, vector<double> const &x)
 {
 	for (unsigned int i = 0; i < _dim; i++)
 		_m[i][col] = x[i];
@@ -100,7 +100,7 @@ void Matrix::update(Matrix& x)
 			_m[i][j] = _m[i][j] / sum;
 }
 
-double Matrix::getRowSum(unsigned int row)
+double Matrix::getRowSum(unsigned int const row) const
 {
 	double sum = .0;
 	for (unsigned int i = 0; i < _dim; i++)
@@ -108,7 +108,7 @@ double Matrix::getRowSum(unsigned int row)
 	return sum;
 }
 
-vector<double> Matrix::getRowSums()
+vector<double> Matrix::getRowSums() const
 {
 	vector<double> rowSums;
 	for (unsigned int i = 0; i < _dim; i++)
@@ -117,7 +117,7 @@ vector<double> Matrix::getRowSums()
 	return rowSums;
 }
 
-double Matrix::getColSum(unsigned int col)
+double Matrix::getColSum(unsigned int col) const
 {
 	double sum = .0;
 	for (unsigned int i = 0; i < _dim; i++)
@@ -125,7 +125,7 @@ double Matrix::getColSum(unsigned int col)
 	return sum;
 }
 
-vector<double> Matrix::getColSums()
+vector<double> Matrix::getColSums() const
 {
 	vector<double> colSums;
 	for (unsigned int i = 0; i < _dim; i++)
@@ -143,7 +143,7 @@ void Matrix::inverse()
 	_m = X._m;
 }
 
-double Matrix::determinant()
+double Matrix::determinant() const
 {
 	double det = 0;
 	if (_dim == 2)
@@ -238,7 +238,7 @@ Matrix Matrix::luEvaluate(Matrix &b)
   return x;
 }
 
-void Matrix::print()
+void Matrix::print() const
 {
 	cout.precision(8);
 	for (unsigned int i = 0; i < _dim; i++)

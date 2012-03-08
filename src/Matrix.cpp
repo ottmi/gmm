@@ -14,17 +14,15 @@ Matrix::~Matrix()
 	// TODO Auto-generated destructor stub
 }
 
-double& Matrix::operator() (unsigned row, unsigned col)
+double& Matrix::operator()(unsigned row, unsigned col)
 {
-	if (row >= _dim || col >= _dim)
-		throw (string("Matrix subscript out of bounds"));
+	if (row >= _dim || col >= _dim) throw(string("Matrix subscript out of bounds"));
 	return _m[row][col];
 }
 
-double Matrix::operator() (unsigned row, unsigned col) const
+double Matrix::operator()(unsigned row, unsigned col) const
 {
-	if (row >= _dim || col >= _dim)
-		throw (string("Matrix subscript out of bounds"));
+	if (row >= _dim || col >= _dim) throw(string("Matrix subscript out of bounds"));
 	return _m[row][col];
 }
 
@@ -127,32 +125,42 @@ double Matrix::determinant()
 		/* Perform Crout's LU decomposition, the determinant will be the product
 		 * of the diagonal of the lower triangular matrix L */
 		det = 1;
-		vector<vector<double> > lu(_dim, vector<double>(_dim));
+		Matrix lu(*this);
+
 		for (unsigned int i = 0; i < _dim; i++)
-		{
-			for (unsigned int j = i; j < _dim; j++)
-			{
-				double sum = 0.;
-				for (unsigned int k = 0; k < i; k++)
-					sum += lu[j][k] * lu[k][i];
-				lu[j][i] = _m[j][i] - sum;
-			}
-
-			if (lu[i][i] == 0) return .0;
-
-			for (unsigned int j = i + 1; j < _dim; j++)
-			{
-				double sum = 0.;
-				for (unsigned int k = 0; k < i; k++)
-					sum += lu[i][k] * lu[k][j];
-				lu[i][j] = (_m[i][j] - sum) / lu[i][i];
-			}
-
-			det *= lu[i][i];
-		}
+			if (lu(i, i) == .0)
+				return .0;
+			else
+				det *= lu(i, i);
 	}
 
 	return det;
+}
+
+void Matrix::luDecomposition()
+{
+	// This uses Crout's algorithm, L will be a lower triangular matrix and U a unit upper triangular matrix
+	// The diagonal of the returned matrix belongs to L
+	vector<vector<double> > lu(_dim, vector<double>(_dim));
+	for (unsigned int i = 0; i < _dim; i++)
+	{
+		for (unsigned int j = i; j < _dim; j++)
+		{
+			double sum = 0.;
+			for (unsigned int k = 0; k < i; k++)
+				sum += lu[j][k] * lu[k][i];
+			lu[j][i] = _m[j][i] - sum;
+		}
+
+		for (unsigned int j = i + 1; j < _dim; j++)
+		{
+			double sum = 0.;
+			for (unsigned int k = 0; k < i; k++)
+				sum += lu[i][k] * lu[k][j];
+			lu[i][j] = (_m[i][j] - sum) / lu[i][i];
+		}
+	}
+	_m = lu;
 }
 
 void Matrix::print()

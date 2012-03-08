@@ -25,6 +25,7 @@ public:
 
 	double determinant();
 
+	void luDecomposition();
 	void print();
 
 

@@ -11,6 +11,7 @@ public:
 	virtual ~Matrix();
 	double& operator() (unsigned row, unsigned col);
 	double  operator() (unsigned row, unsigned col) const;
+	Matrix operator*(Matrix const &m) const;
 
 	void zero();
 	void identity();

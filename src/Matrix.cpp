@@ -27,6 +27,22 @@ double Matrix::operator()(unsigned row, unsigned col) const
 	return _m[row][col];
 }
 
+Matrix Matrix::operator*(Matrix const &m) const
+{
+	if (_dim != m._dim) throw("Matrix::operator*() Matrix dimensions do not match (" + str(_dim) + " vs. " + str(m._dim) + ")");
+	Matrix p(_dim);
+
+	for (unsigned int row = 0; row < _dim; row++)
+		for (unsigned int col = 0; col < _dim; col++)
+		{
+			p(row, col) = 0;
+			for (unsigned int i = 0; i < _dim; i++)
+				p(row, col) += _m[row][i] * m(i, col);
+		}
+
+	return p;
+}
+
 void Matrix::zero()
 {
 	for (unsigned int i = 0; i < _dim; i++)

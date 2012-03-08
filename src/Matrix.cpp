@@ -98,12 +98,30 @@ double Matrix::getRowSum(unsigned int row)
 	return sum;
 }
 
+vector<double> Matrix::getRowSums()
+{
+	vector<double> rowSums;
+	for (unsigned int i = 0; i < _dim; i++)
+		rowSums.push_back(getRowSum(i));
+
+	return rowSums;
+}
+
 double Matrix::getColSum(unsigned int col)
 {
 	double sum = .0;
 	for (unsigned int i = 0; i < _dim; i++)
 		sum += _m[i][col];
 	return sum;
+}
+
+vector<double> Matrix::getColSums()
+{
+	vector<double> colSums;
+	for (unsigned int i = 0; i < _dim; i++)
+		colSums.push_back(getColSum(i));
+
+	return colSums;
 }
 
 void Matrix::inverse()

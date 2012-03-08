@@ -24,7 +24,9 @@ public:
 	void update(Matrix& x);
 
 	double getRowSum(unsigned int row);
+	vector<double> getRowSums();
 	double getColSum(unsigned int col);
+	vector<double> getColSums();
 
 	void inverse();
 	double determinant();

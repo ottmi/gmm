@@ -106,6 +106,15 @@ double Matrix::getColSum(unsigned int col)
 	return sum;
 }
 
+void Matrix::inverse()
+{
+	Matrix I(_dim);
+	I.identity();
+	luDecomposition();
+	Matrix X = luEvaluate(I);
+	_m = X._m;
+}
+
 double Matrix::determinant()
 {
 	double det = 0;

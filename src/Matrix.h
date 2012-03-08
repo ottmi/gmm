@@ -9,6 +9,8 @@ class Matrix
 public:
 	Matrix(unsigned int dim);
 	virtual ~Matrix();
+	double& operator() (unsigned row, unsigned col);
+	double  operator() (unsigned row, unsigned col) const;
 	void zero();
 	void set(vector< vector<double> > m);
 	void set(vector<double> m);
@@ -16,10 +18,8 @@ public:
 	void setOffDiag(double x);
 	void setRow(unsigned int row, vector<double> m);
 	void setCol(unsigned int col, vector<double> m);
-	void setEntry(unsigned int row, unsigned int col, double x);
 	void update(Matrix& x);
 
-	double getEntry(unsigned int row, unsigned int col);
 	double getRowSum(unsigned int row);
 	double getColSum(unsigned int col);
 

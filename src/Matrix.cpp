@@ -14,6 +14,20 @@ Matrix::~Matrix()
 	// TODO Auto-generated destructor stub
 }
 
+double& Matrix::operator() (unsigned row, unsigned col)
+{
+	if (row >= _dim || col >= _dim)
+		throw (string("Matrix subscript out of bounds"));
+	return _m[row][col];
+}
+
+double Matrix::operator() (unsigned row, unsigned col) const
+{
+	if (row >= _dim || col >= _dim)
+		throw (string("Matrix subscript out of bounds"));
+	return _m[row][col];
+}
+
 void Matrix::zero()
 {
 	for (unsigned int i = 0; i < _dim; i++)
@@ -60,26 +74,16 @@ void Matrix::setCol(unsigned int col, vector<double> x)
 		_m[i][col] = x[i];
 }
 
-void Matrix::setEntry(unsigned int row, unsigned int col, double x)
-{
-	_m[row][col] = x;
-}
-
 void Matrix::update(Matrix& x)
 {
 	double sum = 0;
 	for (unsigned int i = 0; i < _dim; i++)
 		for (unsigned int j = 0; j < _dim; j++)
-			sum += x.getEntry(i, j);
+			sum += _m[i][j];
 
 	for (unsigned int i = 0; i < _dim; i++)
 		for (unsigned int j = 0; j < _dim; j++)
-			_m[i][j] = x.getEntry(i, j) / sum;
-}
-
-double Matrix::getEntry(unsigned int row, unsigned int col)
-{
-	return _m[row][col];
+			_m[i][j] = _m[i][j] / sum;
 }
 
 double Matrix::getRowSum(unsigned int row)

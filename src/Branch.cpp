@@ -209,11 +209,11 @@ void Branch::computeUpdatedQ(unsigned int numOfSites, vector<unsigned int> &patt
 	double sum = 0;
 	for (unsigned int row = 0; row < charStates; row++)
 		for (unsigned int col = 0; col < charStates; col++)
-			sum += _updatedQ->getEntry(row, col) * numOfSites;
+			sum += (*_updatedQ)(row, col) * numOfSites;
 
 	for (unsigned int row = 0; row < charStates; row++)
 		for (unsigned int col = 0; col < charStates; col++)
-			_updatedQ->setEntry(row, col, _updatedQ->getEntry(row, col) * numOfSites / sum);
+			(*_updatedQ)(row, col) = (*_updatedQ)(row, col) * numOfSites / sum;
 
 }
 
@@ -222,7 +222,7 @@ bool Branch::updateQ(double qDelta)
 	double sum = 0;
 	for (unsigned int row = 0; row < charStates; row++)
 		for (unsigned int col = 0; col < charStates; col++)
-			sum += pow(_q->getEntry(row, col) - _updatedQ->getEntry(row, col), 2);
+			sum += pow((*_q)(row, col) - (*_updatedQ)(row, col), 2);
 
 	delete _q;
 	_q = _updatedQ;
@@ -364,7 +364,7 @@ void Branch::updateQIntToInt(unsigned int numOfSites, vector<unsigned int> &patt
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		for (unsigned int childBase = 0; childBase < charStates; childBase++)
-			_updatedQ->setEntry(parentBase, childBase, sum[0][parentBase][childBase] / numOfSites);
+			(*_updatedQ)(parentBase, childBase) = sum[0][parentBase][childBase] / numOfSites;
 }
 
 double Branch::computeValuesIntToLeaf(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
@@ -455,7 +455,7 @@ void Branch::updateQIntToLeaf(unsigned int numOfSites, vector<unsigned int> &pat
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int parentBase = 0; parentBase < charStates; parentBase++)
 		for (unsigned int childBase = 0; childBase < charStates; childBase++)
-			_updatedQ->setEntry(parentBase, childBase, sum[0][parentBase][childBase] / numOfSites);
+			(*_updatedQ)(parentBase, childBase) = sum[0][parentBase][childBase] / numOfSites;
 }
 
 double Branch::computeValuesRootToInt(vector<unsigned int> &patternCount, vector<unsigned int> &invarSites, unsigned int invarStart)
@@ -541,14 +541,14 @@ void Branch::updateQRootToInt(unsigned int numOfSites, vector<unsigned int> &pat
 	_updatedQ = new Matrix(charStates);
 	for (unsigned int rootBase = 0; rootBase < charStates; rootBase++)
 		for (unsigned int childBase = 0; childBase < charStates; childBase++)
-			_updatedQ->setEntry(rootBase, childBase, sum[0][rootBase][childBase] / numOfSites);
+			(*_updatedQ)(rootBase, childBase) = sum[0][rootBase][childBase] / numOfSites;
 }
 
 /* This method computes the conditional probability P(x2|x1) */
 double Branch::pX1X2(unsigned int parent, unsigned int child)
 {
 	double marginalProb = _q->getRowSum(parent);
-	double condProb = _q->getEntry(parent, child) / marginalProb;
+	double condProb = (*_q)(parent, child) / marginalProb;
 
 	return condProb;
 }
@@ -699,7 +699,7 @@ double* Branch::pSiX2(unsigned int numOfSites)
 
 double Branch::getProb(unsigned int from, unsigned int to)
 {
-	return _q->getEntry(from, to);
+	return (*_q)(from, to);
 }
 
 double Branch::getMarginalProbRow(unsigned int row)

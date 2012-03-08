@@ -1,4 +1,5 @@
 #include "Matrix.h"
+#include "helper.h"
 #include <iostream>
 #include <iomanip>
 
@@ -16,13 +17,13 @@ Matrix::~Matrix()
 
 double& Matrix::operator()(unsigned row, unsigned col)
 {
-	if (row >= _dim || col >= _dim) throw(string("Matrix subscript out of bounds"));
+	if (row >= _dim || col >= _dim) throw("Matrix::operator(" + str(row) + "," + str(col) + " subscript out of bounds");
 	return _m[row][col];
 }
 
 double Matrix::operator()(unsigned row, unsigned col) const
 {
-	if (row >= _dim || col >= _dim) throw(string("Matrix subscript out of bounds"));
+	if (row >= _dim || col >= _dim) throw("Matrix::operator(" + str(row) + "," + str(col) + " subscript out of bounds");
 	return _m[row][col];
 }
 
@@ -41,13 +42,22 @@ void Matrix::identity()
 
 void Matrix::set(vector<vector<double> > const &x)
 {
+	if (x.size() != _dim)
+		throw("Matrix::set() Vector length of " + str(x.size()) + " does not match matrix dimension of " + str(_dim));
 	for (unsigned int i = 0; i < _dim; i++)
+	{
+		if (x[i].size() != _dim)
+			throw("Matrix::set(" + str(i) + ") Vector length of " + str(x[i].size()) + " does not match matrix dimension of " + str(_dim));
 		for (unsigned int j = 0; j < _dim; j++)
 			_m[i][j] = x[i][j];
+	}
 }
 
 void Matrix::set(vector<double> const &x)
 {
+	if (x.size() != _dim*_dim)
+		throw("Matrix::set() Vector length of " + str(x.size()) + " does not match matrix dimension of " + str(_dim));
+
 	for (unsigned int i = 0; i < _dim; i++)
 		for (unsigned int j = 0; j < _dim; j++)
 			_m[i][j] = x[i * _dim + j];
@@ -62,7 +72,7 @@ void Matrix::setDiag(double const x)
 void Matrix::setDiag(vector<double> const &x)
 {
 	if (x.size() != _dim)
-		throw("Matrix::setDiag() vector length does not correspond to matrix dimension");
+		throw("Matrix::setDiag() Vector length of " + str(x.size()) + " does not match matrix dimension of " + str(_dim));
 
 	for (unsigned int i = 0; i < _dim; i++)
 		_m[i][i] = x[i];
@@ -78,18 +88,27 @@ void Matrix::setOffDiag(double const x)
 
 void Matrix::setRow(unsigned int const row, vector<double> const &x)
 {
+	if (row >= _dim) throw("Matrix::setRow(" + str(row) + ") subscript out of bounds");
+  if (x.size() != _dim)
+		throw("Matrix::setRow() Vector length of " + str(x.size()) + " does not match matrix dimension of " + str(_dim));
+
 	for (unsigned int j = 0; j < _dim; j++)
 		_m[row][j] = x[j];
 }
 
 void Matrix::setCol(unsigned int const col, vector<double> const &x)
 {
+	if (col >= _dim) throw("Matrix::setCol(" + str(col) + ") subscript out of bounds");
+	if (x.size() != _dim)
+		throw("Matrix::setCol() Vector length of " + str(x.size()) + " does not match matrix dimension of " + str(_dim));
+
 	for (unsigned int i = 0; i < _dim; i++)
 		_m[i][col] = x[i];
 }
 
 double Matrix::getRowSum(unsigned int const row) const
 {
+	if (row >= _dim) throw("Matrix::getRowSum(" + str(row) + ") subscript out of bounds");
 	double sum = .0;
 	for (unsigned int i = 0; i < _dim; i++)
 		sum += _m[row][i];
@@ -107,6 +126,7 @@ vector<double> Matrix::getRowSums() const
 
 double Matrix::getColSum(unsigned int col) const
 {
+	if (col >= _dim) throw("Matrix::getColSum(" + str(col) + ") subscript out of bounds");
 	double sum = .0;
 	for (unsigned int i = 0; i < _dim; i++)
 		sum += _m[i][col];

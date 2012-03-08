@@ -33,6 +33,12 @@ void Matrix::zero()
 			_m[i][j] = .0;
 }
 
+void Matrix::identity()
+{
+	zero();
+	setDiag(1.0);
+}
+
 void Matrix::set(vector<vector<double> > x)
 {
 	for (unsigned int i = 0; i < _dim; i++)

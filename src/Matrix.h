@@ -11,7 +11,10 @@ public:
 	virtual ~Matrix();
 	double& operator() (unsigned row, unsigned col);
 	double  operator() (unsigned row, unsigned col) const;
+
 	void zero();
+	void identity();
+
 	void set(vector< vector<double> > m);
 	void set(vector<double> m);
 	void setDiag(double x);

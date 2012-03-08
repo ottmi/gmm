@@ -59,6 +59,16 @@ void Matrix::setDiag(double x)
 		_m[i][i] = x;
 }
 
+void Matrix::setDiag(vector<double> &x)
+{
+	if (x.size() != _dim)
+		throw("Matrix::setDiag() vector length does not correspond to matrix dimension");
+
+	for (unsigned int i = 0; i < _dim; i++)
+		_m[i][i] = x[i];
+}
+
+
 void Matrix::setOffDiag(double x)
 {
 	for (unsigned int i = 0; i < _dim; i++)

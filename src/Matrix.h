@@ -18,6 +18,7 @@ public:
 	void set(vector< vector<double> > m);
 	void set(vector<double> m);
 	void setDiag(double x);
+	void setDiag(vector<double> &x);
 	void setOffDiag(double x);
 	void setRow(unsigned int row, vector<double> m);
 	void setCol(unsigned int col, vector<double> m);

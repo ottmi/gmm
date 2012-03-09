@@ -28,7 +28,7 @@ public:
 	void readNewick(Alignment *alignment, Options &options);
 	double getLogLH();
 	void computeLH();
-	void updateModel(double qDelta, double betaDelta);
+	void updateModel(double qDelta, double betaDelta, bool thorough = false);
 
 	void printBranches();
 	void printNodes();

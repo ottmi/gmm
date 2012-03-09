@@ -49,7 +49,6 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 		{
 			Tree t = *it;
 			t.updateModel(options.cutOff, options.cutOff);
-			t.computeLH();
 			if (t > bestTree)
 			{
 				if (t.getLogLH() - bestTree.getLogLH() > options.cutOff) improved = true;
@@ -62,8 +61,7 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 		round++;
 		cout << "\r  Best tree: " << fixed << setprecision(6) << bestTree.getLogLH() << " (out of " << count << " considered)                                 " << endl;
 	}
-	bestTree.updateModel(options.cutOff, options.cutOff);
-	bestTree.computeLH();
+	bestTree.updateModel(options.cutOff, options.cutOff, true);
 
 	cout << endl << "Best tree found: " << fixed << setprecision(10) << bestTree.getLogLH() << " (out of " << total << " considered)" << endl;
 	tree = bestTree;

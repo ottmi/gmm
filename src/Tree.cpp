@@ -8,6 +8,7 @@
 #include <vector>
 #include <sstream>
 #include <map>
+#include <cmath>
 
 Tree::Tree()
 {
@@ -324,12 +325,14 @@ void Tree::computeLH()
 	_logLH = _branches[0]->computeLH(_alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
 }
 
-void Tree::updateModel(double qDelta, double betaDelta)
+void Tree::updateModel(double qDelta, double betaDelta, bool thorough)
 {
-	unsigned int updates = 1;
+	unsigned int updates;
+	double prevLH;
 
-	while (updates > 0)
+	do
 	{
+		prevLH  = getLogLH();
 		for (unsigned int i = 0; i < _branches.size(); i++)
 			_branches[i]->computeUpdatedQ(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart());
 
@@ -341,7 +344,8 @@ void Tree::updateModel(double qDelta, double betaDelta)
 			if (_branches[i]->updateParameters(_alignment->getNumOfSites(), _alignment->getPatternCount(), _alignment->getInvarSites(), _alignment->getInvarStart(),
 					betaDelta)) updates++;
 		}
-	}
+		computeLH();
+	} while (updates > 0 || (thorough && fabs(prevLH - getLogLH()) > 0.1));
 }
 
 void Tree::printNodes()

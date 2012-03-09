@@ -152,8 +152,7 @@ int main(int argc, char **argv)
 
 		if (options.evaluateOnly)
 		{
-			tree.updateModel(options.cutOff, options.cutOff);
-			tree.computeLH();
+			tree.updateModel(options.cutOff, options.cutOff, true);
 			cout << "logLH: " << fixed << setprecision(10) << tree.getLogLH() << endl;
 		} else
 		{

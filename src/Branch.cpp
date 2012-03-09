@@ -141,7 +141,18 @@ string Branch::getIdent()
 
 double Branch::getLength()
 {
-	return -0.25 * log(_q->determinant());
+	/*
+	 * This computes the branch length using paralinear distances:
+	 * J. A. Lake: "Reconstructing evolutionary trees from DNA and protein sequences: paralinear distances", 1994
+	 */
+
+	Matrix D1(charStates);
+	D1.setDiag(_q->getRowSums());
+
+	Matrix D2(charStates);
+	D2.setDiag(_q->getColSums());
+
+	return -1 * log(_q->determinant() / (sqrt(D1.determinant()) * sqrt(D2.determinant())));
 }
 
 void Branch::unlinkNode(Node *node)

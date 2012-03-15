@@ -2,6 +2,7 @@
 #include "Tree.h"
 #include "Alignment.h"
 #include "Optimizer.h"
+#include "helper.h"
 #include <string>
 #include <sstream>
 #include <stdlib.h>
@@ -127,7 +128,8 @@ int main(int argc, char **argv)
 	cout << "DEBUG|";
 #endif
 
-	cout << PROGDATE << endl << endl;;
+	cout << PROGDATE << endl << endl;
+	;
 
 	Options options;
 
@@ -137,30 +139,52 @@ int main(int argc, char **argv)
 	signal(SIGINT, cancellationHandler);
 	signal(SIGTERM, cancellationHandler);
 
+	ifstream treeFileReader;
+	vector<string> treeStrings;
+	if (options.inputTree.find(';') == string::npos)
+	{
+		treeFileReader.open(options.inputTree.c_str());
+		if (!treeFileReader.is_open()) throw("Cannot open file " + options.inputTree);
+		while (!treeFileReader.eof())
+		{
+			string s;
+			safeGetline(treeFileReader, s);
+			if (s.find(';') != string::npos)
+				treeStrings.push_back(s);
+		}
+		treeFileReader.close();
+	} else
+		treeStrings.push_back(options.inputTree);
+
+
 	Alignment alignment;
 	try
 	{
 		alignment.read(options.alignment, options.alignmentGrouping);
 
-		Tree tree;
-		tree.readNewick(&alignment, options);
-		if (verbose >= 2)
+		for (unsigned int i = 0; i < treeStrings.size(); i++)
 		{
-			tree.printNodes();
-			tree.printBranches();
-		}
+			cout << endl << "Processing tree " << i +1 << "/" << treeStrings.size() << endl;
+			Tree tree;
+			tree.readNewick(&alignment, treeStrings[i], options);
+			if (verbose >= 2)
+			{
+				tree.printNodes();
+				tree.printBranches();
+			}
 
-		if (options.evaluateOnly)
-		{
-			tree.updateModel(options.cutOff, options.cutOff, true);
-			cout << "logLH: " << fixed << setprecision(10) << tree.getLogLH() << endl;
-		} else
-		{
-			Optimizer optimizer;
-			optimizer.rearrange(tree, options);
-		}
+			if (options.evaluateOnly)
+			{
+				tree.updateModel(options.cutOff, options.cutOff, true);
+				cout << "logLH: " << fixed << setprecision(10) << tree.getLogLH() << endl;
+			} else
+			{
+				Optimizer optimizer;
+				optimizer.rearrange(tree, options);
+			}
 
-		tree.print();
+			tree.print();
+		}
 	} catch (string& s)
 	{
 		cerr << s << endl;

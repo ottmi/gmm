@@ -40,7 +40,6 @@ void Alignment::read(string fileName, unsigned int grouping)
 	compress(grouping);
 	cout << "There are " << getNumOfUniqueSites() << " unique sites, " << _invarSites.size() << " of which are invariant." << endl;
 	if (_ambiguousSites) cout << _ambiguousSites << " sites contain invalid or ambiguous characters and have therefore been ignored." << endl;
-	cout << endl;
 }
 
 int Alignment::find(string name)

@@ -25,7 +25,7 @@ public:
 	bool operator<=(Tree const &tree) const;
 	Tree& operator= (Tree const &tree);
 
-	void readNewick(Alignment *alignment, Options &options);
+	void readNewick(Alignment *alignment, string treeString, Options &options);
 	double getLogLH();
 	void computeLH();
 	void updateModel(double qDelta, double betaDelta, bool thorough = false);

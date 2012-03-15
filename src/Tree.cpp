@@ -130,24 +130,11 @@ void Tree::copy(Tree const &tree)
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;
 }
 
-void Tree::readNewick(Alignment *alignment, Options &options)
+void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 {
-	_alignment = alignment;
-
-	string treeString;
-	if (options.inputTree.find(';') == string::npos)
-	{
-		ifstream fileReader;
-		fileReader.open(options.inputTree.c_str());
-		if (!fileReader.is_open()) throw("Cannot open file " + options.inputTree);
-
-		safeGetline(fileReader, treeString);
-		fileReader.close();
-	} else
-		treeString = options.inputTree;
-
 	cout << "Tree: " << treeString << endl;
 
+	_alignment = alignment;
 	unsigned int i = 0;
 	unsigned int nodeCount = 0;
 	Node *prevInternalNode, *currentNode;

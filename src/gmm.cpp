@@ -10,6 +10,9 @@
 #include <iomanip>
 #include <csignal>
 #include <unistd.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace std;
 
@@ -121,16 +124,19 @@ int main(int argc, char **argv) {
 #endif
 
 	cout << PROGDATE << endl << endl;
-	;
 
 	Options options;
-
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
 		return ret;
 
 	signal(SIGINT, cancellationHandler);
 	signal(SIGTERM, cancellationHandler);
+
+#ifdef _OPENMP
+	cout << "Running in parallel on " << omp_get_max_threads() << " Threads" << endl << endl;
+#endif
+
 
 	ifstream treeFileReader;
 	vector<string> treeStrings;

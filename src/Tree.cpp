@@ -256,8 +256,12 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 			{
 				cout << "The BH+I model requires the root to be placed at a leaf node, picking " << _root->getIdent() << " as root." << endl;
 				_root->reroot(NULL);
-			} else
-				throw(string("The BH+I model requires the root to placed at a leaf node, but this node has no leaves as children."));
+			} else {
+				cout << "Arbitrarily picking leaf node " << _leaves[0]->getIdent() << " as root." << endl;
+				_root = _leaves[0];
+				_root->reroot(NULL);
+//				throw(string("The BH+I model requires the root to placed at a leaf node, but this node has no leaves as children."));
+			}
 		}
 		_unrooted = true;
 	}

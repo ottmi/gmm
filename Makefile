@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS  = -Wall -g -gdwarf-2 -O0
-LDFLAGS = -lm -fopenmp
+CXXFLAGS  = -Wall -g -O2
+LDFLAGS = -lm
 
 VERSION := $(shell awk '/VERSION/ {print $$3}' src/globals.h| sed 's/\"\(.*\)\"/\1/')
 MODULES := Alignment.o Branch.o Matrix.o Node.o Optimizer.o Tree.o helper.o gmm.o

@@ -28,6 +28,7 @@ public:
 
 	string toString(Node *parent = NULL);
 	Node* getParent();
+    int getChildCount();
 	Node *getChild(int num);
 
 	Branch* getNeighbourBranch(Node *neighbour);
@@ -39,6 +40,7 @@ public:
 	void getDescendantBranches(Node *parent, vector<int> &branches);
 
 	bool isLeaf() { return _isLeaf; };
+    void setLeaf() { _isLeaf = true; };
 
 	unsigned int getBase(unsigned int position);
 	unsigned int* getSequence();

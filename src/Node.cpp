@@ -8,7 +8,7 @@
 Node::Node(int id)
 {
 	_id = id;
-	_isLeaf = false; // this will be set to true in setSequence()
+	_isLeaf = false;
 }
 
 Node::~Node()
@@ -18,7 +18,6 @@ Node::~Node()
 void Node::setSequence(unsigned int* seq)
 {
 	_seq = seq;
-	_isLeaf = true;
 }
 
 vector<Node*> Node::getTraversal(Node *parent)
@@ -158,6 +157,9 @@ Node* Node::getParent()
 	}
 }
 
+int Node::getChildCount() {
+  return _branches.size() - 1;
+}
 Node* Node::getChild(int num)
 {
 	if ((int) _branches.size() > num)

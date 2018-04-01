@@ -130,6 +130,36 @@ void Tree::copy(Tree const &tree)
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;
 }
 
+void Tree::removeNode(Node *node) {
+  if (node->isLeaf()) {
+    vector<Node*>::iterator it = _leaves.begin();
+    while (it != _leaves.end() && *it != node) {
+      it++;
+    }
+    if (*it == node) {
+      _leaves.erase(it);
+    }
+  } else {
+    vector<Node*>::iterator it = _internalNodes.begin();
+    while (it != _internalNodes.end() && *it != node) {
+      it++;
+    }
+    if (*it == node) {
+      _internalNodes.erase(it);
+    }
+  }
+}
+
+void Tree::removeBranch(Branch *branch) {
+  vector<Branch*>::iterator it = _branches.begin();
+  while (it != _branches.end() && *it != branch) {
+    it++;
+  }
+  if (*it == branch) {
+    _branches.erase(it);
+  }
+}
+
 void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 {
 	cout << "Tree: " << treeString << endl;
@@ -179,6 +209,7 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 				}
 				leaf->setLabel(label);
 				label.clear();
+                leaf->setLeaf();
 				_leaves.push_back(leaf);
 			} else
 			{
@@ -237,33 +268,53 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 		_leaves.push_back(_root);
 		if (_internalNodes.front() == _root) _internalNodes.erase(_internalNodes.begin());
 		_unrooted = false;
-	} else if (prevInternalNode->getBranches().size() == 2)
-	{
-		cout << "This Newick representation appears to be rooted tree, rooted at the internal node " << prevInternalNode->getIdent() << "." << endl;
-		throw(string("The tree has to be either an unrooted tree or a rooted tree that is rooted at a leaf node."));
-	} else if (prevInternalNode->getBranches().size() == 3)
-	{
+    } else {
+      if (prevInternalNode->getBranches().size() == 2) {
+		cout << "This Newick representation appears to be a rooted tree, rooted at the internal node " << prevInternalNode->getIdent() << " with the single childs " << prevInternalNode->getChild(0)->getIdent() << " and " << prevInternalNode->getChild(1)->getIdent() << ". Removing node." << endl;
+        
+        Node* child0 = prevInternalNode->getChild(0);
+        Node* child1 = prevInternalNode->getChild(1);
+        Branch* child0Branch = prevInternalNode->getBranch(0);
+        Branch* child1Branch = prevInternalNode->getBranch(1);
+        child0Branch->unlinkNode(prevInternalNode); // Remove internal node from both outgoing branches
+        child1Branch->unlinkNode(prevInternalNode);
+        child1Branch->unlinkNode(child1); // Remove child node from outgoing branch
+        child0Branch->linkNode(child1); // Link child node to other branch
+        removeNode(prevInternalNode); // Remove node from the list
+        removeBranch(child1Branch); // Remove branch from list
+        delete prevInternalNode;
+        if (child0->isLeaf()) {
+          _root = child0;
+        } else if (child1->isLeaf()) {
+          _root = child1;
+        } else {
+          prevInternalNode = child0;
+        }
+        if (_root != NULL) {
+          _root->reroot(NULL);
+        }
+        _unrooted = false;
+      } else if (prevInternalNode->getBranches().size() == 3) {
 		cout << "This Newick representation appears to be an unrooted tree, rooted at the internal node " << prevInternalNode->getIdent() << "." << endl;
-		if (!options.rootNode.length())
-		{
-			vector<Branch*> branches = prevInternalNode->getBranches();
-			for (unsigned int i = 0; i < branches.size(); i++)
-			{
-				_root = branches[i]->getNeighbour(prevInternalNode);
-				if (_root->getBranches().size() == 1) break;
-			}
-			if (_root->getBranches().size() == 1)
-			{
-				cout << "The BH+I model requires the root to be placed at a leaf node, picking " << _root->getIdent() << " as root." << endl;
-				_root->reroot(NULL);
-			} else {
-				cout << "Arbitrarily picking leaf node " << _leaves[0]->getIdent() << " as root." << endl;
-				_root = _leaves[0];
-				_root->reroot(NULL);
+      }
+      if (_root == NULL && !options.rootNode.length()) {
+        vector<Branch*> branches = prevInternalNode->getBranches();
+		for (unsigned int i = 0; i < branches.size(); i++) {
+          _root = branches[i]->getNeighbour(prevInternalNode);
+          if (_root->getBranches().size() == 1)
+            break;
+        }
+        if (_root->getBranches().size() == 1) {
+          cout << "The BH+I model requires the root to be placed at a leaf node, picking " << _root->getIdent() << " as root." << endl;
+          _root->reroot(NULL);
+        } else {
+          cout << "Arbitrarily picking leaf node " << _leaves[0]->getIdent() << " as root." << endl;
+          _root = _leaves[0];
+          _root->reroot(NULL);
 //				throw(string("The BH+I model requires the root to placed at a leaf node, but this node has no leaves as children."));
-			}
-		}
-		_unrooted = true;
+        }
+      }
+      _unrooted = true;
 	}
 
 	if (options.rootNode.length())
@@ -344,8 +395,14 @@ void Tree::printNodes()
 	cout << "Internal Nodes: " << endl;
 	for (unsigned int i = 0; i < _internalNodes.size(); i++)
 	{
-		cout << _internalNodes[i]->getIdent() << " parent=" << _internalNodes[i]->getParent()->getIdent() << " child1="
-				<< _internalNodes[i]->getChild(1)->getIdent() << " child2=" << _internalNodes[i]->getChild(2)->getIdent() << endl;
+      cout << _internalNodes[i]->getIdent() << " parent=" << _internalNodes[i]->getParent()->getIdent();
+      if (_internalNodes[i]->getChildCount() >= 1) {
+        cout << " child1=" << _internalNodes[i]->getChild(1)->getIdent();
+        if (_internalNodes[i]->getChildCount() == 2) {
+          cout << " child2=" << _internalNodes[i]->getChild(2)->getIdent();
+        }
+      }
+      cout << endl;
 	}
 
 	cout << "Leaves: " << endl;

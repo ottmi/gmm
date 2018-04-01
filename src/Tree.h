@@ -25,6 +25,8 @@ public:
 	bool operator<=(Tree const &tree) const;
 	Tree& operator= (Tree const &tree);
 
+    void removeNode(Node *node);
+    void removeBranch(Branch *branch);
 	void readNewick(Alignment *alignment, string treeString, Options &options);
 	double getLogLH();
 	void computeLH();

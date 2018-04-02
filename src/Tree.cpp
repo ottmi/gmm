@@ -79,33 +79,30 @@ Tree& Tree::operator=(Tree const &tree)
 void Tree::copy(Tree const &tree)
 {
 	if (verbose >= 5) cout << "Tree::copy start" << endl;
-	vector<Node*> nodes(tree._internalNodes.size() + tree._leaves.size(), NULL);
-
+    map<int,Node*> nodes;
+  
 	_alignment = tree._alignment;
-	_internalNodes.resize(tree._internalNodes.size(), NULL);
 	for (unsigned int i = 0; i < tree._internalNodes.size(); i++)
 	{
 		Node *node = new Node(tree._internalNodes[i]->getId());
-		_internalNodes[i] = node;
-		_internalNodes[i]->setLabel(tree._internalNodes[i]->getLabel());
-		nodes[node->getId()] = node;
+		node->setLabel(tree._internalNodes[i]->getLabel());
+        _internalNodes.push_back(node);
+		nodes.insert(pair<int,Node*>(tree._internalNodes[i]->getId(), node));
 	}
 
-	_leaves.resize(tree._leaves.size(), NULL);
 	for (unsigned int i = 0; i < tree._leaves.size(); i++)
 	{
 		Node *node = new Node(tree._leaves[i]->getId());
 		node->setSequence(tree._leaves[i]->getSequence());
 		node->setLabel(tree._leaves[i]->getLabel());
-		_leaves[i] = node;
-		nodes[node->getId()] = node;
+        node->setLeaf();
+		_leaves.push_back(node);
+        nodes.insert(pair<int,Node*>(tree._leaves[i]->getId(), node));
 	}
 
-	_branches.resize(tree._branches.size(), NULL);
 	unsigned int links = 0;
 	for (unsigned int i = 0; i < tree._branches.size(); i++)
 	{
-		int id = tree._branches[i]->getId();
 		unsigned int numOfNodes = tree._branches[i]->getNumOfNodes();
 		Node *node0 = NULL;
 		Node *node1 = NULL;
@@ -120,7 +117,7 @@ void Tree::copy(Tree const &tree)
 			links++;
 		}
 		Branch *branch = new Branch(tree._branches[i], node0, node1, _alignment->getNumOfUniqueSites());
-		_branches[id] = branch;
+		_branches.push_back(branch);
 	}
 	_root = nodes[tree._root->getId()];
 	if (links == _branches.size() * 2) _root->reroot(NULL);
@@ -138,6 +135,9 @@ void Tree::removeNode(Node *node) {
     }
     if (*it == node) {
       _leaves.erase(it);
+      delete node;
+    } else {
+      cout << "Tried to delete leaf node " << node->getIdent() << " but could not find it in the list of leaves." << endl;
     }
   } else {
     vector<Node*>::iterator it = _internalNodes.begin();
@@ -146,6 +146,9 @@ void Tree::removeNode(Node *node) {
     }
     if (*it == node) {
       _internalNodes.erase(it);
+      delete node;
+    } else {
+      cout << "Tried to delete internal node " << node->getIdent() << " but could not find it in the list of internal nodes." << endl;
     }
   }
 }
@@ -157,6 +160,9 @@ void Tree::removeBranch(Branch *branch) {
   }
   if (*it == branch) {
     _branches.erase(it);
+    delete branch;
+  } else {
+    cout << "Tried to delete branch " << branch->getIdent() << " but could not find it in the list of branches." << endl;
   }
 }
 
@@ -282,7 +288,6 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
         child0Branch->linkNode(child1); // Link child node to other branch
         removeNode(prevInternalNode); // Remove node from the list
         removeBranch(child1Branch); // Remove branch from list
-        delete prevInternalNode;
         if (child0->isLeaf()) {
           _root = child0;
         } else if (child1->isLeaf()) {

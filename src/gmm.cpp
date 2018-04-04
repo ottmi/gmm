@@ -30,7 +30,7 @@ void cancellationHandler(int parameter) {
 
 void printSyntax() {
 	cout << "Syntax:" << endl;
-	cout << "  gmm -s<FILE> [-d|-c] -t<FILE> [-r<STRING>] [-e] [-x<NUM>] [-v[NUM]]" << endl;
+	cout << "  gmm -s<FILE> [-d|-c] -t<FILE|STRING> [-r<STRING>] [-e] [-x<NUM>] [-v[NUM]]" << endl;
 	cout << "  gmm -h" << endl;
 	cout << endl;
 
@@ -38,7 +38,7 @@ void printSyntax() {
 	cout << "  -s\tSequence alignment (FASTA or PHYLIP format)" << endl;
 	cout << "  -d\tTreat alignment sequences as dicodons" << endl;
 	cout << "  -c\tTreat alignment sequences as codons" << endl;
-	cout << "  -t\tInput tree" << endl;
+	cout << "  -t\tInput tree(s) (Newick format)" << endl;
 	cout << "  -r\tRoot the tree at this node (has to be a leaf)" << endl;
 	cout << "  -e\tOnly evaluate given tree topology" << endl;
 	cout << "  -x\tOptimization cutoff [default: 0.0001]" << endl;

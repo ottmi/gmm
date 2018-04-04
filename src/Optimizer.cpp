@@ -79,7 +79,7 @@ unsigned int Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTr
 			if (!tree._branches[i - 1]->getNode(j)->isLeaf())
 			{
 				Tree reducedTree = tree;
-				Branch *fromCandidate = reducedTree._branches[tree._branches[i - 1]->getId()];
+				Branch *fromCandidate = reducedTree.findBranch(tree._branches[i - 1]->getId());
 
 				vector<int> toCandidates;
 				subtreePrune(fromCandidate, fromCandidate->getNode(j), toCandidates);
@@ -90,8 +90,8 @@ unsigned int Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTr
 					for (unsigned int l = 0; l < 2; l++)
 					{
 						Tree t = reducedTree;
-						Branch *fromBranch = t._branches[fromCandidate->getId()];
-						Branch *toBranch = t._branches[toCandidates[k]];
+						Branch *fromBranch = t.findBranch(fromCandidate->getId());
+						Branch *toBranch = t.findBranch(toCandidates[k]);
 
 						if (!toBranch->getNode(l)->isLeaf())
 						{
@@ -128,7 +128,7 @@ unsigned int Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTr
 			for (unsigned int j = 0; j < 2; j++)
 			{
 				Tree t = tree;
-				Branch *b = t._branches[tree._branches[i - 1]->getId()];
+				Branch *b = t.findBranch(tree._branches[i - 1]->getId());
 				NNI(b, j, t._root);
 				assessTree(t, cutOff, bestTrees);
 				count++;

@@ -24,14 +24,7 @@ Tree::Tree(Tree const &tree)
 
 Tree::~Tree()
 {
-	for (unsigned int i = 0; i < _leaves.size(); i++)
-		delete _leaves[i];
-
-	for (unsigned int i = 0; i < _internalNodes.size(); i++)
-		delete _internalNodes[i];
-
-	for (unsigned int i = 0; i < _branches.size(); i++)
-		delete _branches[i];
+    clean();
 }
 
 bool Tree::operator==(Tree const &tree) const
@@ -71,9 +64,32 @@ bool Tree::operator<=(Tree const &tree) const
 
 Tree& Tree::operator=(Tree const &tree)
 {
-	if (this != &tree) copy(tree);
+  if (this != &tree) {
+      clean();
+      copy(tree);
+    }
 
 	return *this;
+}
+
+void Tree::clean() {
+  _root = NULL;
+  _unrooted = false;
+
+  for (unsigned int i = 0; i < _leaves.size(); i++)
+    delete _leaves[i];
+  _leaves.clear();
+
+  for (unsigned int i = 0; i < _internalNodes.size(); i++)
+    delete _internalNodes[i];
+  _internalNodes.clear();
+
+  for (unsigned int i = 0; i < _branches.size(); i++)
+    delete _branches[i];
+  _branches.clear();
+
+  _alignment = NULL;
+  _logLH = 0;
 }
 
 void Tree::copy(Tree const &tree)
@@ -163,6 +179,19 @@ void Tree::removeBranch(Branch *branch) {
     delete branch;
   } else {
     cout << "Tried to delete branch " << branch->getIdent() << " but could not find it in the list of branches." << endl;
+  }
+}
+
+Branch* Tree::findBranch(int id) {
+  vector<Branch*>::iterator it = _branches.begin();
+  while (it != _branches.end() && (*it)->getId() != id) {
+    it++;
+  }
+  if ((*it)->getId() == id) {
+    return *it;
+  } else {
+    cout << "Could not find branch " << id << " in the list of branches." << endl;
+    return NULL;
   }
 }
 

@@ -27,6 +27,8 @@ public:
 
     void removeNode(Node *node);
     void removeBranch(Branch *branch);
+    Branch* findBranch(int id);
+  
 	void readNewick(Alignment *alignment, string treeString, Options &options);
 	double getLogLH();
 	void computeLH();
@@ -41,6 +43,7 @@ public:
 	vector<Branch*> const& getBranches() const { return _branches; };
 
 private:
+  void clean();
 	void copy(Tree const &tree);
 
 	Node *_root;

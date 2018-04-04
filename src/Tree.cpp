@@ -210,53 +210,41 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 
 	while (i < treeString.length() && treeString[i] != ';')
 	{
-		if (treeString[i] == '(') // internal node starts
-		{
-			if (verbose >= 5) cout << "Internal Node #" << _internalNodes.size() << " starts" << endl;
-			if (currentNode)
-			{
-				Node *newNode = new Node(nodeCount++);
-				Branch *branch = new Branch(nodeCount - 2, currentNode, newNode);
-				currentNode = newNode;
-				_branches.push_back(branch);
-			} else // there was no current node, so this is the first node, hence no branch leading into it
-			{
-				currentNode = new Node(nodeCount++);
-			}
+        if (treeString[i] == '(') { // internal node starts
+          Node *newNode = new Node(nodeCount++);
+          if (verbose >= 5)
+            cout << "Internal node " << newNode->getIdent() << " " << _internalNodes.size() + 1 << "/" << nodeCount << ") starts" << endl;
+          if (currentNode) { // current node exists, so let's link it to the new node
+                Branch *branch = new Branch(nodeCount - 2, currentNode, newNode);
+                _branches.push_back(branch);
+            }
+            currentNode = newNode;
 			_internalNodes.push_back(currentNode);
 			nextCouldBeLeaf = true;
 			i++;
-		} else if (treeString[i] == ')' || treeString[i] == ',') // node ends, could be internal or leaf
-		{
-			if (nextCouldBeLeaf)
-			{
-				if (verbose >= 5) cout << "  Leaf #" << _leaves.size() << " (" << label << ") " << distance << endl;
-
-				Node *leaf;
-				if (currentNode)
-				{
-					leaf = new Node(nodeCount++);
-					Branch *branch = new Branch(nodeCount - 2, currentNode, leaf);
-					_branches.push_back(branch);
-				} else // same as above, no node and branch yet
-				{
-					leaf = new Node(nodeCount++);
-				}
-				leaf->setLabel(label);
-				label.clear();
+        } else if (treeString[i] == ')' || treeString[i] == ',') { // node ends, could be internal or leaf
+			if (nextCouldBeLeaf) {
+                Node *leaf = new Node(nodeCount++);
+                leaf->setLabel(label);
+                label.clear();
                 leaf->setLeaf();
+                if (verbose >= 5)
+                    cout << "Leaf node " << leaf->getIdent() << " " << _leaves.size() + 1 << "/" << nodeCount << ") starts" << endl;
+                if (currentNode) { // current node exists, so let's link it to the new node
+                    Branch *branch = new Branch(nodeCount - 2, currentNode, leaf);
+                    _branches.push_back(branch);
+                }
 				_leaves.push_back(leaf);
-			} else
-			{
+			} else {
 				prevInternalNode->setLabel(label);
 				label.clear();
 //				Branch *branch = prevInternalNode->getBranch(0);
 //				branch->setDistance(distance);
 			}
 
-			if (treeString[i] == ')') // internal node
-			{
-				if (verbose >= 5) cout << "Internal Node #" << currentNode->getId() << " ends " << endl;
+          if (treeString[i] == ')') { // internal node ends
+                if (verbose >= 5)
+                    cout << "Internal node " << currentNode->getIdent() << " " << _internalNodes.size() << "/" << nodeCount << ") ends" << endl;
 				prevInternalNode = currentNode;
 				currentNode = currentNode->getParent();
 				nextCouldBeLeaf = false;

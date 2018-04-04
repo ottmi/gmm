@@ -23,10 +23,10 @@ void Alignment::read(string fileName, unsigned int grouping)
 
 	if (!ext.compare("phy") || !ext.compare("phylip"))
 		readPhylip(fileName);
-	else if (!ext.compare("fsa") || !ext.compare("fasta"))
+	else if (!ext.compare("fsa") || !ext.compare("fst") || !ext.compare("fasta"))
 		readFasta(fileName);
 	else
-		throw(string("Unknown input alignment format"));
+		throw(string("Unknown input alignment format, only PHYLIP (.phy|.phylip) and FASTA (.fsa|.fst|.fasta) are supported."));
 	cout << "The alignment contains " << _sequences.size() << " sequences with " << _sequences[0].size() << " characters each." << endl;
 	if (_sequences[0].size() % grouping != 0)
 		throw("The alignment is supposed to be grouped into sites of " + str(grouping) + " columns each, but " + str(_sequences[0].size()) + " is not divisible by "

@@ -35,7 +35,7 @@ void printSyntax() {
 	cout << endl;
 
 	cout << "Options:" << endl;
-	cout << "  -s\tSequence alignment" << endl;
+	cout << "  -s\tSequence alignment (FASTA or PHYLIP format)" << endl;
 	cout << "  -d\tTreat alignment sequences as dicodons" << endl;
 	cout << "  -c\tTreat alignment sequences as codons" << endl;
 	cout << "  -t\tInput tree" << endl;

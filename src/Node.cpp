@@ -51,7 +51,7 @@ void Node::getDescendantBranches(Node *parent, vector<int> &branches)
 	}
 }
 
-string Node::toString(Node *parent, bool topologyOnly)
+string Node::toString(const Node *parent, bool topologyOnly) const
 {
 	stringstream ss;
 	Branch *parentBranch = NULL;

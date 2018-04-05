@@ -14,7 +14,7 @@ public:
 	virtual
 	~Branch();
 
-	Node* getNeighbour(Node *node);
+	Node* getNeighbour(const Node *node);
 	Node* getNode(unsigned int num);
 	unsigned int getNumOfNodes() { return _nodes.size(); };
 	unsigned int getId() { return _id; };

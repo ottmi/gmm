@@ -3,6 +3,7 @@
 #include "helper.h"
 #include "globals.h"
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cctype>
 #include <vector>
@@ -389,9 +390,8 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 	}
 }
 
-double Tree::getLogLH()
+double Tree::getLogLH() const
 {
-	if (_logLH == 0) computeLH();
 	return _logLH;
 }
 
@@ -453,14 +453,21 @@ void Tree::printBranches()
 	}
 }
 
-void Tree::print(bool topologyOnly)
+string Tree::toString(const bool topologyOnly) const
 {
+    stringstream ss;
 	if (_unrooted)
-      cout << _root->getBranch(0)->getNeighbour(_root)->toString(NULL, topologyOnly);
+      ss << _root->getBranch(0)->getNeighbour(_root)->toString(NULL, topologyOnly);
 	else
-      cout << _root->toString(NULL, topologyOnly);
+      ss << _root->toString(NULL, topologyOnly);
     if (!topologyOnly) {
-      cout << "[" << getLogLH() << "];";
+      ss << "[" << fixed << setprecision(6) << getLogLH() << "]";
     }
-    cout << ";" << endl;
+    ss << ";";
+    return ss.str();
+}
+
+void Tree::print()
+{
+  cout << toString(false) << endl;
 }

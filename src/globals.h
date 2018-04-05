@@ -4,7 +4,7 @@
 using namespace std;
 
 #define PROGNAME "gmm"
-#define VERSION "0.1.30"
+#define VERSION "0.1.31"
 #define PROGDATE "2018-04-05"
 
 #define _DNA_DATA				0
@@ -28,6 +28,6 @@ typedef struct opt_struct
 
 extern int verbose;
 extern unsigned int charStates;
-extern class Tree bestTree;
+//extern class Tree bestTree;
 
 #endif /* GLOBALS_H_ */

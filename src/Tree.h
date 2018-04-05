@@ -30,13 +30,14 @@ public:
     Branch* findBranch(int id);
   
 	void readNewick(Alignment *alignment, string treeString, Options &options);
-	double getLogLH();
+	double getLogLH() const;
 	void computeLH();
 	void updateModel(double qDelta, double betaDelta, bool thorough = false);
 
 	void printBranches();
 	void printNodes();
-	void print(bool topologyOnly=false);
+    string toString(const bool topologyOnly=true) const;
+	void print();
 
 	vector<Node*> const& getLeaves() const { return _leaves; };
 	vector<Node*> const& getInternalNodes() const { return _internalNodes; };

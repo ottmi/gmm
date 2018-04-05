@@ -148,6 +148,7 @@ void Tree::copy(Tree const &tree)
 	_root = nodes[tree._root->getId()];
 	if (links == _branches.size() * 2) _root->reroot(NULL);
 
+    _unrooted = tree._unrooted;
 	_logLH = tree._logLH;
 
 	if (verbose >= 5) cout << "Tree::copy finish" << endl;

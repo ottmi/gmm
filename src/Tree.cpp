@@ -29,36 +29,46 @@ Tree::~Tree()
 
 bool Tree::operator==(Tree const &tree) const
 {
-	if (_logLH == 0) throw(string("Tree::operator==() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0) throw(string("Tree::operator==() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0)
+      throw(string("Tree::operator==() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0)
+      throw(string("Tree::operator==() RHS logLH hasn't been computed yet"));
 	return (_logLH == tree._logLH);
 }
 
 bool Tree::operator>(Tree const &tree) const
 {
-	if (_logLH == 0) throw(string("Tree::operator>() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0) throw(string("Tree::operator>() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0)
+      throw(string("Tree::operator>() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0)
+      throw(string("Tree::operator>() RHS logLH hasn't been computed yet"));
 	return (_logLH > tree._logLH);
 }
 
 bool Tree::operator<(Tree const &tree) const
 {
-	if (_logLH == 0) throw(string("Tree::operator<() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0) throw(string("Tree::operator<() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0)
+      throw(string("Tree::operator<() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0)
+      throw(string("Tree::operator<() RHS logLH hasn't been computed yet"));
 	return (_logLH < tree._logLH);
 }
 
 bool Tree::operator>=(Tree const &tree) const
 {
-	if (_logLH == 0) throw(string("Tree::operator>=() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0) throw(string("Tree::operator>=() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0)
+      throw(string("Tree::operator>=() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0)
+      throw(string("Tree::operator>=() RHS logLH hasn't been computed yet"));
 	return (_logLH >= tree._logLH);
 }
 
 bool Tree::operator<=(Tree const &tree) const
 {
-	if (_logLH == 0) throw(string("Tree::operator<=() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0) throw(string("Tree::operator<=() RHS logLH hasn't been computed yet"));
+	if (_logLH == 0)
+      throw(string("Tree::operator<=() LHS logLH hasn't been computed yet"));
+	if (tree._logLH == 0)
+      throw(string("Tree::operator<=() RHS logLH hasn't been computed yet"));
 	return (_logLH <= tree._logLH);
 }
 

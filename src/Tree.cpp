@@ -452,10 +452,14 @@ void Tree::printBranches()
 	}
 }
 
-void Tree::print()
+void Tree::print(bool topologyOnly)
 {
 	if (_unrooted)
-		cout << _root->getBranch(0)->getNeighbour(_root)->toString() << "[" << getLogLH() << "];" << endl;
+      cout << _root->getBranch(0)->getNeighbour(_root)->toString(NULL, topologyOnly);
 	else
-		cout << _root->toString() << "[" << getLogLH() << "];" << endl;
+      cout << _root->toString(NULL, topologyOnly);
+    if (!topologyOnly) {
+      cout << "[" << getLogLH() << "];";
+    }
+    cout << ";" << endl;
 }

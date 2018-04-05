@@ -51,7 +51,7 @@ void Node::getDescendantBranches(Node *parent, vector<int> &branches)
 	}
 }
 
-string Node::toString(Node *parent)
+string Node::toString(Node *parent, bool topologyOnly)
 {
 	stringstream ss;
 	Branch *parentBranch = NULL;
@@ -71,15 +71,17 @@ string Node::toString(Node *parent)
 		ss << "(";
 		for (unsigned int i = 0; i < list.size() - 1; i++)
 		{
-			ss << list[i]->toString(this);
+			ss << list[i]->toString(this, topologyOnly);
 			ss << ",";
 		}
-		ss << list[list.size() - 1]->toString(this);
+		ss << list[list.size() - 1]->toString(this, topologyOnly);
 		ss << ")";
 	}
 
 	ss << _label;
-	if (parentBranch) ss << ":" << parentBranch->getLength();
+    if (parentBranch && !topologyOnly ) {
+      ss << ":" << parentBranch->getLength();
+    }
 
 	return ss.str();
 }

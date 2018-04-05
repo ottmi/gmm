@@ -26,7 +26,7 @@ public:
 	void addBranch(Branch* b);
 	void reroot(Branch *branch);
 
-	string toString(Node *parent = NULL);
+	string toString(Node *parent=NULL, bool topologyOnly=false);
 	Node* getParent();
     int getChildCount();
 	Node *getChild(int num);

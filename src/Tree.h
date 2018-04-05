@@ -36,7 +36,7 @@ public:
 
 	void printBranches();
 	void printNodes();
-	void print();
+	void print(bool topologyOnly=false);
 
 	vector<Node*> const& getLeaves() const { return _leaves; };
 	vector<Node*> const& getInternalNodes() const { return _internalNodes; };

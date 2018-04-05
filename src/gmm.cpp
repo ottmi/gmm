@@ -18,19 +18,16 @@ using namespace std;
 
 int verbose = 0;
 unsigned int charStates = 4;
-Tree bestTree;
 
 void cancellationHandler(int parameter) {
 	cout << endl << endl;
-	cout << "Program has been canceled. Current best tree:" << endl;
-	cout << "logLH: " << fixed << setprecision(10) << bestTree.getLogLH() << endl;
-	bestTree.print();
+	cout << "Program has been canceled, exiting..." << endl;
 	exit(1);
 }
 
 void printSyntax() {
 	cout << "Syntax:" << endl;
-	cout << "  gmm -s<FILE> [-d|-c] -t<FILE|STRING> [-r<STRING>] [-e] [-x<NUM>] [-v[NUM]]" << endl;
+	cout << "  gmm -s<FILE> [-d|-c] -t<FILE|STRING> [-r<STRING>] [-e] [-x<NUM>] [-b<NUM>] [-v[NUM]]" << endl;
 	cout << "  gmm -h" << endl;
 	cout << endl;
 
@@ -42,6 +39,7 @@ void printSyntax() {
 	cout << "  -r\tRoot the tree at this node (has to be a leaf)" << endl;
 	cout << "  -e\tOnly evaluate given tree topology" << endl;
 	cout << "  -x\tOptimization cutoff [default: 0.0001]" << endl;
+	cout << "  -b\tNumber of best trees to keep and print" << endl;
 	cout << "  -v\tBe increasingly verbose" << endl;
 	cout << "  -h\tThis help page" << endl;
 	cout << endl;
@@ -54,8 +52,9 @@ int parseArguments(int argc, char** argv, Options *options) {
 	options->alignmentGrouping = 1;
 	options->evaluateOnly = false;
 	options->cutOff = 0.0001;
+	options ->maxBestTrees = 0;
 
-	while ((c = getopt(argc, argv, "s:dct:r:ex:v::h")) != -1) {
+	while ((c = getopt(argc, argv, "s:dct:r:ex:b:v::h")) != -1) {
 		switch (c) {
 		case 's':
 			options->alignment = optarg;
@@ -80,6 +79,9 @@ int parseArguments(int argc, char** argv, Options *options) {
 			ss >> options->cutOff;
 			break;
 		}
+		case 'b':
+			options ->maxBestTrees = atoi(optarg);
+			break;
 		case 'v':
 			if (optarg)
 				verbose = atoi(optarg);
@@ -177,9 +179,17 @@ int main(int argc, char **argv) {
 				cout << "logLH: " << fixed << setprecision(10) << tree.getLogLH() << endl;
 			} else {
 				Optimizer optimizer;
-				optimizer.rearrange(tree, options);
+				vector<Tree> bestTrees;
+				optimizer.rearrange(tree, options, bestTrees);
+				if (options.maxBestTrees) {
+					cout << endl << "Best tree candidates:" << endl;
+					for (int i = (int) bestTrees.size()-1; i>=0; i--) {
+						cout << "  " << bestTrees.size()-i << ": " << bestTrees[i].toString(false) << endl;
+					}
+				}
+				cout << endl << "Best tree found: " << fixed << setprecision(10) << tree.getLogLH() << endl;
 			}
-
+			cout << endl;
 			tree.print();
 		} catch (string& s) {
 			cerr << s << endl;

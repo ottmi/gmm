@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <set>
 #include <ctime>
+#include <algorithm>
 #include "Optimizer.h"
 #include "helper.h"
 #include "globals.h"
@@ -20,7 +21,7 @@ Optimizer::~Optimizer()
 }
 
 #define MAX_BEST_TREES 5
-void Optimizer::rearrange(Tree &tree, Options &options)
+void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 {
 	double currentCutOff = 0.01;
 	bool improved = true;
@@ -28,46 +29,60 @@ void Optimizer::rearrange(Tree &tree, Options &options)
 
 	tree.updateModel(currentCutOff, currentCutOff);
 	tree.computeLH();
-	bestTree = tree;
-	set<Tree> bestTrees;
-	bestTrees.insert(tree);
+	bestTrees.push_back(tree);
 
 	unsigned int round = 0;
 	while (improved)
 	{
-		cout << endl << "Starting round #" << round << endl;
+		cout << endl << "Starting round #" << round << " cutoff=" << currentCutOff << endl;
 		improved = false;
 
 		unsigned int count;
 		if (round % 2 == 0)
-			count = optimizeNNI(bestTree, currentCutOff, bestTrees);
+			count = optimizeNNI(tree, currentCutOff, bestTrees, options.maxBestTrees);
 		else
-			count = optimizeSPR(bestTree, currentCutOff, bestTrees);
+			count = optimizeSPR(tree, currentCutOff, bestTrees, options.maxBestTrees);
 		total+= count;
 
-		for (set<Tree>::reverse_iterator it = bestTrees.rbegin(); it != bestTrees.rend(); it++)
-		{
-			Tree t = *it;
-			t.updateModel(options.cutOff, options.cutOff);
-			if (t > bestTree)
-			{
-				if (t.getLogLH() - bestTree.getLogLH() > options.cutOff) improved = true;
-				bestTree = t;
-			}
+		for (vector<Tree>::iterator it = bestTrees.begin(); it != bestTrees.end(); it++) {
+			it->updateModel(options.cutOff, options.cutOff);
 		}
+        sort(bestTrees.begin(), bestTrees.end());
+      
+        for (vector<Tree>::const_iterator it = bestTrees.begin(); it != bestTrees.end() - 1; it++) {
+          if (it->toString() == bestTrees.back().toString()) {
+            bestTrees.erase(it);
+          }
+        }
+
+        if (bestTrees.back() > tree)  {
+              if ((bestTrees.back().getLogLH() - tree.getLogLH() > options.cutOff) && ((round % 2 == 0) || bestTrees.back().toString() != tree.toString())) {
+                improved = true;
+              }
+              tree = bestTrees.back();
+        }
+      
 		if (currentCutOff > options.cutOff) currentCutOff /= 2;
 		if (currentCutOff < options.cutOff) currentCutOff = options.cutOff;
 
 		round++;
-		cout << "\r  Best tree: " << fixed << setprecision(6) << bestTree.getLogLH() << " (out of " << count << " considered)                                 " << endl;
+		cout << "\rBest tree: " << fixed << setprecision(6) << tree.getLogLH() << " (out of " << count << " considered)                                 " << endl;
 	}
-	bestTree.updateModel(options.cutOff, options.cutOff, true);
-
-	cout << endl << "Best tree found: " << fixed << setprecision(10) << bestTree.getLogLH() << " (out of " << total << " considered)" << endl;
-	tree = bestTree;
+	
+	if (options.maxBestTrees) {
+		cout << endl << "Final model optimization on " << bestTrees.size() << " candidate trees" << endl;
+		for (vector<Tree>::iterator it = bestTrees.begin(); it != bestTrees.end(); it++) {
+			it->updateModel(options.cutOff, options.cutOff, true);
+		}
+		sort(bestTrees.begin(), bestTrees.end());
+		tree = bestTrees.back();
+	} else {
+		cout << endl << "Final model optimization on best tree" << endl;
+		tree.updateModel(options.cutOff, options.cutOff, true);
+	}
 }
 
-unsigned int Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTrees)
+unsigned int Optimizer::optimizeSPR(Tree &tree, double cutOff, vector<Tree> &bestTrees, int maxBestTrees)
 {
 	cout << "Performing SPR moves" << endl;
 	unsigned int count = 0;
@@ -96,7 +111,7 @@ unsigned int Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTr
 						if (!toBranch->getNode(l)->isLeaf())
 						{
 							subtreeRegraft(fromBranch, fromBranch->getNode(j), toBranch, toBranch->getNode(l), t._root);
-							assessTree(t, cutOff, bestTrees);
+							assessTree(t, cutOff, bestTrees, maxBestTrees);
 							count++;
 						}
 					}
@@ -108,14 +123,14 @@ unsigned int Optimizer::optimizeSPR(Tree &tree, double cutOff, set<Tree> &bestTr
 			{
 				time_t eta = (elapsed * tree._branches.size()) / i - elapsed;
 				cout << "   ETA: " << printTime(eta) << "   " << count / elapsed << " Trees/s   [" << fixed << setprecision(2) << bestTrees.begin()->_logLH << ","
-						<< bestTrees.rbegin()->_logLH << "]   " << flush;
+						<< bestTrees.rbegin()->_logLH << "|" << bestTrees.size() << "]   " << flush;
 			}
 		}
 	}
 	return count;
 }
 
-unsigned int Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTrees)
+unsigned int Optimizer::optimizeNNI(Tree &tree, double cutOff, vector<Tree> &bestTrees, int maxBestTrees)
 {
 	cout << "Performing NNI moves" << endl;
 	unsigned int count = 0;
@@ -130,7 +145,7 @@ unsigned int Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTr
 				Tree t = tree;
 				Branch *b = t.findBranch(tree._branches[i - 1]->getId());
 				NNI(b, j, t._root);
-				assessTree(t, cutOff, bestTrees);
+				assessTree(t, cutOff, bestTrees, maxBestTrees);
 				count++;
 			}
 		}
@@ -140,14 +155,18 @@ unsigned int Optimizer::optimizeNNI(Tree &tree, double cutOff, set<Tree> &bestTr
 		{
 			time_t eta = (elapsed * tree._branches.size()) / i - elapsed;
 			cout << "   ETA: " << printTime(eta) << "   " << count / elapsed << " Trees/s   [" << fixed << setprecision(2) << bestTrees.begin()->_logLH << ","
-					<< bestTrees.rbegin()->_logLH << "]   " << flush;
+					<< bestTrees.rbegin()->_logLH << "|" << bestTrees.size() << "]   " << flush;
 		}
 	}
 	return count;
 }
 
-void Optimizer::assessTree(Tree &tree, double cutOff, set<Tree> &bestTrees)
+void Optimizer::assessTree(Tree &tree, double cutOff, vector<Tree> &bestTrees, int maxBestTrees)
 {
+    if (maxBestTrees == 0) {
+		maxBestTrees = MAX_BEST_TREES;
+    }
+	
 	for (unsigned int m = 0; m < tree._branches.size(); m++)
 	{
 		tree._branches[m]->resetVectors();
@@ -158,8 +177,9 @@ void Optimizer::assessTree(Tree &tree, double cutOff, set<Tree> &bestTrees)
 	tree.computeLH();
 	if (tree > *bestTrees.begin())
 	{
-		bestTrees.insert(tree);
-		if (bestTrees.size() > MAX_BEST_TREES) bestTrees.erase(bestTrees.begin());
+		if (bestTrees.size() >= maxBestTrees) bestTrees.erase(bestTrees.begin());
+        bestTrees.insert(bestTrees.begin(), tree);
+        sort(bestTrees.begin(), bestTrees.end());
 		if (verbose >= 2)
 		{
 			cout << "\rlogLH: " << tree.getLogLH() << "                                                       " << endl;

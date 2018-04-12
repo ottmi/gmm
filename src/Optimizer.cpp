@@ -48,11 +48,15 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 			it->updateModel(options.cutOff, options.cutOff);
 		}
         sort(bestTrees.begin(), bestTrees.end());
-      
-        for (vector<Tree>::const_iterator it = bestTrees.begin(); it != bestTrees.end() - 1; it++) {
-          if (it->toString() == bestTrees.back().toString()) {
-            bestTrees.erase(it);
-          }
+
+		string bestTree = bestTrees.back().toString();
+		vector<Tree>::const_iterator it = bestTrees.begin();
+		while (it != bestTrees.end()-1) {
+			if (it->toString() == bestTree) {
+				it = bestTrees.erase(it);
+			} else {
+				it++;
+			}
         }
 
         if (bestTrees.back() > tree)  {
@@ -178,7 +182,7 @@ void Optimizer::assessTree(Tree &tree, double cutOff, vector<Tree> &bestTrees, i
 	if (tree > *bestTrees.begin())
 	{
 		if (bestTrees.size() >= maxBestTrees) bestTrees.erase(bestTrees.begin());
-        bestTrees.insert(bestTrees.begin(), tree);
+        bestTrees.push_back(tree);
         sort(bestTrees.begin(), bestTrees.end());
 		if (verbose >= 2)
 		{

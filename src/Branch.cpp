@@ -106,6 +106,10 @@ void Branch::getPathToRoot(vector<Branch*> &path)
 
 Node* Branch::getNeighbour(const Node *node)
 {
+	if (_nodes.size() != 2) {
+		return NULL;
+	}
+	
 	if (_nodes[0] == node)
 		return _nodes[1];
 	else if (_nodes[1] == node)

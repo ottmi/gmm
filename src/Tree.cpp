@@ -455,16 +455,27 @@ void Tree::printBranches()
 
 string Tree::toString(const bool topologyOnly) const
 {
+	if (_root == NULL) {
+		throw("Tree::toString() _root is NULL");
+	}
+	
     stringstream ss;
-	if (_unrooted)
-      ss << _root->getBranch(0)->getNeighbour(_root)->toString(NULL, topologyOnly);
+	if (_unrooted) {
+		Node* neighbour = _root->getBranch(0)->getNeighbour(_root);
+		if (neighbour) {
+			ss << _root->getBranch(0)->getNeighbour(_root)->toString(NULL, topologyOnly);
+		} else {
+			throw("Tree::toString() Unable to locate neighbour");
+		}
+	}
 	else
       ss << _root->toString(NULL, topologyOnly);
-    if (!topologyOnly) {
+	if (!topologyOnly) {
       ss << "[" << fixed << setprecision(6) << getLogLH() << "]";
-    }
-    ss << ";";
-    return ss.str();
+	}
+	
+	ss << ";";
+	return ss.str();
 }
 
 void Tree::print()

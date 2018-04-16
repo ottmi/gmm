@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
 
 	cout << PROGDATE << endl << endl;
 
+	time_t startTime = time(NULL);
 	Options options;
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
@@ -165,6 +166,7 @@ int main(int argc, char **argv) {
 	}
 
 	for (unsigned int i = 0; i < treeStrings.size(); i++) {
+		time_t t1 = time(NULL);
 		cout << endl << "Processing tree " << i + 1 << "/" << treeStrings.size() << endl;
 		try {
 			Tree tree;
@@ -189,6 +191,8 @@ int main(int argc, char **argv) {
 				}
 				cout << endl << "Best tree found: " << fixed << setprecision(10) << tree.getLogLH() << endl;
 			}
+			time_t t2 = time(NULL);
+			cout << "Time elapsed: " << printTime(t2-t1) << endl;
 			cout << endl;
 			tree.print();
 		} catch (string& s) {
@@ -199,5 +203,6 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	cout << "Total time elapsed: " << printTime(time(NULL) - startTime) << endl;
 	return 0;
 }

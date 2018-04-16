@@ -33,6 +33,7 @@ public:
 	double getLogLH() const;
 	void computeLH();
 	void updateModel(double qDelta, double betaDelta, bool thorough = false);
+	void clearModel() ;
 
 	void printBranches();
 	void printNodes();

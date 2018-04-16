@@ -423,6 +423,14 @@ void Tree::updateModel(double qDelta, double betaDelta, bool thorough)
 	} while (updates > 0 || (thorough && fabs(prevLH - getLogLH()) > 0.1));
 }
 
+void Tree::clearModel() {
+	for (unsigned int m = 0; m < _branches.size(); m++)
+	{
+		_branches[m]->resetVectors();
+		_branches[m]->resetQ();
+	}
+}
+
 void Tree::printNodes()
 {
 	cout << "Internal Nodes: " << endl;

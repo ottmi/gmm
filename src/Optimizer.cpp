@@ -27,15 +27,19 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 	bool improved = true;
 	unsigned int total = 0;
 
-	tree.updateModel(currentCutOff, currentCutOff);
-	tree.computeLH();
-	bestTrees.push_back(tree);
-
 	unsigned int round = 0;
 	while (improved)
 	{
-		cout << endl << "Starting round #" << round << " cutoff=" << currentCutOff << endl;
+		cout << endl << "Starting round #" << round << " cutoff=" << currentCutOff << " logLH=" << fixed << setprecision(6) << tree.getLogLH() << endl;
 		improved = false;
+		
+		// Reset model so that logLH comparissons in assessTree() are fair
+		tree.clearModel();
+		tree.updateModel(currentCutOff, currentCutOff);
+		tree.computeLH();
+		
+		bestTrees.clear();
+		bestTrees.push_back(tree);
 
 		unsigned int count;
 		if (round % 2 == 0)
@@ -44,27 +48,10 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 			count = optimizeSPR(tree, currentCutOff, bestTrees, options.maxBestTrees);
 		total+= count;
 
-		for (vector<Tree>::iterator it = bestTrees.begin(); it != bestTrees.end(); it++) {
-			it->updateModel(options.cutOff, options.cutOff);
+        if ((round % 2 == 0) || bestTrees.back().toString(true) != tree.toString(true)) {
+			improved = true;
+			tree = bestTrees.back();
 		}
-        sort(bestTrees.begin(), bestTrees.end());
-
-		string bestTree = bestTrees.back().toString();
-		vector<Tree>::const_iterator it = bestTrees.begin();
-		while (it != bestTrees.end()-1) {
-			if (it->toString() == bestTree) {
-				it = bestTrees.erase(it);
-			} else {
-				it++;
-			}
-        }
-
-        if (bestTrees.back() > tree)  {
-              if ((bestTrees.back().getLogLH() - tree.getLogLH() > options.cutOff) && ((round % 2 == 0) || bestTrees.back().toString() != tree.toString())) {
-                improved = true;
-              }
-              tree = bestTrees.back();
-        }
       
 		if (currentCutOff > options.cutOff) currentCutOff /= 2;
 		if (currentCutOff < options.cutOff) currentCutOff = options.cutOff;
@@ -170,17 +157,12 @@ void Optimizer::assessTree(Tree &tree, double cutOff, vector<Tree> &bestTrees, i
     if (maxBestTrees == 0) {
 		maxBestTrees = MAX_BEST_TREES;
     }
-	
-	for (unsigned int m = 0; m < tree._branches.size(); m++)
-	{
-		tree._branches[m]->resetVectors();
-		tree._branches[m]->resetQ();
-	}
 
+	tree.clearModel();
 	tree.updateModel(cutOff, cutOff);
 	tree.computeLH();
-	if (tree > *bestTrees.begin())
-	{
+	
+	if ((bestTrees.size() == 0) || (tree > *bestTrees.begin()))	{
 		if (bestTrees.size() >= maxBestTrees) bestTrees.erase(bestTrees.begin());
         bestTrees.push_back(tree);
         sort(bestTrees.begin(), bestTrees.end());

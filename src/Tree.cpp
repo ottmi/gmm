@@ -468,6 +468,9 @@ string Tree::toString(const bool topologyOnly) const
 	}
 	
     stringstream ss;
+	if (!topologyOnly) {
+		ss << "[" << fixed << setprecision(6) << getLogLH() << "]";
+	}
 	if (_unrooted) {
 		Node* neighbour = _root->getBranch(0)->getNeighbour(_root);
 		if (neighbour) {
@@ -475,11 +478,8 @@ string Tree::toString(const bool topologyOnly) const
 		} else {
 			throw("Tree::toString() Unable to locate neighbour");
 		}
-	}
-	else
+	} else {
       ss << _root->toString(NULL, topologyOnly);
-	if (!topologyOnly) {
-      ss << "[" << fixed << setprecision(6) << getLogLH() << "]";
 	}
 	
 	ss << ";";

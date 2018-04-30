@@ -28,17 +28,15 @@ Tree::~Tree()
     clean();
 }
 
-bool Tree::operator==(Tree const &tree) const
-{
-	if (_logLH == 0)
-      throw(string("Tree::operator==() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-      throw(string("Tree::operator==() RHS logLH hasn't been computed yet"));
-	return (_logLH == tree._logLH);
+bool Tree::operator==(Tree const &tree) const {
+	return toString(true) == tree.toString(true);
 }
 
-bool Tree::operator>(Tree const &tree) const
-{
+bool Tree::operator!=(Tree const &tree) const {
+	return !(*this == tree);
+}
+
+bool Tree::operator>(Tree const &tree) const {
 	if (_logLH == 0)
       throw(string("Tree::operator>() LHS logLH hasn't been computed yet"));
 	if (tree._logLH == 0)
@@ -46,31 +44,12 @@ bool Tree::operator>(Tree const &tree) const
 	return (_logLH > tree._logLH);
 }
 
-bool Tree::operator<(Tree const &tree) const
-{
+bool Tree::operator<(Tree const &tree) const {
 	if (_logLH == 0)
       throw(string("Tree::operator<() LHS logLH hasn't been computed yet"));
 	if (tree._logLH == 0)
       throw(string("Tree::operator<() RHS logLH hasn't been computed yet"));
 	return (_logLH < tree._logLH);
-}
-
-bool Tree::operator>=(Tree const &tree) const
-{
-	if (_logLH == 0)
-      throw(string("Tree::operator>=() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-      throw(string("Tree::operator>=() RHS logLH hasn't been computed yet"));
-	return (_logLH >= tree._logLH);
-}
-
-bool Tree::operator<=(Tree const &tree) const
-{
-	if (_logLH == 0)
-      throw(string("Tree::operator<=() LHS logLH hasn't been computed yet"));
-	if (tree._logLH == 0)
-      throw(string("Tree::operator<=() RHS logLH hasn't been computed yet"));
-	return (_logLH <= tree._logLH);
 }
 
 Tree& Tree::operator=(Tree const &tree)

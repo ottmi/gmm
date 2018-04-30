@@ -19,10 +19,9 @@ public:
 	~Tree();
 
 	bool operator==(Tree const &tree) const;
+	bool operator!=(Tree const &tree) const;
 	bool operator>(Tree const &tree) const;
 	bool operator<(Tree const &tree) const;
-	bool operator>=(Tree const &tree) const;
-	bool operator<=(Tree const &tree) const;
 	Tree& operator= (Tree const &tree);
 
     void removeNode(Node *node);

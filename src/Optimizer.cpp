@@ -85,18 +85,6 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 		}
 		cout <<  fixed << setprecision(6) << tree.getLogLH() << " (" << count << " topologies evaluated)                   " << endl;
 	}
-	
-	if (options.maxBestTrees) {
-		cout << endl << "Final model optimization on " << bestTrees.size() << " candidate trees" << endl;
-		for (vector<Tree>::iterator it = bestTrees.begin(); it != bestTrees.end(); it++) {
-			it->updateModel(options.cutOff, options.cutOff, true);
-		}
-		sort(bestTrees.begin(), bestTrees.end());
-		tree = bestTrees.back();
-	} else {
-		cout << endl << "Final model optimization on best tree" << endl;
-		tree.updateModel(options.cutOff, options.cutOff, true);
-	}
 }
 
 unsigned int Optimizer::optimizeSPR(Tree &tree, double cutOff, vector<Tree> &bestTrees, int maxBestTrees)

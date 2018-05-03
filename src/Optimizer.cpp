@@ -48,15 +48,35 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 			count = optimizeSPR(tree, currentCutOff, bestTrees, options.maxBestTrees);
 		total+= count;
 
-        if ((round % 2 == 0) || bestTrees.back().toString(true) != tree.toString(true)) {
+		if (verbose >= 2) {
+			cout << "\rBest tree candidates before model optimization:                                     " << endl;
+			for (auto t : bestTrees) {
+				cout << t.getLogLH() << " " << t.toString() << endl;
+			}
+		}
+		
+		cout << "\rModel optimization on " << bestTrees.size() << " candidate trees                                     " << endl;
+		for (vector<Tree>::iterator it = bestTrees.begin(); it != bestTrees.end(); it++) {
+			it->updateModel(currentCutOff, currentCutOff, true);
+		}
+		sort(bestTrees.begin(), bestTrees.end());
+		
+		if (verbose >= 1) {
+			cout << "\rBest tree candidates after model optimization:" << endl;
+			for (auto t : bestTrees) {
+				cout << t.getLogLH() << " " << t.toString() << endl;
+			}
+		}
+
+		if ((round % 2 == 0) || bestTrees.back() != tree) {
 			improved = true;
-			tree = bestTrees.back();
 		}
       
 		if (currentCutOff > options.cutOff) currentCutOff /= 2;
 		if (currentCutOff < options.cutOff) currentCutOff = options.cutOff;
 
 		round++;
+		tree = bestTrees.back();
 		cout << "\rBest tree: " << fixed << setprecision(6) << tree.getLogLH() << " (out of " << count << " considered)                                 " << endl;
 	}
 	

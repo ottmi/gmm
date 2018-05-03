@@ -30,13 +30,13 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 	unsigned int round = 0;
 	while (improved)
 	{
-		cout << endl << "Starting round #" << round << " cutoff=" << currentCutOff << " logLH=" << fixed << setprecision(6) << tree.getLogLH() << endl;
-		improved = false;
-		
 		// Reset model so that logLH comparissons in assessTree() are fair
+		Tree bestTree = tree;
 		tree.clearModel();
 		tree.updateModel(currentCutOff, currentCutOff);
 		tree.computeLH();
+		cout << endl << "Starting round #" << round << " cutoff=" << currentCutOff << " logLH=" << fixed << setprecision(6) << tree.getLogLH() << " (" << bestTree.getLogLH() << ")" << endl;
+		improved = false;
 		
 		bestTrees.clear();
 		bestTrees.push_back(tree);
@@ -68,7 +68,7 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 			}
 		}
 
-		if ((round % 2 == 0) || bestTrees.back() != tree) {
+		if ((round % 2 == 0) || bestTrees.back() > bestTree) {
 			improved = true;
 		}
       
@@ -76,8 +76,14 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 		if (currentCutOff < options.cutOff) currentCutOff = options.cutOff;
 
 		round++;
-		tree = bestTrees.back();
-		cout << "\rBest tree: " << fixed << setprecision(6) << tree.getLogLH() << " (out of " << count << " considered)                                 " << endl;
+		if (!improved) {
+			tree = bestTree;
+			cout << "\rNo improvements, keeping previous best tree: ";
+		} else {
+			tree = bestTrees.back();
+			cout << "\rTree improved: ";
+		}
+		cout <<  fixed << setprecision(6) << tree.getLogLH() << " (" << count << " topologies evaluated)                   " << endl;
 	}
 	
 	if (options.maxBestTrees) {

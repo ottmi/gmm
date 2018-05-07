@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <list>
 
 Node::Node(int id)
 {
@@ -51,30 +52,50 @@ void Node::getDescendantBranches(Node *parent, vector<int> &branches)
 	}
 }
 
+bool sortNodes(const Node* lhs, const Node* rhs) {
+	if (lhs->isLeaf()) {
+		if (rhs->isLeaf()) {
+			return (lhs->getLabel() < rhs->getLabel());
+		} else {
+			return true;
+		}
+	} else if (rhs->isLeaf()) {
+		return false;
+	} else {
+		return lhs->getId() < rhs->getId();
+	}
+}
+
 string Node::toString(const Node *parent, bool topologyOnly) const
 {
 	stringstream ss;
 	Branch *parentBranch = NULL;
 
-	vector<Node*> list;
+	list<Node*> neighbours;
 	for (unsigned int i = 0; i < _branches.size(); i++)
 	{
 		Node *neighbour = _branches[i]->getNeighbour(this);
-		if (neighbour != parent)
-			list.push_back(neighbour);
+		if (neighbour != parent) {
+			if (neighbour->isLeaf()) {
+				neighbours.push_back(neighbour);
+			} else {
+				neighbours.push_front(neighbour);
+			}
+		}
 		else
 			parentBranch = _branches[i];
 	}
-
-	if (list.size() >= 1)
+	
+	if (neighbours.size() >= 1)
 	{
+		neighbours.sort(sortNodes);
 		ss << "(";
-		for (unsigned int i = 0; i < list.size() - 1; i++)
+		for (list<Node*>::iterator node = neighbours.begin(); node != --neighbours.end(); node++)
 		{
-			ss << list[i]->toString(this, topologyOnly);
+			ss << (*node)->toString(this, topologyOnly);
 			ss << ",";
 		}
-		ss << list[list.size() - 1]->toString(this, topologyOnly);
+		ss << (*neighbours.rbegin())->toString(this, topologyOnly);
 		ss << ")";
 	}
 

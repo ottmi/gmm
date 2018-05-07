@@ -13,11 +13,11 @@ public:
 	Node(int id);
 	virtual
 	~Node();
-
+	
 	void setSequence(unsigned int* seq);
-	void setLabel(string &label) { this->_label = label; };
-	string& getLabel() { return _label; };
-	int getId() { return _id; };
+	void setLabel(const string &label) { this->_label = label; };
+	string getLabel() const { return _label; };
+	int getId() const { return _id; };
 	string getIdent();
 	Branch* getBranch(int id);
 	vector<Branch*>& getBranches() { return _branches; };
@@ -39,7 +39,7 @@ public:
 	vector<Node*> getTraversal(Node *parent = NULL);
 	void getDescendantBranches(Node *parent, vector<int> &branches);
 
-	bool isLeaf() { return _isLeaf; };
+	bool isLeaf() const { return _isLeaf; };
     void setLeaf() { _isLeaf = true; };
 
 	unsigned int getBase(unsigned int position);

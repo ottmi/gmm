@@ -139,38 +139,8 @@ void Alignment::readFasta(string fileName)
 
 void Alignment::identifyDataTpe(unsigned int grouping)
 {
-	map<char, unsigned long> baseOccurences;
-	for (unsigned int i = 0; i < _sequences.size(); i++)
-	{
-		string s = _sequences[i];
-		for (unsigned int j = 0; j < s.length(); j++)
-			baseOccurences[s[j]]++;
-	}
-
-	string maps[] = { _DNA_MAP, _AA_MAP };
-	unsigned long counts[2];
-	for (unsigned int i = 0; i < 2; i++)
-	{
-		counts[i] = 0;
-		string map = maps[i];
-		for (unsigned j = 0; j < map.length(); j++)
-			counts[i] += baseOccurences[map[j]];
-	}
-
-	if (verbose) cout << counts[0] << " DNA characters and " << counts[1] << " AA characters." << endl;
-	if (counts[0] >= counts[1])
-	{
-		_dataType = _DNA_DATA;
-		if (grouping == 1)
-			charStates = 4;
-		else if (grouping == 2)
-			charStates = 16;
-		else if (grouping == 3) charStates = 64;
-	} else
-	{
-		_dataType = _AA_DATA;
-		charStates = 20;
-	}
+	_dataType = _AA_DATA;
+	charStates = 10;
 }
 
 void Alignment::compress(unsigned int grouping)

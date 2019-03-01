@@ -118,94 +118,44 @@ unsigned int mapAAToNum(char c)
 			d = 0x01;
 			break;
 
-		case 'D':
-		case 'd':
-			d = 0x02;
-			break;
-
-		case 'E':
-		case 'e':
-			d = 0x03;
-			break;
-
-		case 'F':
-		case 'f':
-			d = 0x04;
-			break;
-
 		case 'G':
 		case 'g':
-			d = 0x05;
-			break;
-
-		case 'H':
-		case 'h':
-			d = 0x06;
-			break;
-
-		case 'I':
-		case 'i':
-			d = 0x07;
-			break;
-
-		case 'K':
-		case 'k':
-			d = 0x08;
-			break;
-
-		case 'L':
-		case 'l':
-			d = 0x09;
-			break;
-
-		case 'M':
-		case 'm':
-			d = 0x0A;
-			break;
-
-		case 'N':
-		case 'n':
-			d = 0x0B;
-			break;
-
-		case 'P':
-		case 'p':
-			d = 0x0C;
-			break;
-
-		case 'Q':
-		case 'q':
-			d = 0x0D;
-			break;
-
-		case 'R':
-		case 'r':
-			d = 0x0E;
-			break;
-
-		case 'S':
-		case 's':
-			d = 0x0F;
+			d = 0x02;
 			break;
 
 		case 'T':
 		case 't':
-			d = 0x10;
+			d = 0x03;
 			break;
 
-		case 'V':
-		case 'v':
-			d = 0x11;
-			break;
-
-		case 'W':
-		case 'w':
-			d = 0x12;
+		case 'R':
+		case 'r':
+			d = 0x04;
 			break;
 
 		case 'Y':
 		case 'y':
-			d = 0x13;
+			d = 0x05;
+			break;
+
+		case 'K':
+		case 'k':
+			d = 0x06;
+			break;
+
+		case 'M':
+		case 'm':
+			d = 0x07;
+			break;
+
+		case 'S':
+		case 's':
+			d = 0x08;
+			break;
+
+		case 'W':
+		case 'w':
+			d = 0x09;
 			break;
 
 		default:

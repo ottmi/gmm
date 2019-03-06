@@ -177,7 +177,7 @@ void Optimizer::assessTree(Tree &tree, double cutOff, vector<Tree> &bestTrees, i
 	tree.computeLH();
 	
 	// Only insert into list if the logLH score is better than the worst tree in the list and the topology does not exist yet
-	if ((bestTrees.size() == 0) || ((tree > *bestTrees.begin()) && (std::find(bestTrees.begin(), bestTrees.end(), tree) == bestTrees.end()))) {
+	if ((bestTrees.size() < maxBestTrees) || ((tree > *bestTrees.begin()) && (std::find(bestTrees.begin(), bestTrees.end(), tree) == bestTrees.end()))) {
 		if (bestTrees.size() >= maxBestTrees) bestTrees.erase(bestTrees.begin());
         bestTrees.push_back(tree);
         sort(bestTrees.begin(), bestTrees.end());

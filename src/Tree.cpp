@@ -284,7 +284,7 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 		_unrooted = false;
     } else {
       if (prevInternalNode->getBranches().size() == 2) {
-		cout << "This Newick representation appears to be a rooted tree, rooted at the internal node " << prevInternalNode->getIdent() << " with the single childs " << prevInternalNode->getChild(0)->getIdent() << " and " << prevInternalNode->getChild(1)->getIdent() << ". Removing node." << endl;
+		cout << "This Newick representation appears to be a rooted tree, rooted at the internal node " << prevInternalNode->getIdent() << " with two descendants " << prevInternalNode->getChild(0)->getIdent() << " and " << prevInternalNode->getChild(1)->getIdent() << ". Removing internal node " << prevInternalNode->getIdent() << endl;
         
         Node* child0 = prevInternalNode->getChild(0);
         Node* child1 = prevInternalNode->getChild(1);

@@ -49,7 +49,7 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 		total+= count;
 
 		if (verbose >= 2) {
-			cout << "\rBest tree candidates before model optimization:                                     " << endl;
+			cout << "\rBest candidate tree before model optimization:                                      " << endl;
 			for (auto t : bestTrees) {
 				cout << t.getLogLH() << " " << t.toString() << endl;
 			}
@@ -62,7 +62,7 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 		sort(bestTrees.begin(), bestTrees.end());
 		
 		if (verbose >= 1) {
-			cout << "\rBest tree candidates after model optimization:" << endl;
+			cout << "\rBest candidate trees after model optimization:" << endl;
 			for (auto t : bestTrees) {
 				cout << t.getLogLH() << " " << t.toString() << endl;
 			}

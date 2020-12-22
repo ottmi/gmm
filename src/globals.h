@@ -4,8 +4,8 @@
 using namespace std;
 
 #define PROGNAME "gmm"
-#define VERSION "0.1.46"
-#define PROGDATE "2019-03-20"
+#define VERSION "0.1.47"
+#define PROGDATE "2020-12-22"
 
 #define _DNA_DATA				0
 #define	_AA_DATA				1
@@ -22,7 +22,8 @@ typedef struct opt_struct
 	string rootNode;
 	bool evaluateOnly;
 	double cutOff;
-  unsigned int maxBestTrees;
+	bool restart;
+	unsigned int maxBestTrees;
 	bool help;
 } Options;
 

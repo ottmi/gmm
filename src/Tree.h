@@ -42,6 +42,9 @@ public:
 	vector<Node*> const& getLeaves() const { return _leaves; };
 	vector<Node*> const& getInternalNodes() const { return _internalNodes; };
 	vector<Branch*> const& getBranches() const { return _branches; };
+	
+	void setComment(const string &comment) { this->_comment = comment; };
+	string getComment() const { return _comment; };
 
 private:
   void clean();
@@ -54,6 +57,7 @@ private:
 	vector<Branch*> _branches;
 	Alignment* _alignment;
 	double _logLH;
+	string _comment;
 };
 
 #endif /* TREE_H_ */

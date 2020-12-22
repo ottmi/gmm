@@ -27,7 +27,7 @@ void cancellationHandler(int parameter) {
 
 void printSyntax() {
 	cout << "Syntax:" << endl;
-	cout << "  gmm -s<FILE> [-d|-c] -t<FILE|STRING> [-r<STRING>] [-e] [-x<NUM>] [-b<NUM>] [-v[NUM]]" << endl;
+	cout << "  gmm -s<FILE> [-d|-c] -t<FILE|STRING> [-r<STRING>] [-e] [-x<NUM>] [-y] [-b<NUM>] [-v[NUM]]" << endl;
 	cout << "  gmm -h" << endl;
 	cout << endl;
 
@@ -39,6 +39,7 @@ void printSyntax() {
 	cout << "  -r\tRoot the tree at this node (has to be a leaf)" << endl;
 	cout << "  -e\tOnly evaluate given tree topology" << endl;
 	cout << "  -x\tOptimization cutoff [default: 0.0001]" << endl;
+	cout << "  -y\tEnable Checkpoint/Restart" << endl;
 	cout << "  -b\tNumber of best trees to keep and print" << endl;
 	cout << "  -v\tBe increasingly verbose" << endl;
 	cout << "  -h\tThis help page" << endl;
@@ -52,9 +53,10 @@ int parseArguments(int argc, char** argv, Options *options) {
 	options->alignmentGrouping = 1;
 	options->evaluateOnly = false;
 	options->cutOff = 0.0001;
+	options->restart = false;
 	options ->maxBestTrees = 0;
 
-	while ((c = getopt(argc, argv, "s:dct:r:ex:b:v::h")) != -1) {
+	while ((c = getopt(argc, argv, "s:dct:r:ex:yb:v::h")) != -1) {
 		switch (c) {
 		case 's':
 			options->alignment = optarg;
@@ -79,6 +81,9 @@ int parseArguments(int argc, char** argv, Options *options) {
 			ss >> options->cutOff;
 			break;
 		}
+		case 'y':
+			options->restart = true;
+			break;
 		case 'b':
 			options ->maxBestTrees = atoi(optarg);
 			break;
@@ -165,6 +170,7 @@ int main(int argc, char **argv) {
 		return (255);
 	}
 
+	cout << endl << "Checkpoint/Restart has been enabled" << endl;
 	for (unsigned int i = 0; i < treeStrings.size(); i++) {
 		time_t t1 = time(NULL);
 		cout << endl << "Processing tree " << i + 1 << "/" << treeStrings.size() << endl;

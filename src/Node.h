@@ -17,6 +17,8 @@ public:
 	void setSequence(unsigned int* seq);
 	void setLabel(const string &label) { this->_label = label; };
 	string getLabel() const { return _label; };
+	void setComment(const string &comment) { this->_comment = comment; };
+	string getComment() const { return _comment; };
 	int getId() const { return _id; };
 	string getIdent();
 	Branch* getBranch(int id);
@@ -47,6 +49,7 @@ public:
 
 private:
 	string _label;
+	string _comment;
 	vector <Branch*> _branches;
 	bool _isLeaf;
 	int _id;

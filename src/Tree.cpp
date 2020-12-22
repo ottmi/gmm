@@ -196,6 +196,7 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 	Node *prevInternalNode, *currentNode;
 	prevInternalNode = currentNode = NULL;
 	string label;
+	string comment;
 	double distance = -1.0;
 	bool nextCouldBeLeaf = false;
 
@@ -218,6 +219,8 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
                 Node *leaf = new Node(nodeCount++);
                 leaf->setLabel(label);
                 label.clear();
+				leaf->setComment(comment);
+				comment.clear();
                 leaf->setLeaf();
                 if (verbose >= 5)
                     cout << "Leaf node " << leaf->getIdent() << " " << _leaves.size() + 1 << "/" << nodeCount << ") starts" << endl;
@@ -229,11 +232,13 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 			} else {
 				prevInternalNode->setLabel(label);
 				label.clear();
+				prevInternalNode->setComment(comment);
+				comment.clear();
 //				Branch *branch = prevInternalNode->getBranch(0);
 //				branch->setDistance(distance);
 			}
 
-          if (treeString[i] == ')') { // internal node ends
+            if (treeString[i] == ')') { // internal node ends
                 if (verbose >= 5)
                     cout << "Internal node " << currentNode->getIdent() << " " << _internalNodes.size() << "/" << nodeCount << ") ends" << endl;
 				prevInternalNode = currentNode;
@@ -266,14 +271,24 @@ void Tree::readNewick(Alignment *alignment, string treeString, Options &options)
 				throw("Error parsing Newick tree: a square bracket opened at position " + str(i) + " but no closing bracket could be found.");
 			else
 			{
-				cout << "Comment: " << treeString.substr(i + 1, j - i - 1) << endl;
+				comment = treeString.substr(i + 1, j - i - 1);
 				i = j + 1;
+				//if the tree is yet empty, the comment applies to the tree
+				if ((_branches.size() == 0) && (_internalNodes.size() == 0) && (_leaves.size() == 0)) {
+					setComment(comment);
+					comment.clear();
+				}
 			}
 		}
 	}
 
 	prevInternalNode->setLabel(label);
 	label.clear();
+	
+	if (comment.size() > 0) {
+		setComment(comment);
+		comment.clear();
+	}
 
 	if (prevInternalNode->getBranches().size() == 1)
 	{

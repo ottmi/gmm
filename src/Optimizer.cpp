@@ -26,6 +26,22 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 	double currentCutOff = 0.01;
 	bool improved = true;
 	unsigned int total = 0;
+	
+	if (options.restart) {
+		string comment = tree.getComment();
+		if (comment.size() > 0) {
+			size_t pos = comment.find("cutoff=");
+			if (pos != string::npos) {
+				try {
+					double restartCutOff = stod(comment.substr(pos+7));
+					cout << "Restarting with cutoff=" << restartCutOff << endl;
+					currentCutOff = restartCutOff;
+				} catch (exception& e) {
+					cout << "Error interpreting cutoff for restart: " << e.what() << endl;
+				}
+			}
+		}
+	}
 
 	unsigned int round = 0;
 	while (improved)
@@ -84,6 +100,9 @@ void Optimizer::rearrange(Tree &tree, Options &options, vector<Tree> &bestTrees)
 			cout << "\rTree improved: ";
 		}
 		cout <<  fixed << setprecision(6) << tree.getLogLH() << " (" << count << " topologies evaluated)                   " << endl;
+		if (options.restart) {
+			cout << "Checkpoint: [&cutoff=" << currentCutOff << "]" << tree.toString() << endl;
+		}
 	}
 }
 
